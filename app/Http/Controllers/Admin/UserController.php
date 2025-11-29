@@ -66,7 +66,7 @@ class UserController extends Controller
             'Personas_licencia' => $request->Personas_licencia,
             'Personas_vigenciaLicencia' => $request->Personas_vigenciaLicencia,
             'Personas_usuario' => $request->Personas_usuario,
-            'Personas_contrasena' => $request->Personas_contrasena,
+            'Personas_contrasena' => \Illuminate\Support\Facades\Hash::make($request->Personas_contrasena),
             'usuario_idRol' => $request->usuario_idRol,
             'Personas_esEmpleado' => $request->Personas_esEmpleado ?? false, // Default to false if not provided
         ]);
@@ -133,7 +133,7 @@ class UserController extends Controller
         $user = User::where('Personas_usuarioID', $id)
             ->with('menus') // <--- Aquí estaba el error: se necesita usar ()
             ->first();
-            
+
         if (!$user) {
             return response()->json(['error' => 'Usuario no encontrado'], 404);
         }

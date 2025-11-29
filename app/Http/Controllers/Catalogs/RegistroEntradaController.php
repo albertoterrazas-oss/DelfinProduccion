@@ -82,7 +82,7 @@ class RegistroEntradaController extends Controller
     public function store(Request $request)
     {
         try {
-            $user = $request->user();
+            // $user = $request->user();
 
             // 1. Obtiene la asignación activa (estatus 1)
             $asignacion = ChoferUnidadAsignar::where('CUA_estatus', 1)
@@ -105,7 +105,7 @@ class RegistroEntradaController extends Controller
                 'Movimientos_kilometraje'    => $request->kilometers,
                 'Movimientos_combustible'    => $request->combustible,
                 'Movimientos_observaciones'  => $request->observation,
-                'Movimientos_usuarioID'      => $user->Personas_usuarioID,
+                'Movimientos_usuarioID'      => $request->user,
             ];
 
             $movimiento = Movimientos::create($datosMovimiento);
@@ -137,7 +137,7 @@ class RegistroEntradaController extends Controller
                 $datosIncidencia = [
                     'IncidenciasMovimiento_movimientoID'  => $movimiento->Movimientos_movimientoID,
                     'IncidenciasMovimiento_listaID'      => $list['id'],
-                    'IncidenciasMovimiento_usuarioID'    => $user->Personas_usuarioID,
+                    'IncidenciasMovimiento_usuarioID'    => $request->user,
                     'IncidenciasMovimiento_observaciones' => $list['observacion'],
                 ];
 
@@ -149,17 +149,24 @@ class RegistroEntradaController extends Controller
 
             $this->configEmail();
 
-            $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get(); // Obtiene los correos de notificación
+            // Obtiene los correos de notificación activos
+            $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
 
+            // Datos a enviar en el correo
             $Datos = (object) [
                 "Titulo" => "CORREO DE INCIDENCIAS",
                 "Incidencias" => $incidenciasGuardadas,
             ];
 
-            foreach ($Correos as $correo) {
-                $destinatario = $correo->correoNotificaciones_correo;
-                Mail::to($destinatario)->send(new ConfiguracionCorreo($Datos));
+            // 🚀 VERIFICACIÓN CLAVE: Solo entra al bucle si la colección $Correos no está vacía
+            if ($Correos->isNotEmpty()) {
+                foreach ($Correos as $correo) {
+                    $destinatario = $correo->correoNotificaciones_correo;
+                    // Asumiendo que ConfiguracionCorreo es tu Mailable
+                    Mail::to($destinatario)->send(new ConfiguracionCorreo($Datos));
+                }
             }
+            // Si $Correos está vacío, el código simplemente continúa sin enviar correos.
 
 
             if ($request->movementType == "ENTRADA") {

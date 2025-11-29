@@ -3,7 +3,7 @@
 ;
 
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Auth\Admin\RolesController;
+use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Catalogs\CorreosController;
 use App\Http\Controllers\Catalogs\DepartamentoController;
 use App\Http\Controllers\Catalogs\DestinosController;

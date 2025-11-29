@@ -44,20 +44,22 @@ const unitValidations = {
     // El resto son opcionales por ahora
 };
 
-
+const userObject = JSON.parse(localStorage.getItem('user'));
+// const personasUsuarioID = userObject.Personas_usuarioID; // Esta era la línea que faltaba si querías una variable intermedia
 // Datos de ejemplo para el estado inicial del formulario de Unidad
 const initialUnitData = {
-    Unidades_ID: null, // Nuevo ID para identificar en edición
+    Unidades_ID: null,
     Unidades_numeroEconomico: "",
     Unidades_numeroSerie: "",
     Unidades_modelo: "",
-    Unidades_ano: "", // Almacenado como string
+    Unidades_ano: "",
     Unidades_placa: "",
-    Unidades_kilometraje: 0, // Podría ser un número
-    Unidades_mantenimiento: 0, // Booleano
-    Unidades_estatus: "1", // Ejemplo: 'Disponible', 'En Viaje', 'Taller'
+    Unidades_kilometraje: 0,
+    Unidades_mantenimiento: 0,
+    Unidades_estatus: "1",
+    // Aquí se asigna el valor:
+    Unidades_usuarioID: userObject.Personas_usuarioID 
 };
-
 // Componente del Formulario de Unidad (Modal de Headless UI)
 function UnitFormDialog({ isOpen, closeModal, onSubmit, unitToEdit, action, errors, setErrors }) {
     // Cambiado de personData a unitData
@@ -359,6 +361,7 @@ export default function Unidades() {
     }, [])
 
     return (
+        
         <div className="relative h-[100%] pb-4 px-3 overflow-auto blue-scroll">
 
             <div className="flex justify-between items-center p-3 border-b mb-4">

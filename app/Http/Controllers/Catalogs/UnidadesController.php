@@ -33,6 +33,8 @@ class UnidadesController extends Controller
             'Unidades_mantenimiento' => 'required|integer',
             // REQUERIDO y debe ser string
             'Unidades_estatus' => 'required',
+            'Unidades_usuarioID' => 'required',
+
             // CAMBIADO: Ahora es requerido y debe tener formato datetime completo para SQL Server
             // 'Unidades_fechaCreacion' => 'required|date_format:Y-m-d H:i:s',
             // 'Unidades_usuarioID' => 'required|integer',
@@ -92,6 +94,8 @@ class UnidadesController extends Controller
         $messages = $this->getValidationMessages();
         $user = $request->user();
 
+        // dd($user);
+
         // 2. Ejecutar la validación
         $validator = Validator::make($request->all(), $rules, $messages);
 
@@ -104,7 +108,7 @@ class UnidadesController extends Controller
         try {
 
             $validatedData = $validator->validated();
-            $validatedData['Unidades_usuarioID'] = $user->Personas_usuarioID;
+            // $validatedData['Unidades_usuarioID'] = $user->Personas_usuarioID;
             $validatedData['Unidades_fechaCreacion'] = Carbon::now()->format('Ymd H:i:s');
             $unidad = Unidades::create($validatedData);
 
@@ -396,5 +400,4 @@ class UnidadesController extends Controller
 
         return $unidadesCompletasDeHoy;
     }
-    
 }

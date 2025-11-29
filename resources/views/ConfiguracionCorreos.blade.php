@@ -69,18 +69,7 @@
             <h1>LISTADO</h1>
 
 
-            @if ($datos->Incidencias->isEmpty())
-                <p>No se encontraron incidencias guardadas.</p>
-            @else
-                <!-- 
-                    Iteramos sobre la colección de Incidencias y solo mostramos el nombre de la Lista.
-                -->
-                @foreach ($datos->Incidencias as $incidencia)
-                    <div class="list-item">
-                        <strong>{{ $incidencia->listaVerificacion->ListaVerificacion_nombre ?? 'Lista No Disponible' }}</strong>
-                    </div>
-                @endforeach
-            @endif
+          
 
         </div>
     </div>

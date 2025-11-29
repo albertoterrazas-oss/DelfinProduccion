@@ -109,7 +109,7 @@ export default function Reportes() {
     )
 
     return (
-        <div className="relative h-[100%] pb-4 px-3 overflow-auto bg-gray-50">
+        <div className=" pb-4 px-3 overflow-auto bg-gray-50">
 
             {/* Encabezado */}
             <div className="flex justify-between items-center p-3 border-b mb-4 bg-white sticky top-0 z-10 shadow-sm">

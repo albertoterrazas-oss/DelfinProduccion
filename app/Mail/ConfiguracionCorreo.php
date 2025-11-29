@@ -21,7 +21,7 @@ class ConfiguracionCorreo extends Mailable
     // ConfiguracionCorreos
     public function build()
     {
-        return $this->subject($this->information->Detalle)
+        return $this->subject("PRUEBA DE CORREO")
             ->view('ConfiguracionCorreos', [
                 'information' => $this->information,
             ]);

@@ -29,6 +29,7 @@ const RegistroYSalidaUnificado = () => {
     });
 
 
+    const userObject = JSON.parse(localStorage.getItem('user'));
 
     // Función auxiliar para obtener datos de una ruta
     const fetchData = async (routeName) => {
@@ -94,6 +95,9 @@ const RegistroYSalidaUnificado = () => {
         combustible: '',
         checklist: [],
         authorizationCode: '',
+
+        user: userObject.Personas_usuarioID
+
     };
 
     const [form, setForm] = useState(initialFormState);
@@ -243,7 +247,9 @@ const RegistroYSalidaUnificado = () => {
                 ...form,
                 motive: QuienConQuien.CUA_motivoID,
                 destination: QuienConQuien.CUA_destino,
-                driver: QuienConQuien.CUA_choferID
+                driver: QuienConQuien.CUA_choferID,
+                user: userObject.Personas_usuarioID
+
             });
             console.log("Estado 'form' actualizado con datos de QuienConQuien.");
         }
@@ -273,6 +279,8 @@ const RegistroYSalidaUnificado = () => {
                 unit: '',
                 driver: '',
                 destination: '',
+                user: userObject.Personas_usuarioID
+
             }));
             setRequests(prevRequests => ({
                 ...prevRequests,
@@ -287,8 +295,6 @@ const RegistroYSalidaUnificado = () => {
     useEffect(() => {
         getAllData();
     }, [form.movementType]); // <--- DEPENDENCIA: Elige qué valor monitorear
-
-
 
     const ConditionToggle = ({ label, name, currentValue, onToggle, isCritical = false }) => (
         <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">

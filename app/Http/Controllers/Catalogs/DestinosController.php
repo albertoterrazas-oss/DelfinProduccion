@@ -66,6 +66,7 @@ class DestinosController extends Controller
                 'Destinos_Latitud'   => 'required|numeric',
                 'Destinos_Longitud'  => 'required|numeric',
                 'Destinos_Estatus'   => 'required|boolean',
+                'Destinos_UsuarioID'   => 'required',
             ],
             [
                 'required' => 'El campo :attribute es obligatorio.',
@@ -78,7 +79,7 @@ class DestinosController extends Controller
 
         // Tu modelo tiene $timestamps = false, por lo que gestionamos la fecha.
         $validatedData['Destinos_Fecha'] = Carbon::now()->format('Ymd H:i:s');
-        $validatedData['Destinos_UsuarioID'] = $user->Personas_usuarioID;
+        // $validatedData['Destinos_UsuarioID'] = $user->Personas_usuarioID;
 
         try {
             // 3. Crear y guardar el nuevo destino

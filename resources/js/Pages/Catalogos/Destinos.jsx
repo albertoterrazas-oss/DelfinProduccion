@@ -37,6 +37,10 @@ const destinationValidations = {
     Destinos_Longitud: true,
 };
 
+const userObject = JSON.parse(localStorage.getItem('user'));
+// const personasUsuarioID = userObject.Personas_usuarioID; // Esta era la línea que faltaba si querías una variable intermedia
+// Datos de ejemplo para el estado inicial del formulario de Unidad
+
 // Datos de ejemplo para el estado inicial del formulario de destino (¡Sin Descripción!)
 const initialDestinationData = {
     Destinos_Id: null,
@@ -44,6 +48,7 @@ const initialDestinationData = {
     Destinos_Latitud: "",
     Destinos_Longitud: "",
     Destinos_Estatus: "1", // Activo por defecto
+    Destinos_UsuarioID: userObject.Personas_usuarioID 
 };
 
 // Componente del Formulario de Destino (Modal de Headless UI)
@@ -272,6 +277,7 @@ export default function Destinos() {
                 Destinos_Latitud: data.Destinos_Latitud,
                 Destinos_Longitud: data.Destinos_Longitud,
                 Destinos_Estatus: data.Destinos_Estatus,
+                Destinos_UsuarioID:data.Destinos_UsuarioID
             };
 
             await request(ruta, method, payload);

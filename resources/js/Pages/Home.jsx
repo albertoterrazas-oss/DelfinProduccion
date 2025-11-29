@@ -1,58 +1,98 @@
+// Archivo: resources/js/Pages/Home.jsx (Definitivo)
+
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
-import React, { useEffect, useState } from 'react';
-import Motivos from './Catalogos/Motivos';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
+
+// Es importante usar 'react-router-dom' si estás usando las etiquetas Routes/Route
+import { Route, Routes } from 'react-router-dom';
+import LoadingDiv from '@/Components/LoadingDiv';
+import LeftMenu from '@/Components/LeftMenu';
+import Header from '@/Components/Header';
+
+// --- DEFINICIÓN DE RUTAS (Se mantiene igual) ---
+const routes = [
+    { path: "/", import: lazy(() => import('./Dashboard')) },
+    { path: "/dashboard", import: lazy(() => import('./Dashboard')) },
+    { path: "/unidades", import: lazy(() => import('./Catalogos/Unidades')) },
+    { path: "/usuarios", import: lazy(() => import('./Catalogos/Usuarios')) },
+    { path: "/motivos", import: lazy(() => import('./Catalogos/Motivos')) },
+    { path: "/destino", import: lazy(() => import('./Catalogos/Destinos')) },
+    { path: "/reportes", import: lazy(() => import('./Catalogos/Reportes')) },
+    { path: "/registrosalida", import: lazy(() => import('./Catalogos/RegistroYSalidaUnificado')) },
+    { path: "/menus", import: lazy(() => import('./Catalogos/Menus')) },
+    { path: "/listaverificacion", import: lazy(() => import('./Catalogos/ListaVerificacion')) },
+    { path: "/puestos", import: lazy(() => import('./Catalogos/Puestos')) },
+    { path: "/departamentos", import: lazy(() => import('./Catalogos/Departamentos')) },
+    { path: "/QuienConQuienTransporte", import: lazy(() => import('./Catalogos/QuienConQuienTransporte')) },
+    { path: "/roles", import: lazy(() => import('./Catalogos/Roles')) },
+    { path: "/correosnotificaciones", import: lazy(() => import('./Catalogos/Correos')) },
+];
 
 export default function Home({ auth }) {
 
-    // 1. Estado local para la información del usuario
     const [usuario, setUsuario] = useState(auth.user || null);
 
     useEffect(() => {
-        // ✅ ESCENARIO 1: USUARIO AUTENTICADO
-        if (auth && auth.user) {
-            // Sincronizar el estado local si la prop 'auth.user' cambia.
-            if (usuario !== auth.user) {
-                console.log("Usuario detectado en auth, actualizando estado local:", auth.user);
-                setUsuario(auth.user);
-            }
+        // Lógica de actualización de usuario...
+        if (auth && auth.user && usuario !== auth.user) {
+            setUsuario(auth.user);
+            localStorage.setItem('user', JSON.stringify(auth.user));
         }
-        else {
-            console.warn("Usuario no detectado en auth. Iniciando logout/redirección forzada.");
-        
-            setUsuario(null);
-            console.log("Redirigiendo a /login (vía Inertia).");
-        }
+    }, [auth, usuario]);
 
-    }, [auth, usuario]); // Dependencia eliminada: 'navigate' no existe, 'router' es estable.
+    if (!usuario) {
+        return (
+            <div className="flex justify-center items-center min-h-screen">
+                <LoadingDiv />
+            </div>
+        );
+    }
 
+    // Estructura de layout Flexbox de dos columnas (LeftMenu | Content)
     return (
-    <>
-        {usuario && (
-            <AuthenticatedLayout
-                // Pasamos el estado local 'usuario' al Layout
-                user={usuario} 
-                header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Dashboard</h2>}
-            >
-                <Head title="Dashboard" />
-                <div className="py-12">
-                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                            <div className="p-6 text-gray-900">
-                                {/* Muestra el saludo si el usuario existe */}
-                                ¡Hola, {usuario.name}! 
-                            </div>
-                        </div>
-                    </div>
+
+        // NOTA: Si usas clases CSS/SCSS como `.body-container.open`, es posible que
+        // debas agregar una clase de estado aquí, como <div id="page-container" className={`flex h-screen w-screen overflow-hidden ${!showMenu ? 'body-container open' : ''}`}>
+        // Pero por ahora, nos enfocamos en el ancho.
+        <div id="page-container" className="flex h-screen w-screen overflow-hidden">
+
+            {/** 1. Menú Lateral Fijo (Columna 1) **/}
+            {/* 🔴 CAMBIO CLAVE: Se eliminan las clases w-64 y bg-gray-800. */}
+            {/* LeftMenu ahora controlará su propio ancho (290px -> 49px) y fondo. */}
+            {/* Se mantiene flex-shrink-0 y h-full. */}
+            <div className="flex-shrink-0 h-full"> 
+                <LeftMenu auth={usuario} />
+            </div>
+
+            {/** 2. Contenido Principal (Columna 2) - Ocupa el espacio restante **/}
+            <div className="flex flex-col flex-grow min-w-0 h-full bg-gray-100">
+
+                {/** A. Header Fijo **/}
+                <Header />
+
+                {/** B. Área Desplazable de Rutas (Páginas) **/}
+                {/* flex-grow asegura que ocupe todo el espacio vertical restante después del Header */}
+                <div className="flex-grow overflow-y-auto p-4 styled-scroll">
+                    <Routes>
+                        {
+                            routes.map((route, index) => (
+                                <Route key={index} path={route.path} element={(
+                                    <Suspense fallback={
+                                        <div className="h-full">
+                                            <LoadingDiv />
+                                        </div>
+                                    }>
+                                        {/* La propiedad 'lazy' ya no es necesaria en Route */}
+                                        <route.import auth={usuario} />
+                                    </Suspense>
+                                )} />
+                            ))
+                        }
+                    </Routes>
                 </div>
-            </AuthenticatedLayout>
-        )}
-        
-        {/* Muestra un indicador de carga o mensaje solo si el usuario NO existe */}
-        {!usuario && (
-            
-              <Motivos/>
-        )}
-    </>
-);
+            </div>
+        </div>
+
+    );
 }
