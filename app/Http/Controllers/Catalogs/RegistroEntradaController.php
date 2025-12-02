@@ -368,13 +368,18 @@ class RegistroEntradaController extends Controller
     //         }
     // }
 
+    // use App\Models\Catalogos\ChoferUnidadAsignar; // Asegúrate de tener el use statement para tu modelo
+    // use App\Models\Movimientos; // Asegúrate de tener el use statement para tu modelo Movimientos
+    // use Illuminate\Http\Request;
+    // use Carbon\Carbon; // Asegúrate de tener el use statement para Carbon
+
     public function changesswho(Request $request)
     {
         $quienConQuien = $request->input('quienconquien');
-        $unidadesProcesadas = 0;
-        $unidadesActualizadas = 0;
-        $unidadesCreadas = 0;
-        $unidadesIgnoradas = 0; // Contador para las unidades que no requieren cambio
+
+        // Inicializar un array para almacenar las unidades que fueron actualizadas o creadas
+        $unidadesProcesadas = [];
+        $unidadesSaltadas = [];
 
         if (!is_null($quienConQuien) && is_array($quienConQuien)) {
 
@@ -384,90 +389,303 @@ class RegistroEntradaController extends Controller
                 $choferID = $unidad['CUA_choferID'] ?? null;
                 $destino = $unidad['CUA_destino'] ?? null;
                 $motivoID = $unidad['CUA_motivoID'] ?? null;
-                $ayudanteID = $unidad['CUA_ayudanteID'] ?? null; // Asumiendo que ahora puede venir en el request
+                // Usamos null si no viene, y convertimos a string/int si viene, 
+                // asegurándonos de que 'null' no se guarde como cadena.
+                $ayudanteID = $unidad['CUA_ayudanteID'] ?? null;
 
-                // 1. Buscar la asignación ACTIVA existente para esta unidad.
+                // 1. Buscar asignación activa para la unidad
                 $asignacionExistente = ChoferUnidadAsignar::where('CUA_unidadID', $unidadID)
                     ->where('CUA_estatus', 1)
+                    ->whereNotNull('CUA_destino')
+                    ->whereNotNull('CUA_motivoID')
+                    ->whereNotNull('CUA_choferID')
                     ->first();
+
+                // Datos del request para la comparación/actualización/creación
+                $nuevosDatos = [
+                    'CUA_choferID' => $choferID,
+                    'CUA_ayudanteID' => $ayudanteID,
+                    'CUA_motivoID' => $motivoID,
+                    'CUA_destino' => $destino,
+                ];
 
                 // 2. Si NO existe una asignación activa, la creamos directamente.
                 if (!$asignacionExistente) {
-                    $datosAsignacion = [
-                        'CUA_unidadID'           => $unidadID,
-                        'CUA_choferID'           => $choferID,
-                        'CUA_ayudanteID'         => $ayudanteID,
-                        'CUA_motivoID'           => $motivoID,
-                        'CUA_destino'            => $destino,
-                        'CUA_fechaAsignacion'    => Carbon::now()->format('Ymd H:i:s'),
-                        'CUA_estatus'            => 1,
-                    ];
-                    ChoferUnidadAsignar::create($datosAsignacion);
-                    $unidadesCreadas++;
-                } else {
-                    // 3. Si SÍ existe, verificamos si los datos entrantes son IDÉNTICOS.
-
-                    // Convertimos los campos de la asignación existente a los tipos de datos correctos para la comparación, 
-                    // asegurando que sean del mismo tipo que los entrantes (pueden ser strings o integers/nulls).
-                    $choferExistente = (string)$asignacionExistente->CUA_choferID;
-                    $destinoExistente = (string)$asignacionExistente->CUA_destino;
-                    $motivoExistente = (string)$asignacionExistente->CUA_motivoID;
-                    $ayudanteExistente = (string)$asignacionExistente->CUA_ayudanteID;
-
-                    $datosEntrantes = [
-                        'chofer' => (string)$choferID,
-                        'destino' => (string)$destino,
-                        'motivo' => (string)$motivoID,
-                        'ayudante' => (string)$ayudanteID,
-                    ];
-
-                    $datosActuales = [
-                        'chofer' => $choferExistente,
-                        'destino' => $destinoExistente,
-                        'motivo' => $motivoExistente,
-                        'ayudante' => $ayudanteExistente,
-                    ];
-
-                    // 4. Comparación: si los datos son iguales, ignoramos la unidad.
-                    if ($datosEntrantes === $datosActuales) {
-                        $unidadesIgnoradas++;
-                        $unidadesProcesadas++;
-                        continue; // Salta al siguiente elemento del bucle
-                    }
-
-                    // 5. Si los datos son diferentes, procedemos a actualizar la asignación existente.
-                    // Si quieres crear un nuevo registro (desactivar y crear), usa la lógica del ejemplo anterior.
-                    // Para mantener la lógica de tu código original (solo actualizar):
-                    $asignacionExistente->update([
-                        'CUA_choferID'           => $choferID,
-                        'CUA_ayudanteID'         => $ayudanteID,
-                        'CUA_motivoID'           => $motivoID,
-                        'CUA_destino'            => $destino,
-                        // Opcional: Actualizar la fecha para marcar el cambio
-                        'CUA_fechaAsignacion'    => Carbon::now()->format('Ymd H:i:s'),
+                    $datosAsignacion = array_merge($nuevosDatos, [
+                        'CUA_unidadID' => $unidadID,
+                        'CUA_fechaAsignacion' => Carbon::now()->format('Ymd H:i:s'),
+                        'CUA_estatus' => 1,
                     ]);
-                    $unidadesActualizadas++;
-                }
+                    ChoferUnidadAsignar::create($datosAsignacion);
+                    $unidadesProcesadas[] = ['id' => $unidadID, 'accion' => 'Creada'];
+                } else {
+                    // Lógica de TÚ REQUERIMIENTO: Solo actualizar si no hay movimientos
 
-                $unidadesProcesadas++;
+                    // 3. Obtener el último movimiento para esta asignación
+                    $ultimoMovimiento = Movimientos::where('Movimientos_asignacionID', $asignacionExistente->CUA_asignacionID)
+                        ->latest('Movimientos_fecha')
+                        ->first();
+
+                    // 4. Lógica Condicional: Actualizar si NO hay movimientos
+                    if (is_null($ultimoMovimiento)) {
+
+                        // BUENA PRÁCTICA: Verificar si los datos son realmente diferentes antes de actualizar
+                        $datosActuales = [
+                            'CUA_choferID' => (string) $asignacionExistente->CUA_choferID,
+                            // El ayudante puede ser null en DB, lo casteamos a string para comparar.
+                            'CUA_ayudanteID' => is_null($asignacionExistente->CUA_ayudanteID) ? null : (string) $asignacionExistente->CUA_ayudanteID,
+                            'CUA_motivoID' => (string) $asignacionExistente->CUA_motivoID,
+                            'CUA_destino' => (string) $asignacionExistente->CUA_destino,
+                        ];
+
+                        // Hay que normalizar los datos del request a como se obtienen de la DB para comparar
+                        $datosRequestNormalizados = [
+                            'CUA_choferID' => (string) $choferID,
+                            'CUA_ayudanteID' => $ayudanteID,
+                            'CUA_motivoID' => (string) $motivoID,
+                            'CUA_destino' => (string) $destino,
+                        ];
+
+                        if ($datosActuales == $datosRequestNormalizados) {
+                            $unidadesSaltadas[] = ['id' => $unidadID, 'motivo' => 'Datos idénticos a la asignación activa (Sin movimientos).'];
+                        } else {
+                            // Si NO se encontró ningún movimiento, actualiza la asignación
+                            $asignacionExistente->update(array_merge($nuevosDatos, [
+                                'CUA_fechaAsignacion' => Carbon::now()->format('Ymd H:i:s'),
+                            ]));
+                            $unidadesProcesadas[] = ['id' => $unidadID, 'accion' => 'Actualizada (Sin movimientos)'];
+                        }
+                    } else {
+                        // Hay movimientos asociados, NO se actualiza la asignación activa.
+                        $unidadesSaltadas[] = ['id' => $unidadID, 'motivo' => 'Tiene movimientos asociados.'];
+                    }
+                }
             }
 
             // Devolver una respuesta JSON de éxito al final de la iteración
             return response()->json([
                 'success' => true,
-                'message' => 'Asignaciones procesadas. Las unidades con datos idénticos fueron ignoradas.',
-                'resumen' => [
-                    'total_procesadas' => $unidadesProcesadas,
-                    'actualizadas' => $unidadesActualizadas,
-                    'creadas' => $unidadesCreadas,
-                    'ignoradas' => $unidadesIgnoradas,
-                ]
+                'message' => 'Asignaciones procesadas.',
+                'procesadas' => $unidadesProcesadas,
+                'saltadas' => $unidadesSaltadas,
             ]);
         } else {
             // Devolver una respuesta JSON de error
-            return response()->json(['success' => false, 'message' => 'No se encontró la clave "quienconquien" o no es un arreglo válido.'], 400);
+            return response()->json([
+                'success' => false,
+                'message' => 'No se encontró la clave "quienconquien" o no es un arreglo válido.'
+            ], 400);
         }
     }
+
+
+    public function WhoDestint(Request $request)
+    {
+        $quienConQuien = $request->input('quienconquien');
+
+        $unidadID = $quienConQuien['CUA_unidadID'];
+        $choferID = $quienConQuien['CUA_choferID'] ?? null;
+        $destino = $quienConQuien['CUA_destino'] ?? null;
+        $motivoID = $quienConQuien['CUA_motivoID'] ?? null;
+        $ayudanteID = $quienConQuien['CUA_ayudanteID'] ?? null;
+
+        // 1. Buscar asignación activa para la unidad
+        $asignacionExistente = ChoferUnidadAsignar::where('CUA_unidadID', $unidadID)
+            ->where('CUA_estatus', 1)
+            // ->whereNotNull('CUA_destino')
+            // ->whereNotNull('CUA_motivoID')
+            // ->whereNotNull('CUA_choferID')
+            ->first();
+
+        // Datos del request para la comparación/actualización/creación
+        $nuevosDatos = [
+            'CUA_choferID' => $choferID,
+            'CUA_ayudanteID' => $ayudanteID,
+            'CUA_motivoID' => $motivoID,
+            'CUA_destino' => $destino,
+        ];
+
+        // 2. Si NO existe una asignación activa, la creamos directamente.
+        if (!$asignacionExistente) {
+            $datosAsignacion = array_merge($nuevosDatos, [
+                'CUA_unidadID' => $unidadID,
+                'CUA_fechaAsignacion' => Carbon::now()->format('Ymd H:i:s'),
+                'CUA_estatus' => 1,
+            ]);
+            ChoferUnidadAsignar::create($datosAsignacion);
+            // $unidadesProcesadas[] = ['id' => $unidadID, 'accion' => 'Creada'];
+        } else {
+            // Lógica de TÚ REQUERIMIENTO: Solo actualizar si no hay movimientos
+
+            // 3. Obtener el último movimiento para esta asignación
+            // $ultimoMovimiento = Movimientos::where('Movimientos_asignacionID', $asignacionExistente->CUA_asignacionID)
+            //     ->latest('Movimientos_fecha')
+            //     ->first();
+
+            // // 4. Lógica Condicional: Actualizar si NO hay movimientos
+            // if (is_null($ultimoMovimiento)) {
+
+            //     // BUENA PRÁCTICA: Verificar si los datos son realmente diferentes antes de actualizar
+            //     $datosActuales = [
+            //         'CUA_choferID' => (string) $asignacionExistente->CUA_choferID,
+            //         // El ayudante puede ser null en DB, lo casteamos a string para comparar.
+            //         'CUA_ayudanteID' => is_null($asignacionExistente->CUA_ayudanteID) ? null : (string) $asignacionExistente->CUA_ayudanteID,
+            //         'CUA_motivoID' => (string) $asignacionExistente->CUA_motivoID,
+            //         'CUA_destino' => (string) $asignacionExistente->CUA_destino,
+            //     ];
+
+            //     // Hay que normalizar los datos del request a como se obtienen de la DB para comparar
+            //     $datosRequestNormalizados = [
+            //         'CUA_choferID' => (string) $choferID,
+            //         'CUA_ayudanteID' => $ayudanteID,
+            //         'CUA_motivoID' => (string) $motivoID,
+            //         'CUA_destino' => (string) $destino,
+            //     ];
+
+            //     if ($datosActuales == $datosRequestNormalizados) {
+            //         $unidadesSaltadas[] = ['id' => $unidadID, 'motivo' => 'Datos idénticos a la asignación activa (Sin movimientos).'];
+            //     } else {
+            // Si NO se encontró ningún movimiento, actualiza la asignación
+            $asignacionExistente->update(array_merge($nuevosDatos, [
+                'CUA_fechaAsignacion' => Carbon::now()->format('Ymd H:i:s'),
+            ]));
+            //         $unidadesProcesadas[] = ['id' => $unidadID, 'accion' => 'Actualizada (Sin movimientos)'];
+            //     }
+            // } else {
+            //     // Hay movimientos asociados, NO se actualiza la asignación activa.
+            //     $unidadesSaltadas[] = ['id' => $unidadID, 'motivo' => 'Tiene movimientos asociados.'];
+            // }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Asignaciones procesadas.',
+            // 'procesadas' => $unidadesProcesadas,
+            // 'saltadas' => $unidadesSaltadas,
+        ]);
+        // } else {
+        //     // Devolver una respuesta JSON de error
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'No se encontró la clave "quienconquien" o no es un arreglo válido.'
+        //     ], 400);
+        // }
+    }
+    // public function changesswho(Request $request)
+    // {
+    //     $quienConQuien = $request->input('quienconquien');
+    //     $unidadesProcesadas = 0;
+    //     $unidadesActualizadas = 0;
+    //     $unidadesCreadas = 0;
+    //     $unidadesIgnoradas = 0; // Contador para las unidades que no requieren cambio
+
+    //     if (!is_null($quienConQuien) && is_array($quienConQuien)) {
+
+    //         foreach ($quienConQuien as $unidad) {
+
+    //             $unidadID = $unidad['CUA_unidadID'];
+    //             $choferID = $unidad['CUA_choferID'] ?? null;
+    //             $destino = $unidad['CUA_destino'] ?? null;
+    //             $motivoID = $unidad['CUA_motivoID'] ?? null;
+    //             $ayudanteID = $unidad['CUA_ayudanteID'] ?? null; // Asumiendo que ahora puede venir en el request
+
+    //             // 1. Buscar la asignación ACTIVA existente para esta unidad.
+    //             // $asignacionExistente = ChoferUnidadAsignar::where('CUA_unidadID', $unidadID)
+    //             //     ->where('CUA_estatus', 1)
+    //             //     ->where('CUA_motivoID', 1)
+    //             //     ->where('CUA_choferID', 1)
+
+    //             //     ->first();
+
+    //             $asignacionExistente = ChoferUnidadAsignar::where('CUA_unidadID', $unidadID)
+    //                 ->where('CUA_estatus', 1)
+    //                 // Condiciones existentes
+    //                 // ->where('CUA_motivoID', 1)
+
+    //                 // ->where('CUA_choferID', 1)
+    //                 // Nuevas condiciones: Campos NO son NULL
+    //                 ->whereNotNull('CUA_destino')
+    //                 ->whereNotNull('CUA_motivoID')
+    //                 ->whereNotNull('CUA_choferID')
+    //                 ->first();
+
+    //             // 2. Si NO existe una asignación activa, la creamos directamente.
+    //             if (!$asignacionExistente) {
+    //                 $datosAsignacion = [
+    //                     'CUA_unidadID'           => $unidadID,
+    //                     'CUA_choferID'           => $choferID,
+    //                     'CUA_ayudanteID'         => $ayudanteID,
+    //                     'CUA_motivoID'           => $motivoID,
+    //                     'CUA_destino'            => $destino,
+    //                     'CUA_fechaAsignacion'    => Carbon::now()->format('Ymd H:i:s'),
+    //                     'CUA_estatus'            => 1,
+    //                 ];
+    //                 ChoferUnidadAsignar::create($datosAsignacion);
+    //                 $unidadesCreadas++;
+    //             } else {
+    //                 // 3. Si SÍ existe, verificamos si los datos entrantes son IDÉNTICOS.
+
+    //                 // Convertimos los campos de la asignación existente a los tipos de datos correctos para la comparación, 
+    //                 // asegurando que sean del mismo tipo que los entrantes (pueden ser strings o integers/nulls).
+    //                 $choferExistente = (string)$asignacionExistente->CUA_choferID;
+    //                 $destinoExistente = (string)$asignacionExistente->CUA_destino;
+    //                 $motivoExistente = (string)$asignacionExistente->CUA_motivoID;
+    //                 $ayudanteExistente = (string)$asignacionExistente->CUA_ayudanteID;
+
+    //                 $datosEntrantes = [
+    //                     'chofer' => (string)$choferID,
+    //                     'destino' => (string)$destino,
+    //                     'motivo' => (string)$motivoID,
+    //                     'ayudante' => (string)$ayudanteID,
+    //                 ];
+
+    //                 $datosActuales = [
+    //                     'chofer' => $choferExistente,
+    //                     'destino' => $destinoExistente,
+    //                     'motivo' => $motivoExistente,
+    //                     'ayudante' => $ayudanteExistente,
+    //                 ];
+
+    //                 // 4. Comparación: si los datos son iguales, ignoramos la unidad.
+    //                 if ($datosEntrantes === $datosActuales) {
+    //                     $unidadesIgnoradas++;
+    //                     $unidadesProcesadas++;
+    //                     continue; // Salta al siguiente elemento del bucle
+    //                 }
+
+    //                 // 5. Si los datos son diferentes, procedemos a actualizar la asignación existente.
+    //                 // Si quieres crear un nuevo registro (desactivar y crear), usa la lógica del ejemplo anterior.
+    //                 // Para mantener la lógica de tu código original (solo actualizar):
+    //                 $asignacionExistente->update([
+    //                     'CUA_choferID'           => $choferID,
+    //                     'CUA_ayudanteID'         => $ayudanteID,
+    //                     'CUA_motivoID'           => $motivoID,
+    //                     'CUA_destino'            => $destino,
+    //                     // Opcional: Actualizar la fecha para marcar el cambio
+    //                     'CUA_fechaAsignacion'    => Carbon::now()->format('Ymd H:i:s'),
+    //                 ]);
+    //                 $unidadesActualizadas++;
+    //             }
+
+    //             $unidadesProcesadas++;
+    //         }
+
+    //         // Devolver una respuesta JSON de éxito al final de la iteración
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Asignaciones procesadas. Las unidades con datos idénticos fueron ignoradas.',
+    //             'resumen' => [
+    //                 'total_procesadas' => $unidadesProcesadas,
+    //                 'actualizadas' => $unidadesActualizadas,
+    //                 'creadas' => $unidadesCreadas,
+    //                 'ignoradas' => $unidadesIgnoradas,
+    //             ]
+    //         ]);
+    //     } else {
+    //         // Devolver una respuesta JSON de error
+    //         return response()->json(['success' => false, 'message' => 'No se encontró la clave "quienconquien" o no es un arreglo válido.'], 400);
+    //     }
+    // }
 
     public function getUltimosMovimientosUnidad(Request $request)
     {

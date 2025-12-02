@@ -291,25 +291,97 @@ class UnidadesController extends Controller
         return response()->json($data);
     }
 
+    // public function QuienconQuienUnidades(Request $request)
+    // {
+    //     $today = now()->toDateString();
+
+
+    //     $unidadesDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
+    //         ->join('dbo.Unidades', 'dbo.ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
+    //         ->select(
+    //             'dbo.ChoferUnidadAsignada.CUA_unidadID',
+    //             'dbo.ChoferUnidadAsignada.CUA_choferID',
+    //             'dbo.ChoferUnidadAsignada.CUA_destino',
+    //             'dbo.ChoferUnidadAsignada.CUA_motivoID',
+    //             'dbo.ChoferUnidadAsignada.CUA_fechaAsignacion',
+    //             'dbo.ChoferUnidadAsignada.CUA_asignacionID', // **Asegúrate de seleccionar el ID de la asignación**
+    //             'Unidades.Unidades_numeroEconomico'
+    //         )
+    //         ->where('dbo.ChoferUnidadAsignada.CUA_estatus', 1)
+    //         ->get();
+
+    //         $unidades = Unidades::all();
+
+
+    //           $todasLasUnidades = $todasLasUnidades->map(function ($unidad) {
+    //             $unidad->CUA_unidadID = $unidad->Unidades_unidadID;
+    //             $unidad->CUA_choferID = null;
+    //             $unidad->CUA_destino = null;
+    //             $unidad->CUA_motivoID = null;
+    //             $unidad->UltimoMovimiento = 'ENTRADA';
+
+    //             return $unidad;
+    //         });
+
+    //     // 2. Iterar sobre la colección para obtener el último movimiento de CADA unidad
+    //     $unidadesConMovimiento = $unidadesDeHoy->map(function ($unidad) {
+
+    //         // 3. Buscar el último movimiento utilizando el ID de asignación
+    //         $ultimoMovimiento = Movimientos::where('Movimientos_asignacionID', $unidad->CUA_asignacionID)
+    //             ->latest('Movimientos_fecha')
+    //             ->first();
+
+    //         // 4. Lógica Condicional: Asignar el último movimiento
+    //         if (is_null($ultimoMovimiento)) {
+    //             // Si no hay movimientos, se asume 'ENTRADA'
+    //             $unidad->UltimoMovimiento = 'ENTRADA';
+    //         } else {
+    //             // Si hay movimientos, se asigna el tipo de movimiento
+    //             $unidad->UltimoMovimiento = $ultimoMovimiento->Movimientos_tipoMovimiento;
+    //             // ¡Cuidado! En tu código original usaste 'Movimientos_tipoMovimiento' sin la variable
+    //         }
+
+    //         return $unidad;
+    //     });
+
+    //     // Verifica si no se encontró ninguna asignación para hoy
+    //     if ($unidadesDeHoy->isEmpty()) {
+    //         // Si la colección está vacía, devuelve todas las unidades
+    //         $todasLasUnidades = Unidades::get();
+
+    //         // Agrega el nuevo campo 'CUA_unidadID' con el valor del campo 'Unidades_unidadID'
+    //         $todasLasUnidades = $todasLasUnidades->map(function ($unidad) {
+    //             $unidad->CUA_unidadID = $unidad->Unidades_unidadID;
+    //             $unidad->CUA_choferID = null;
+    //             $unidad->CUA_destino = null;
+    //             $unidad->CUA_motivoID = null;
+    //             $unidad->UltimoMovimiento = 'ENTRADA';
+
+    //             return $unidad;
+    //         });
+
+    //         return response()->json($todasLasUnidades); // ⬅️ Add final return
+    //     }
+
+    //     // Si hay asignaciones para hoy, devuelve esas asignaciones
+    //     return response()->json($unidadesDeHoy);
+    // }
+
+    // use Illuminate\Http\Request;
+    // use App\Models\ChoferUnidadAsignar; // Asumiendo el nombre de tu modelo
+    // use App\Models\Unidades; // Asumiendo el nombre de tu modelo
+    // use App\Models\Movimientos; // Asumiendo el nombre de tu modelo
+
     public function QuienconQuienUnidades(Request $request)
     {
-        // Obtiene la fecha actual en formato 'Y-m-d'
         $today = now()->toDateString();
 
+        // 1. Obtener TODAS las unidades existentes
+        $todasLasUnidades = Unidades::all()->keyBy('Unidades_unidadID');
+        // Usamos keyBy para un acceso rápido por ID de unidad.
 
-
-        $unidadesDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
-            ->select('CUA_unidadID', 'CUA_choferID', 'CUA_destino', 'CUA_motivoID', 'CUA_fechaAsignacion')
-            ->with([
-                'unidad' => function ($query) {
-                    $query->select('Unidades_unidadID', 'Unidades_numeroEconomico'); // Ajusta 'Unidades_unidadID' si es la PK real
-                }
-            ])
-            ->where('CUA_estatus', 1)
-            ->get();
-
-
-        $unidadesDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
+        // 2. Obtener las asignaciones de hoy con un join para obtener el número económico
+        $asignacionesDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
             ->join('dbo.Unidades', 'dbo.ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
             ->select(
                 'dbo.ChoferUnidadAsignada.CUA_unidadID',
@@ -317,32 +389,63 @@ class UnidadesController extends Controller
                 'dbo.ChoferUnidadAsignada.CUA_destino',
                 'dbo.ChoferUnidadAsignada.CUA_motivoID',
                 'dbo.ChoferUnidadAsignada.CUA_fechaAsignacion',
+                'dbo.ChoferUnidadAsignada.CUA_asignacionID',
                 'Unidades.Unidades_numeroEconomico'
             )
             ->where('dbo.ChoferUnidadAsignada.CUA_estatus', 1)
             ->get();
 
-        // Verifica si no se encontró ninguna asignación para hoy
-        if ($unidadesDeHoy->isEmpty()) {
-            // Si la colección está vacía, devuelve todas las unidades
-            $todasLasUnidades = Unidades::get();
+        // 3. Mapear las asignaciones de hoy para obtener el último movimiento
+        $asignacionesConMovimiento = $asignacionesDeHoy->map(function ($asignacion) {
+            $ultimoMovimiento = Movimientos::where('Movimientos_asignacionID', $asignacion->CUA_asignacionID)
+                ->latest('Movimientos_fecha')
+                ->first();
 
-            // Agrega el nuevo campo 'CUA_unidadID' con el valor del campo 'Unidades_unidadID'
-            $todasLasUnidades = $todasLasUnidades->map(function ($unidad) {
-                $unidad->CUA_unidadID = $unidad->Unidades_unidadID;
-                $unidad->CUA_choferID = null;
-                $unidad->CUA_destino = null;
-                $unidad->CUA_motivoID = null;
+            // Asignar el último movimiento o 'ENTRADA' por defecto
+            $asignacion->UltimoMovimiento = $ultimoMovimiento
+                ? $ultimoMovimiento->Movimientos_tipoMovimiento
+                : 'ENTRADA';
 
+            return $asignacion;
+        })->keyBy('CUA_unidadID'); // Indexar las asignaciones por ID de unidad
 
-                return $unidad;
-            });
+        // 4. Construir la colección final combinando TODAS las unidades con las asignaciones de hoy
 
-            return response()->json($todasLasUnidades); // ⬅️ Add final return
-        }
+        $resultadoFinal = $todasLasUnidades->map(function ($unidadBase) use ($asignacionesConMovimiento) {
+            $unidadID = $unidadBase->Unidades_unidadID;
 
-        // Si hay asignaciones para hoy, devuelve esas asignaciones
-        return response()->json($unidadesDeHoy);
+            // Verificar si la unidad tiene una asignación hoy
+            if ($asignacionesConMovimiento->has($unidadID)) {
+                // Si está asignada, usar los datos de la asignación
+                $asignacion = $asignacionesConMovimiento->get($unidadID);
+
+                $unidadBase->CUA_unidadID       = $unidadID;
+                $unidadBase->CUA_choferID       = $asignacion->CUA_choferID;
+                $unidadBase->CUA_destino        = $asignacion->CUA_destino;
+                $unidadBase->CUA_motivoID       = $asignacion->CUA_motivoID;
+                $unidadBase->CUA_fechaAsignacion = $asignacion->CUA_fechaAsignacion ?? null;
+                $unidadBase->CUA_asignacionID   = $asignacion->CUA_asignacionID ?? null;
+                $unidadBase->Unidades_numeroEconomico = $asignacion->Unidades_numeroEconomico; // Ya debería venir, pero para asegurar
+                $unidadBase->UltimoMovimiento   = $asignacion->UltimoMovimiento;
+            } else {
+                // Si NO está asignada hoy, establecer los campos de asignación a null y movimiento a 'ENTRADA'
+                $unidadBase->CUA_unidadID       = $unidadID;
+                $unidadBase->CUA_choferID       = null;
+                $unidadBase->CUA_destino        = null;
+                $unidadBase->CUA_motivoID       = null;
+                $unidadBase->CUA_fechaAsignacion = null;
+                $unidadBase->CUA_asignacionID   = null;
+                $unidadBase->UltimoMovimiento   = 'ENTRADA';
+            }
+
+            // Remover el campo original 'Unidades_unidadID' si solo quieres ver 'CUA_unidadID' en el JSON final
+            unset($unidadBase->Unidades_unidadID);
+
+            return $unidadBase;
+        })->values(); // Quitar las claves para que sea un array simple en el JSON
+
+        // 5. Devolver el resultado final que contiene todas las unidades (asignadas o no)
+        return response()->json($resultadoFinal);
     }
 
     public function QuienconQuienControl(Request $request)

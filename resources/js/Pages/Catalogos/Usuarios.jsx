@@ -30,20 +30,34 @@ const route = (name, params = {}) => {
 // Función DUMMY de validación (usada en el componente Usuarios)
 const validateInputs = (validations, data) => {
     let formErrors = {};
+
     // Validación de prueba básica:
     if (validations.Personas_nombres && !data.Personas_nombres?.trim()) formErrors.Personas_nombres = 'El nombre es obligatorio.';
     if (validations.Personas_usuario && !data.Personas_usuario?.trim()) formErrors.Personas_usuario = 'El usuario es obligatorio.';
     if (validations.usuario_idRol && !data.usuario_idRol?.trim()) formErrors.usuario_idRol = 'El rol es obligatorio.';
-
-
-
 
     // Corrección para usar la validación condicional de la contraseña:
     const isPasswordRequired = typeof validations.Personas_contrasena === 'function'
         ? validations.Personas_contrasena(data)
         : validations.Personas_contrasena;
 
-    if (isPasswordRequired && !data.Personas_contrasena?.trim()) formErrors.Personas_contrasena = 'La contraseña es obligatoria en creación.';
+    if (isPasswordRequired && !data.Personas_contrasena?.trim()) {
+        formErrors.Personas_contrasena = 'La contraseña es obligatoria en creación.';
+    }
+
+    // ⭐ CORRECCIÓN AQUÍ: Mínimo de 8 caracteres para la contraseña ⭐
+    // Se aplica si el campo tiene algún valor (es decir, no es solo obligatorio en una validación previa)
+    if (data.Personas_contrasena && data.Personas_contrasena.trim().length > 0 && data.Personas_contrasena.trim().length < 8) {
+        // Asume que si ya tiene un error de obligatoriedad, este es menos importante
+        // Si no está vacío Y es menor a 8, muestra el error de longitud.
+        formErrors.Personas_contrasena = 'La contraseña debe tener un mínimo de 8 caracteres.';
+    }
+
+    // Si la contraseña es requerida y no se provee, el error de 'obligatoria' debe prevalecer
+    if (isPasswordRequired && !data.Personas_contrasena?.trim()) {
+        formErrors.Personas_contrasena = 'La contraseña es obligatoria en creación.';
+    }
+
 
     if (data.Personas_correo && !/\S+@\S+\.\S+/.test(data.Personas_correo)) {
         formErrors.Personas_correo = 'El correo no es válido.';
@@ -51,7 +65,6 @@ const validateInputs = (validations, data) => {
 
     return { isValid: Object.keys(formErrors).length === 0, errors: formErrors };
 };
-// FIN DUMMY FUNCTIONS
 
 // Validaciones requeridas para el formulario
 const userValidations = {
@@ -128,20 +141,33 @@ function PersonFormDialog({ isOpen, closeModal, onSubmit, personToEdit, action, 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // 1. Ejecutar la validación
+        const { isValid, errors } = validateInputs(userValidations, personData);
+
+        // 2. Si NO es válido, establecer los errores y detener la ejecución
+        if (!isValid) {
+            setErrors(errors); // Asumo que setErrors está disponible aquí
+            console.log("Errores de validación:", errors);
+            return; // Detiene el envío del formulario
+        }
+
+        // Si la validación es exitosa, se continúa con el proceso de envío
         setLoading(true);
+        // 3. Limpiar errores de validación anteriores (si los hay)
+        setErrors({});
+
         try {
             // Llama a la función onSubmit del padre, pasándole los datos del formulario
             await onSubmit(personData);
             // Si la función onSubmit tiene éxito (no lanza error), cierra el modal.
             closeModal();
         } catch (error) {
-            // El error y el setErrors se manejan en el componente padre (Usuarios)
+            // El error y el setErrors del error del backend se manejan en el componente padre
             console.error("Error al enviar el formulario:", error);
         } finally {
             setLoading(false);
         }
     };
-
 
     const getRoles = async () => {
         try {

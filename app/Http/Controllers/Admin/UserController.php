@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\Menu;
+use App\Models\Roles;
 use App\Models\User;
+use App\Models\UserxMenu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -88,8 +90,79 @@ class UserController extends Controller
         return response()->json($user);
     }
 
+    // public function update(Request $request, $id)
+    // {
+    //     $user = User::find($id);
+
+    //     if (!$user) {
+    //         // Retorna 404 Not Found
+    //         return response()->json(['message' => 'Usuario no encontrado'], 404);
+    //     }
+
+    //     // Reglas de validación para la actualización
+    //     $validator = Validator::make($request->all(), [
+    //         'Personas_nombres' => 'sometimes|required|string|max:255',
+    //         'Personas_apPaterno' => 'sometimes|required|string|max:255',
+    //         'Personas_correo' => 'sometimes|required|string|email|max:255',
+    //         'Personas_usuario' => 'sometimes|required|string|max:255',
+    //         'Personas_contrasena' => 'sometimes|nullable|string|min:8',
+    //         'usuario_idRol'  => 'required',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         // Retorna 400 Bad Request con los errores de validación
+    //         return response()->json($validator->errors(), 400);
+    //     }
+
+    //     // Manejar la actualización de la contraseña por separado para que el 'casts' la hashee
+    //     if ($request->filled('Personas_contrasena')) {
+    //         $user->Personas_contrasena = $request->Personas_contrasena;
+    //     }
+
+    //     if ($user->isDirty('usuario_idRol')) {
+    //         $nuevoRol = Roles::find($request->usuario_idRol);
+
+    //         $nuevosMenus = collect($nuevoRol->menus)->map(fn($m) => $m['menu_id']);
+
+    //         UserxMenu::where('usuarioxmenu_idusuario', $id)
+    //             // ->where('usuarioxmenu_idempresa', $Empresa)
+    //             // ->where('usuarioxmenu_idcentrocostos', $CentroCostos)
+    //             ->delete();
+
+    //         // Preparar los menús a adjuntar
+    //         $menusToAttach = [];
+
+    //         foreach ($nuevosMenus as $menuId) {
+    //             $menusToAttach[$menuId] = [
+    //                 'usuarioxmenu_alta' => 1,
+    //                 'usuarioxmenu_especial' => 0,
+    //                 'usuarioxmenu_cambio' => 1,
+    //                 'usuarioxmenu_consulta' => 1,
+
+    //             ];
+    //         }
+    //     }
+
+    //     if (!empty($menusToAttach)) {
+    //         $usuario->menus()->attach($menusToAttach);
+    //     }
+
+
+    //     // Llenar el resto de los campos excluyendo la contraseña (ya manejada)
+    //     $user->fill($request->except('Personas_contrasena'));
+    //     $user->save();
+
+    //     return response()->json([
+    //         'message' => 'Usuario actualizado exitosamente',
+    //         'user' => $user
+    //     ], 200); // Retorna 200 OK
+    // }
+
+
+
     public function update(Request $request, $id)
     {
+        // 1. Encontrar el usuario
         $user = User::find($id);
 
         if (!$user) {
@@ -97,14 +170,16 @@ class UserController extends Controller
             return response()->json(['message' => 'Usuario no encontrado'], 404);
         }
 
-        // Reglas de validación para la actualización
+        // 2. Reglas de validación para la actualización
         $validator = Validator::make($request->all(), [
             'Personas_nombres' => 'sometimes|required|string|max:255',
             'Personas_apPaterno' => 'sometimes|required|string|max:255',
             'Personas_correo' => 'sometimes|required|string|email|max:255',
             'Personas_usuario' => 'sometimes|required|string|max:255',
             'Personas_contrasena' => 'sometimes|nullable|string|min:8',
-            'usuario_idRol'  => 'required',
+            // Se recomienda que 'usuario_idRol' use 'sometimes|required' si no siempre se envía,
+            // pero se mantiene 'required' según tu código original.
+            'usuario_idRol' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -112,22 +187,59 @@ class UserController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        // Manejar la actualización de la contraseña por separado para que el 'casts' la hashee
+        // 3. Llenar el resto de los campos excluyendo la contraseña (para que se hashee correctamente)
+        // El método fill() debe ir antes del check isDirty() para que el modelo tenga los nuevos valores.
+        // Además, $request->except() solo debe excluir la contraseña.
+        $user->fill($request->except('Personas_contrasena'));
+
+        $menusToAttach = []; // Inicializamos la variable
+
+        // 4. Manejar actualización de permisos si el rol ha cambiado
+        if ($user->isDirty('usuario_idRol')) {
+            // Obtenemos el nuevo rol y sus menús
+            $nuevoRol = Roles::find($user->usuario_idRol); // Usamos el valor ya asignado al modelo
+
+            if ($nuevoRol) {
+                // Recolectar solo los IDs de los menús del nuevo rol
+                $nuevosMenus = collect($nuevoRol->menus)->map(fn($m) => $m['menu_id']);
+
+                // Eliminar los menús/permisos antiguos para el usuario
+                UserxMenu::where('usuarioxmenu_idusuario', $id)->delete();
+
+                // Preparar los menús a adjuntar
+                foreach ($nuevosMenus as $menuId) {
+                    // El campo clave del array asociativo debe ser el ID del menú para el attach
+                    $menusToAttach[$menuId] = [
+                        'usuarioxmenu_alta' => 1,
+                        'usuarioxmenu_especial' => 0,
+                        'usuarioxmenu_cambio' => 1,
+                        'usuarioxmenu_consulta' => 1,
+                    ];
+                }
+            }
+        }
+
+        // 5. Manejar la actualización de la contraseña por separado
         if ($request->filled('Personas_contrasena')) {
             $user->Personas_contrasena = $request->Personas_contrasena;
         }
 
-        // Llenar el resto de los campos excluyendo la contraseña (ya manejada)
-        $user->fill($request->except('Personas_contrasena'));
-        $user->save();
+        // 6. Guardar los cambios en el usuario
+        $user->save(); // Persiste todos los cambios (incluyendo el nuevo rol y la contraseña hasheada)
 
+        // 7. Adjuntar los nuevos menús si el rol cambió
+        // **CORRECCIÓN CRÍTICA:** Usamos la variable $user (el modelo persistido) en lugar de la variable no definida $usuario
+        if (!empty($menusToAttach)) {
+            // Asegúrate de que la relación 'menus()' esté definida en el modelo User
+            $user->menus()->attach($menusToAttach);
+        }
+
+        // 8. Retorno de la respuesta
         return response()->json([
             'message' => 'Usuario actualizado exitosamente',
             'user' => $user
         ], 200); // Retorna 200 OK
     }
-
-
     public function menus(Request $request, $id) // Lo inyectas directamente aquí    
     {
         $user = User::where('Personas_usuarioID', $id)
