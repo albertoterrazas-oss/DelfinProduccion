@@ -40,6 +40,34 @@ class UserController extends Controller
     }
 
 
+    public function choferes()
+    {
+        // 1. Obtiene todos los registros del modelo User, cargando la relación 'puesto'.
+        $allUsers = User::with('puesto')->get();
+
+        // 2. Filtra la colección para obtener SOLO a los usuarios cuyo Puestos_nombre es 'CHOFER'.
+        // Usamos optional() para evitar errores si la relación 'puesto' es nula.
+        $choferes = $allUsers->filter(function ($user) {
+            return optional($user->puesto)->Puestos_nombre === 'CHOFER';
+        });
+
+        // 3. Mapea la colección filtrada para añadir el campo 'nombre_completo'.
+        $choferesWithFullName = $choferes->map(function ($user) {
+            // Concatenamos los campos del objeto User
+            $user->nombre_completo = $user->Personas_nombres . ' ' .
+                $user->Personas_apPaterno . ' ' .
+                $user->Personas_apMaterno;
+
+            // El objeto modificado se devuelve y forma parte de la nueva colección
+            return $user;
+        });
+
+        // 4. Devuelve la colección modificada y filtrada como respuesta JSON.
+        // Usamos ->values() para reindexar la colección de 0 a N si fue filtrada.
+        return response()->json($choferesWithFullName->values());
+    }
+
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [

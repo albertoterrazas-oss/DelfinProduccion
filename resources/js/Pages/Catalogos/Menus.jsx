@@ -578,8 +578,17 @@ export default function Menus() {
                             },
                         },
                         { header: 'Nombre', width: "20%", accessor: 'menu_nombre' },
-                        { header: 'ID Padre', width: "20%", accessor: 'menu_idPadre' },
+                        // { header: 'ID Padre', width: "20%", accessor: 'menu_idPadre' },
                         { header: 'URL', width: "20%", accessor: 'menu_url' },
+
+                        {
+                            header: 'Menu padre', width: '20%', cell: ({ item }) => (
+                                <span>{
+                                    `${item.menu_padre?.menu_padre?.menu_nombre ? '/ ' + item.menu_padre?.menu_padre?.menu_nombre : ''}
+                                        ${item.menu_padre?.menu_nombre ? '/ ' + item.menu_padre?.menu_nombre : '/'}`
+                                }</span>
+                            )
+                        },
                         {
                             header: 'Icono (Tooltip)',
                             accessor: 'menu_tooltip',

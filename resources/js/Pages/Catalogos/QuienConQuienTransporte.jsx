@@ -202,12 +202,7 @@ export default function QuienConQuienTransporte() {
 
                     <div className="flex justify-between items-center p-3 border-b mb-4">
                         <h2 className="text-3xl font-bold text-gray-800">Gestion de Quien con quien </h2>
-                        {/* <button
-                            onClick={submit}
-                            className="flex items-center px-4 py-2 text-base font-semibold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 transition duration-150 ease-in-out"
-                        >
-                            Guardar quien con quien
-                        </button> */}
+                       
                     </div>
 
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-8">

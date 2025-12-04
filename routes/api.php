@@ -109,6 +109,7 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
     Route::post('/asignaciones', [RegistroEntradaController::class, 'store'])->name('asignaciones.store');
     Route::post('/changesswho',  [RegistroEntradaController::class, 'changesswho'])->name('changesswho');
     Route::post('/WhoDestint',  [RegistroEntradaController::class, 'WhoDestint'])->name('WhoDestint');
+    Route::get('/choferes', [UserController::class, 'choferes'])->name('choferes');
 
     
     Route::post('ultimos-movimientos-unidad', [RegistroEntradaController::class, 'getUltimosMovimientosUnidad'])->name('ultimos-movimientos-unidad');
