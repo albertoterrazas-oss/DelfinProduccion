@@ -409,7 +409,7 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
                                     {errors.menu_idPadre && <p className="text-red-500 text-xs mt-1">{errors.menu_idPadre}</p>}
                                 </label>
 
-                                <label className="block">
+                                {/* <label className="block">
                                     <span className="text-sm font-medium text-gray-700">Tooltip (Ayuda):</span>
                                     <input
                                         type="text"
@@ -419,9 +419,9 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
                                         className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
                                     />
                                 </label>
-                                
+                                 */}
                                 <IconDisplayField 
-                                    selectedIconName={menuData.menu_icono} 
+                                    selectedIconName={menuData.menu_tooltip} 
                                     onOpenModal={() => setIsIconModalOpen(true)} 
                                 />
 
