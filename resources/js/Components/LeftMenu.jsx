@@ -1,62 +1,105 @@
 import React, { useEffect, useState } from 'react';
 // 1. Importaciones de React Router Dom para la navegación INTERNA
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 // 2. Renombramos el Link de Inertia para usarlo SÓLO en Logout
 import { Link as InertiaLink } from '@inertiajs/react';
 import "../../sass/_leftMenu.scss";
-// import logo from '../../../public/img/logo.png'; // No se utiliza en el JSX actual, se comenta.
+
+// --- TUS IMPORTACIONES DE ÍCONOS (LUCIDE REACT) ---
+import {
+    X, Search, ChevronLeft, ChevronRight, SquarePen, AlertCircle,
+    Home, Settings, User, Menu, LogOut, Award, BarChart, Book,
+    Car, Check, Clock, Code, CreditCard, Database, DollarSign, Download,
+    Eye, Heart, Key, Link as LucideLink, List, Lock, Mail, Map, Monitor,
+    Moon, Phone, Plus, Power, Save, Star, Sun, Trash2, Truck, Upload,
+    Users, Video, Volume2, Wallet, Layers, Filter, Anchor, Apple, Archive,
+    Briefcase, Calendar, Camera, Cloud, Coffee, Construction, Droplet,
+    Feather, FileText, FlaskConical, Folder, Gift, Globe, Hammer, Image,
+    Info, Minus, MoreHorizontal, Move, Music, Package, Paperclip, Pause,
+    PenTool, Pin, Plane, Printer, QrCode, Radar, Send, Server, Tablet,
+    Tag, Terminal, ThumbsUp, ToggleLeft, Watch, Wifi, Zap, ZoomIn, ZoomOut,
+    Bell // Se agrega Bell que estaba en tu lista de intenciones de íconos
+} from 'lucide-react';
+
+// Mapeo de nombres de 'menu_tooltip' a componentes reales de íconos
+const ICON_COMPONENTS = {
+    // --- Mapeos Directos de Lucide ---
+    X, Search, ChevronLeft, ChevronRight, SquarePen, AlertCircle, Home, 
+    Settings, User, Menu, LogOut, Award, BarChart, Book, Car, Check, Clock, 
+    Code, CreditCard, Database, DollarSign, Download, Eye, Heart, Key, List, 
+    Lock, Mail, Map, Monitor, Moon, Phone, Plus, Power, Save, Star, Sun, 
+    Trash2, Truck, Upload, Users, Video, Volume2, Wallet, Layers, Filter, 
+    Anchor, Apple, Archive, Briefcase, Calendar, Camera, Cloud, Coffee, 
+    Construction, Droplet, Feather, FileText, FlaskConical, Folder, Gift, 
+    Globe, Hammer, Image, Info, Minus, MoreHorizontal, Move, Music, Package, 
+    Paperclip, Pause, PenTool, Pin, Plane, Printer, QrCode, Radar, Send, 
+    Server, Tablet, Tag, Terminal, ThumbsUp, ToggleLeft, Watch, Wifi, Zap, 
+    ZoomIn, ZoomOut, Bell,
+    
+    // Si tu API usa un nombre diferente al componente de Lucide (ej: AdminPanelSettings -> Users)
+    // Agrega aquí los mapeos personalizados que necesites:
+    'AdminPanelSettings': Users,    // Icono para "Usuarios"
+    'Category': Layers,             // Icono común para catálogos
+    'CameraTwoTone': Camera,        // Icono para cámaras/vigilancia
+    'Correos': Mail,                
+    'Computer': Monitor,            
+    'Motivos': AlertCircle,         
+    'PersonSearchTwoTone': User,    
+    'QYQ': Globe,                   
+    'AssignmentSharp': FileText,    
+    'LineAxis': BarChart,
+    'Link': LucideLink,             // Maneja la colisión de nombres (Link de Lucide vs. Link de React Router)
+    'Lightbulb': Award,             // Si la API tiene Lightbulb y quieres usar Award
+    
+    // Fallback: Si el nombre del tooltip no coincide con ningún componente
+    'default': Menu, 
+    'null': Menu,
+    '': Menu,
+};
+
+// Función auxiliar para obtener el componente de ícono
+function getIconComponent(iconName) {
+    const key = String(iconName);
+    // Busca por el nombre directo o el mapeo personalizado, si no encuentra, usa 'default'.
+    return ICON_COMPONENTS[key] || ICON_COMPONENTS['default']; 
+}
 
 const LeftMenu = ({ auth }) => {
     const [showMenu, setShowMenu] = useState(true);
-    const [userMenus, setUserMenus] = useState([]);
-    // Estado que guarda el ID del menú padre que debe estar abierto
+    const [userMenus, setUserMenus] = useState([]); 
     const [openMenuId, setOpenMenuId] = useState(null);
 
-    // Usamos useLocation de React Router Dom
     const location = useLocation();
 
-    // Función para alternar el estado del menú lateral (abrir/cerrar)
     const toggleMenu = () => {
         setShowMenu(!showMenu);
     };
 
-    // Función para manejar el clic en un menú con hijos (acordeón)
     const handleAccordionClick = (menu) => {
-        // Si el menú clickeado ya está abierto, lo cierra (lo establece a null), si no, lo abre.
         setOpenMenuId(openMenuId === menu.menu_id ? null : menu.menu_id);
     };
 
     /**
      * Función recursiva para encontrar el padre del elemento activo y establecer openMenuId.
-     * @param {Array} menus - Lista de menús (o submenús).
-     * @param {string} pathname - La ruta actual de React Router Dom.
-     * @returns {boolean} - True si se encuentra el elemento activo en este subárbol.
      */
     const findAndOpenParent = (menus, pathname) => {
-        // Normaliza la ruta actual para manejar '/' o '/dashboard' como inicio si es necesario
         const normalizedPathname = pathname === '/dashboard' ? '/' : pathname;
 
         for (const menu of menus) {
-            // Normaliza la URL del menú
-            const normalizedMenuUrl = menu.menu_url === '/dashboard' ? '/' : menu.menu_url;
+            const menuUrl = menu.menu_url || '/#';
+            const normalizedMenuUrl = menuUrl === '/dashboard' ? '/' : menuUrl;
 
             if (menu.childs && menu.childs.length > 0) {
-                // Llama recursivamente
                 const foundInChilds = findAndOpenParent(menu.childs, normalizedPathname);
+                const parentIsActive = normalizedMenuUrl !== '/#' && normalizedMenuUrl === normalizedPathname;
 
-                // También verifica si el propio menú padre es la ruta activa
-                const parentIsActive = normalizedMenuUrl === normalizedPathname;
-
-                // Si el elemento activo se encuentra en los hijos O si el propio padre es la ruta activa
                 if (foundInChilds || parentIsActive) {
-                    // CAMBIO CLAVE: Establece el ID del padre/acordeón.
                     setOpenMenuId(menu.menu_id);
-                    return true;
+                    return true; 
                 }
             } else {
-                // Caso: Elemento hoja (Sin hijos)
-                if (normalizedMenuUrl === normalizedPathname) {
-                    return true; // Encontrado. La recursión ahora subirá y lo abrirá.
+                if (normalizedMenuUrl !== '/#' && normalizedMenuUrl === normalizedPathname) {
+                    return true;
                 }
             }
         }
@@ -72,16 +115,13 @@ const LeftMenu = ({ auth }) => {
     // 💡 EFECTO CLAVE: Se ejecuta con cada cambio de ruta para mantener el acordeón abierto.
     useEffect(() => {
         if (userMenus.length > 0) {
-            // Se eliminó setOpenMenuId(null) para evitar el cierre prematuro.
             findAndOpenParent(userMenus, location.pathname);
         }
-    }, [location.pathname, userMenus]); // Depende de la ruta actual y de los menús cargados
+    }, [location.pathname, userMenus]); 
 
     // Función asíncrona para obtener los menús del backend
     const getMenus = async () => {
         try {
-            // Usando fetch para obtener los menús
-
             localStorage.setItem('user', JSON.stringify(auth));
 
             const response = await fetch(window.route("user.menus", auth.Personas_usuarioID));
@@ -89,7 +129,9 @@ const LeftMenu = ({ auth }) => {
                 throw new Error('Error al cargar menús del usuario');
             }
             const data = await response.json();
-            setUserMenus(data);
+            // Asegura que la data sea un array para el mapeo, incluso si la API devuelve un solo objeto
+            const menuArray = Array.isArray(data) ? data : (data ? [data] : []);
+            setUserMenus(menuArray);
         } catch (error) {
             console.error('Error en getMenus:', error.message);
         }
@@ -98,12 +140,11 @@ const LeftMenu = ({ auth }) => {
     // --- Estilos Base ---
 
     const sideMenuStyle = {
-        // AJUSTE: Coherencia con el SCSS. Abierto: 290px (del SCSS). Colapsado: 49px (del SCSS y la imagen).
         width: showMenu ? '290px' : '49px', 
         transition: 'width 0.3s ease-in-out',
         overflowX: 'hidden',
         minHeight: '100svh',
-        backgroundColor: '#053AA7', // Azul marino principal
+        backgroundColor: '#053AA7',
     };
 
     // Clases base con Tailwind CSS
@@ -112,9 +153,12 @@ const LeftMenu = ({ auth }) => {
     // --- Renderizado de Menú (Función Recursiva) ---
 
     function renderMenu(menu) {
-        if (!menu.menu_id) return null;
+        if (!menu.menu_id || !menu.menu_nombre) return null;
 
         const hasChilds = menu.childs && menu.childs.length > 0;
+        
+        // Obtener el componente de icono usando menu_tooltip
+        const IconComponent = getIconComponent(menu.menu_tooltip);
 
         // Normalización y lógica de resaltado
         const normalizedPathname = location.pathname === '/dashboard' ? '/' : location.pathname;
@@ -126,28 +170,41 @@ const LeftMenu = ({ auth }) => {
         const submenuStyle = {
             maxHeight: isOpen ? '500px' : '0',
             overflow: 'hidden',
-            backgroundColor: '#032b7a', // Fondo más oscuro para submenús
+            backgroundColor: '#032b7a', 
             transition: 'max-height 0.3s ease-in-out, padding 0.3s ease-in-out',
             paddingTop: isOpen ? '5px' : '0',
             paddingBottom: isOpen ? '5px' : '0',
         };
 
-        // Aplica el padding para submenús (nivel 1 vs. nivel 2+)
-        const itemPaddingStyle = menu.menu_idPadre !== '0' ? { paddingLeft: '35px' } : { paddingLeft: '20px' };
+        // Ajustamos el padding para sub-submenús si los tuvieras.
+        // Nivel 1 (menu_idPadre === '0'): 20px
+        // Nivel 2+ (menu_idPadre !== '0'): 35px (abierto) o 15px (colapsado)
+        const effectivePadding = menu.menu_idPadre !== '0' ? 
+            { paddingLeft: showMenu ? '35px' : '15px' } : 
+            { paddingLeft: '20px' };
+
 
         if (hasChilds) {
             return (
                 <li key={menu.menu_id}>
                     <div
-                        // Estilo para el acordeón (padre)
                         className={itemBaseClass + (isOpen ? ' bg-white bg-opacity-15' : ' hover:bg-white hover:bg-opacity-10')}
                         onClick={() => handleAccordionClick(menu)}
-                        style={itemPaddingStyle}
+                        style={effectivePadding}
                     >
                         <span className="text-white flex items-center justify-between w-full">
-                            <span className="truncate">{showMenu ? menu.menu_nombre : '···'}</span>
-                            {/* Icono de flecha para el acordeón - MODIFICACIÓN: mr-2 para separarlo de la derecha */}
-                            <svg className={`w-4 h-4 mr-2 transition-transform duration-300 ${isOpen ? 'rotate-90' : 'rotate-0'} ${!showMenu ? 'hidden' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <span className="flex items-center">
+                                {/* 1a. Renderiza el Ícono */}
+                                <IconComponent size={20} className="w-5 h-5 mr-3 flex-shrink-0" />
+                                
+                                {/* 1b. Renderiza el Label */}
+                                {showMenu && (
+                                    <span className="truncate">{menu.menu_nombre}</span>
+                                )}
+                            </span>
+                            
+                            {/* Icono de flecha para el acordeón */}
+                            <svg className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-90' : 'rotate-0'} ${!showMenu ? 'hidden' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                             </svg>
                         </span>
@@ -168,16 +225,20 @@ const LeftMenu = ({ auth }) => {
                     to={menu.menu_url}
                     className={itemBaseClass + (isSelected ? " item-selected" : " hover:bg-white hover:bg-opacity-10")}
                     style={{
-                        ...itemPaddingStyle,
-                        // 🟢 CAMBIO DE FONDO: Aplica un fondo semi-transparente cuando está seleccionado.
+                        ...effectivePadding,
                         ...(isSelected ? { backgroundColor: 'rgba(255, 255, 255, 0.2)' } : {})
                     }}
                 >
                     <span className="flex relative items-center">
-                        <span className="truncate">{showMenu ? menu.menu_nombre : '···'}</span>
+                        {/* 2a. Renderiza el Ícono */}
+                        <IconComponent size={20} className="w-5 h-5 mr-3 flex-shrink-0" />
+                        
+                        {/* 2b. Renderiza el Label */}
+                        {showMenu && (
+                            <span className="truncate">{menu.menu_nombre}</span>
+                        )}
                     </span>
                     {isSelected && (
-                        // 🟢 BARRA DE RESALTADO: Barra blanca lateral izquierda para indicar selección.
                         <span className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-full bg-white rounded-r-md"></span>
                     )}
                 </Link>
@@ -190,7 +251,6 @@ const LeftMenu = ({ auth }) => {
             <div className="flex flex-col h-[100svh]" style={{ background: '#053AA7' }}>
 
                 {/* Encabezado del Menú */}
-                {/* Se eliminó el padding derecho (pr-7) si showMenu es false para que el botón esté más pegado a la derecha cuando el menú está colapsado a 49px. */}
                 <div className={`headerMenu pt-4 pl-7 ${showMenu ? 'pr-7' : 'pr-1'} border-b-2 flex justify-between items-center`} style={{ borderColor: '#d1d1d117' }}>
                     {showMenu && (
                         <div className="user-info">
@@ -222,7 +282,7 @@ const LeftMenu = ({ auth }) => {
                             className="w-full h-full"
                             onClick={toggleMenu}
                         >
-                            {/* Ajustado tamaño para ocupar mejor el espacio de 49px */}
+                            {/* Icono de cerrar/abrir */}
                             {showMenu ?
                                 <svg viewBox="0 0 42 30" className="w-10 h-10">
                                     <path
@@ -248,36 +308,34 @@ const LeftMenu = ({ auth }) => {
 
                 {/* Contenedor Principal de Menús */}
                 <div className="containerMenu grow pt-1 overflow-y-auto" >
-                    {showMenu && (
-                        <ul id="menus-list" className="leftmenu-list list-none p-0 m-0">
-                            {userMenus.length > 0 &&
-                                userMenus.map((menu) => renderMenu(menu))}
-                        </ul>
-                    )}
+                    <ul id="menus-list" className="leftmenu-list list-none p-0 m-0">
+                        {userMenus.length > 0 &&
+                            userMenus.map((menu) => renderMenu(menu))}
+                    </ul>
                 </div>
 
                 {/* Pie de Menú (Cerrar Sesión) */}
-                {showMenu && (
-                    <div className="footerMenu border-t-2 pt-2" style={{ borderColor: '#d1d1d117' }}>
-                        {/* USA InertiaLink para Logout (Visita Completa) */}
-                        <InertiaLink
-                            href={window.route('logout')}
-                            method="post"
-                            as="button"
-                            id="logoutButton"
-                            className="
-                                w-full flex items-center p-2 rounded-lg
-                                text-white bg-transparent
-                                hover:bg-white hover:bg-opacity-10
-                                transition-all duration-200 ease-in-out
-                            "
-                        >
-                            <span className="font-medium text-sm">
-                                Cerrar Sesión
-                            </span>
-                        </InertiaLink>
-                    </div>
-                )}
+                <div className="footerMenu border-t-2 pt-2 flex justify-center" style={{ borderColor: '#d1d1d117' }}>
+                    {/* El Link de Logout siempre es visible, pero cambia su estilo */}
+                    <InertiaLink
+                        href={window.route('logout')}
+                        method="post"
+                        as="button"
+                        id="logoutButton"
+                        className={`
+                            flex items-center p-2 rounded-lg
+                            text-white bg-transparent
+                            hover:bg-white hover:bg-opacity-10
+                            transition-all duration-200 ease-in-out
+                            ${showMenu ? 'w-full justify-start' : 'w-auto justify-center'}
+                        `}
+                    >
+                        <LogOut size={20} className={`w-5 h-5 flex-shrink-0 ${showMenu ? 'mr-3' : 'm-auto'}`} />
+                        {showMenu && (
+                            <span className="font-medium text-sm">Cerrar Sesión</span>
+                        )}
+                    </InertiaLink>
+                </div>
             </div>
         </div >
     );

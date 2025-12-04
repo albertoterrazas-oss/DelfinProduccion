@@ -3,24 +3,23 @@ import { Dialog } from '@headlessui/react';
 import { toast } from 'sonner';
 
 // ⚠️ SOLUCIÓN AL TREE SHAKING: Importación explícita de todos los íconos
-// que se usarán en el selector y la tabla. Si deseas más, agrégalos aquí.
-import { 
-    X, Search, ChevronLeft, ChevronRight, SquarePen, AlertCircle, 
-    Home, Settings, User, Menu, LogOut, Award, BarChart, Bell, Book, 
-    Car, Check, Clock, Code, CreditCard, Database, DollarSign, Download, 
-    Eye, Heart, Key, Lightbulb, Link, List, Lock, Mail, Map, Monitor, 
-    Moon, Phone, Plus, Power, Save, Star, Sun, Trash2, Truck, Upload, 
-    Users, Video, Volume2, Wallet, Layers, Filter, Anchor, Apple, Archive, 
-    Briefcase, Calendar, Camera, Cloud, Coffee, Construction, Droplet, 
-    Feather, FileText, FlaskConical, Folder, Gift, Globe, Hammer, Image, 
-    Info, Minus, MoreHorizontal, Move, Music, Package, Paperclip, Pause, 
-    PenTool, Pin, Plane, Printer, QrCode, Radar, Send, Server, Tablet, 
-    Tag, Terminal, ThumbsUp, ToggleLeft, Watch, Wifi, Zap, ZoomIn, ZoomOut 
-} from 'lucide-react'; 
+import {
+    X, Search, ChevronLeft, ChevronRight, SquarePen, AlertCircle,
+    Home, Settings, User, Menu, LogOut, Award, BarChart, Bell, Book,
+    Car, Check, Clock, Code, CreditCard, Database, DollarSign, Download,
+    Eye, Heart, Key, Lightbulb, Link, List, Lock, Mail, Map, Monitor,
+    Moon, Phone, Plus, Power, Save, Star, Sun, Trash2, Truck, Upload,
+    Users, Video, Volume2, Wallet, Layers, Filter, Anchor, Apple, Archive,
+    Briefcase, Calendar, Camera, Cloud, Coffee, Construction, Droplet,
+    Feather, FileText, FlaskConical, Folder, Gift, Globe, Hammer, Image,
+    Info, Minus, MoreHorizontal, Move, Music, Package, Paperclip, Pause,
+    PenTool, Pin, Plane, Printer, QrCode, Radar, Send, Server, Tablet,
+    Tag, Terminal, ThumbsUp, ToggleLeft, Watch, Wifi, Zap, ZoomIn, ZoomOut
+} from 'lucide-react';
 
-import Datatable from "@/Components/Datatable"; // Asumo que este componente existe
-import LoadingDiv from "@/Components/LoadingDiv"; // Asumo que este componente existe
-import request from "@/utils"; // Asumo que esta utilidad existe
+import Datatable from "@/Components/Datatable";
+import LoadingDiv from "@/Components/LoadingDiv";
+import request from "@/utils";
 
 // ----------------------------------------------------
 // I. UTILERÍAS GLOBALES Y DATOS INICIALES
@@ -39,6 +38,7 @@ const menuValidations = {
     menu_nombre: true,
     menu_url: true,
     estatus: true,
+    // La validación del ícono (ahora en menu_tooltip) podría ser necesaria aquí si no es opcional
 };
 
 const validateInputs = (validations, data) => {
@@ -54,36 +54,33 @@ const initialMenuData = {
     menu_nombre: "",
     menu_idPadre: null,
     menu_url: "",
-    menu_tooltip: "", // Propiedad manejada
-    menu_icono: "Home", // Propiedad manejada
+    menu_tooltip: "Home", // ⬅️ AHORA USADO PARA GUARDAR EL NOMBRE DEL ÍCONO
+    // menu_icono: "Home", // ⬅️ PROPIEDAD ELIMINADA
     estatus: "1",
 };
 
 /**
- * Mapeo de componentes para acceder a ellos por string (solución al Tree Shaking).
+ * Mapeo de componentes para acceder a ellos por string.
  */
 const ICON_COMPONENTS = {
-    Home, Settings, User, Menu, LogOut, Award, BarChart, Bell, Book, Car, 
-    Check, Clock, Code, CreditCard, Database, DollarSign, Download, Eye, Heart, 
-    Key, Lightbulb, Link, List, Lock, Mail, Map, Monitor, Moon, Phone, Plus, 
-    Power, Save, Star, Sun, Trash2, Truck, Upload, Users, Video, Volume2, 
-    Wallet, Layers, Filter, Anchor, Apple, Archive, Briefcase, Calendar, 
-    Camera, Cloud, Coffee, Construction, Droplet, Feather, FileText, FlaskConical, 
-    Folder, Gift, Globe, Hammer, Image, Info, Minus, MoreHorizontal, Move, 
-    Music, Package, Paperclip, Pause, PenTool, Pin, Plane, Printer, QrCode, 
-    Radar, Send, Server, Tablet, Tag, Terminal, ThumbsUp, ToggleLeft, Watch, 
-    Wifi, Zap, ZoomIn, ZoomOut 
+    Home, Settings, User, Menu, LogOut, Award, BarChart, Bell, Book, Car,
+    Check, Clock, Code, CreditCard, Database, DollarSign, Download, Eye, Heart,
+    Key, Lightbulb, Link, List, Lock, Mail, Map, Monitor, Moon, Phone, Plus,
+    Power, Save, Star, Sun, Trash2, Truck, Upload, Users, Video, Volume2,
+    Wallet, Layers, Filter, Anchor, Apple, Archive, Briefcase, Calendar,
+    Camera, Cloud, Coffee, Construction, Droplet, Feather, FileText, FlaskConical,
+    Folder, Gift, Globe, Hammer, Image, Info, Minus, MoreHorizontal, Move,
+    Music, Package, Paperclip, Pause, PenTool, Pin, Plane, Printer, QrCode,
+    Radar, Send, Server, Tablet, Tag, Terminal, ThumbsUp, ToggleLeft, Watch,
+    Wifi, Zap, ZoomIn, ZoomOut
 };
 
-// La lista de nombres de íconos disponibles
 const allIconNames = Object.keys(ICON_COMPONENTS);
-
 
 // ----------------------------------------------------
 // II. COMPONENTE: SELECTOR DE ÍCONOS EN CUADRÍCULA CON BÚSQUEDA Y PAGINACIÓN
 // ----------------------------------------------------
 
-// Componente del Modal con la Cuadrícula y Paginación
 function IconGridPickerModal({ isOpen, closeModal, onSelect, selectedIconName }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -91,8 +88,8 @@ function IconGridPickerModal({ isOpen, closeModal, onSelect, selectedIconName })
 
     const filteredIcons = useMemo(() => {
         if (!searchTerm) return allIconNames;
-        
-        return allIconNames.filter(name => 
+
+        return allIconNames.filter(name =>
             name.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [searchTerm]);
@@ -106,7 +103,7 @@ function IconGridPickerModal({ isOpen, closeModal, onSelect, selectedIconName })
             setCurrentPage(newPage);
         }
     };
-    
+
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm]);
@@ -116,7 +113,7 @@ function IconGridPickerModal({ isOpen, closeModal, onSelect, selectedIconName })
         onSelect(name); // Guarda el nombre del ícono
         closeModal();
     };
-    
+
     const hasIconsLoaded = allIconNames.length > 0;
 
     return (
@@ -151,7 +148,7 @@ function IconGridPickerModal({ isOpen, closeModal, onSelect, selectedIconName })
                             <div className="grid grid-cols-5 sm:grid-cols-6 gap-3 max-h-96 overflow-y-auto p-2 border rounded-lg">
                                 {currentIcons.length > 0 ? (
                                     currentIcons.map((name) => {
-                                        const IconComponent = ICON_COMPONENTS[name]; 
+                                        const IconComponent = ICON_COMPONENTS[name];
                                         const isSelected = name === selectedIconName;
                                         return (
                                             <div
@@ -201,7 +198,7 @@ function IconGridPickerModal({ isOpen, closeModal, onSelect, selectedIconName })
                             )}
                         </>
                     ) : (
-                         <div className="text-center p-8 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="text-center p-8 bg-red-50 border border-red-200 rounded-lg">
                             <p className="text-lg font-semibold text-red-700 mb-2">⚠️ Error de Carga de Librería</p>
                             <p className="text-sm text-red-600">
                                 La lista de íconos (**lucide-react**) está vacía. Confirma la instalación y el reinicio del servidor.
@@ -216,16 +213,18 @@ function IconGridPickerModal({ isOpen, closeModal, onSelect, selectedIconName })
 }
 
 // Componente de Display
-function IconDisplayField({ selectedIconName, onOpenModal }) {
-    const CurrentIcon = ICON_COMPONENTS[selectedIconName] || AlertCircle; 
+// Ahora recibe el nombre del ícono a través de selectedIconName, que será menu_tooltip
+function IconDisplayField({ selectedIconName, onOpenModal, label = "Ícono Seleccionado:" }) {
+    // Usamos el nombre del ícono para obtener el componente visual
+    const CurrentIcon = ICON_COMPONENTS[selectedIconName] || AlertCircle;
 
     return (
         <div className="relative">
             <label className="text-sm font-medium text-gray-700 block mb-1">
-                Ícono Seleccionado:
+                {label}
             </label>
-            
-            <div 
+
+            <div
                 className="flex items-center justify-between rounded-md border border-gray-300 p-2 text-sm cursor-pointer hover:border-blue-500 transition-all"
                 onClick={onOpenModal}
             >
@@ -234,7 +233,7 @@ function IconDisplayField({ selectedIconName, onOpenModal }) {
                         {CurrentIcon && <CurrentIcon size={20} />}
                     </span>
                     <span className="font-medium text-gray-700">
-                         {selectedIconName}
+                        {selectedIconName}
                     </span>
                 </div>
                 <SquarePen size={18} className="text-gray-500" />
@@ -262,14 +261,18 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
                     menu_nombre: menuToEdit.menu_nombre || "",
                     menu_idPadre: menuToEdit.menu_idPadre || null,
                     menu_url: menuToEdit.menu_url || "",
-                    menu_tooltip: menuToEdit.menu_tooltip || "",
-                    menu_icono: menuToEdit.menu_icono || "Home", 
-                    estatus: String(menuToEdit.estatus) === "1" ? "1" : "0", 
+                    // ⚠️ AHORA USAMOS menu_tooltip PARA EL ÍCONO
+                    menu_tooltip: menuToEdit.menu_tooltip || menuToEdit.menu_icono || "Home",
+                    estatus: String(menuToEdit.estatus) === "1" ? "1" : "0",
                 }
                 : initialMenuData;
+
+            // ⚠️ Limpiamos la propiedad antigua 'menu_icono' si existe, para asegurar
+            if (dataToLoad.menu_icono) delete dataToLoad.menu_icono;
+
             setMenuData(dataToLoad);
             setErrors({});
-            if (!menus2) fetchdata(); 
+            if (!menus2) fetchdata();
         }
     }, [isOpen, menuToEdit]);
 
@@ -284,7 +287,6 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
             finalValue = checked ? "1" : "0";
         }
 
-        // Esta lógica maneja la actualización de menu_tooltip y otros campos de texto
         setMenuData(prevData => ({
             ...prevData,
             [name]: finalValue
@@ -299,11 +301,11 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
         }
     };
 
-    // GUARDA EL ÍCONO SELECCIONADO EN EL ESTADO
+    // 🚀 La función de selección ahora guarda el nombre del ícono en menu_tooltip
     const handleIconSelect = (iconName) => {
         setMenuData(prevData => ({
             ...prevData,
-            menu_icono: iconName,
+            menu_tooltip: iconName, // ⬅️ CAMBIO: Guarda en menu_tooltip
         }));
     };
 
@@ -313,8 +315,8 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
 
         setLoading(true);
         try {
-            // menuData contiene el menu_icono y el menu_tooltip
-            await onSubmit(menuData); 
+            // menuData ahora solo tiene menu_tooltip (con el nombre del ícono)
+            await onSubmit(menuData);
             closeModal();
         } catch (error) {
             console.error("Error al enviar el formulario:", error);
@@ -327,17 +329,17 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
         try {
             const response = await fetch(route("menus.index"));
             const data = await response.json();
-            setMenus2([{ menu_id: '0', menu_nombre: "Raiz" }].concat(data)); 
+            setMenus2([{ menu_id: '0', menu_nombre: "Raiz" }].concat(data));
         } catch (e) {
-             console.error("Fallo al cargar la lista de menús padre:", e);
+            console.error("Fallo al cargar la lista de menús padre:", e);
         }
     };
 
     useEffect(() => {
         if (isOpen && !menus2) {
-             fetchdata();
+            fetchdata();
         }
-    }, [isOpen]); 
+    }, [isOpen]);
 
     const dialogTitle = action === 'create' ? 'Crear Nuevo Elemento de Menú' : 'Editar Elemento de Menú';
 
@@ -356,6 +358,7 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
 
                         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
                             <div className="space-y-3">
+                                {/* Campos estandár */}
                                 <label className="block">
                                     <span className="text-sm font-medium text-gray-700">Nombre del Menú: <span className="text-red-500">*</span></span>
                                     <input
@@ -383,23 +386,23 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
                                 <label className="block">
                                     <span className="text-sm font-medium text-gray-700">Menú Padre:</span>
                                     <select
-                                        name="menu_idPadre" 
-                                        value={menuData.menu_idPadre === null ? '' : String(menuData.menu_idPadre)} 
-                                        onChange={handleChange} 
+                                        name="menu_idPadre"
+                                        value={menuData.menu_idPadre === null ? '' : String(menuData.menu_idPadre)}
+                                        onChange={handleChange}
                                         className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.menu_idPadre ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
                                     >
                                         <option value="" disabled={menuData.menu_idPadre !== null}>Selecciona un menú padre</option>
                                         {(menus2 ?? []).map((menu) => {
                                             if (action === 'edit' && menu.menu_id === menuData.menu_id) return null;
-                                            
-                                            const nombreJerarquico = menu.menu_id === '0' 
+
+                                            const nombreJerarquico = menu.menu_id === '0'
                                                 ? '— Raíz (Sin Padre) —'
                                                 : `${menu.menu_padre?.menu_padre?.menu_nombre ? '/ ' + menu.menu_padre?.menu_padre?.menu_nombre : ''} ${menu.menu_padre?.menu_nombre ? '/ ' + menu.menu_padre?.menu_nombre : ''} ${'/ ' + menu.menu_nombre}`;
 
                                             return (
                                                 <option
-                                                    key={menu.menu_id} 
-                                                    value={menu.menu_id === '0' ? '' : menu.menu_id} 
+                                                    key={menu.menu_id}
+                                                    value={menu.menu_id === '0' ? '' : menu.menu_id}
                                                 >
                                                     {nombreJerarquico}
                                                 </option>
@@ -409,20 +412,11 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
                                     {errors.menu_idPadre && <p className="text-red-500 text-xs mt-1">{errors.menu_idPadre}</p>}
                                 </label>
 
-                                {/* <label className="block">
-                                    <span className="text-sm font-medium text-gray-700">Tooltip (Ayuda):</span>
-                                    <input
-                                        type="text"
-                                        name="menu_tooltip" // ⬅️ Nombre correcto para la actualización
-                                        value={menuData.menu_tooltip}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
-                                    />
-                                </label>
-                                 */}
-                                <IconDisplayField 
-                                    selectedIconName={menuData.menu_tooltip} 
-                                    onOpenModal={() => setIsIconModalOpen(true)} 
+                                {/* 🚀 CAMPO DE ÍCONO CONECTADO A menu_tooltip */}
+                                <IconDisplayField
+                                    selectedIconName={menuData.menu_tooltip} // ⬅️ Pasa menu_tooltip
+                                    onOpenModal={() => setIsIconModalOpen(true)}
+                                    label="Ícono (Guardado en 'menu_tooltip'):" // Nuevo label
                                 />
 
                                 <div className="flex justify-center w-full pt-2">
@@ -430,7 +424,7 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
                                         <input
                                             type="checkbox"
                                             name="estatus"
-                                            checked={menuData.estatus == "1"} 
+                                            checked={menuData.estatus == "1"}
                                             onChange={handleChange}
                                             className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                         />
@@ -454,7 +448,7 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
                                     disabled={loading}
                                     className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
                                 >
-                                    {loading ? (action === 'create' ? 'Registrando...' : 'Actualizando...'): (action === 'create' ? 'Guardar Menú' : 'Actualizar Menú')}
+                                    {loading ? (action === 'create' ? 'Registrando...' : 'Actualizando...') : (action === 'create' ? 'Guardar Menú' : 'Actualizar Menú')}
                                 </button>
                             </div>
                         </form>
@@ -465,8 +459,8 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
             <IconGridPickerModal
                 isOpen={isIconModalOpen}
                 closeModal={() => setIsIconModalOpen(false)}
-                onSelect={handleIconSelect}
-                selectedIconName={menuData.menu_icono}
+                onSelect={handleIconSelect} // ⬅️ La función guarda en menu_tooltip
+                selectedIconName={menuData.menu_tooltip} // ⬅️ Pasa menu_tooltip
             />
         </>
     )
@@ -520,7 +514,7 @@ export default function Menus() {
         const successMessage = isEdit ? "Menú actualizado con éxito." : "Menú creado con éxito.";
 
         try {
-            await request(ruta, method, data); 
+            await request(ruta, method, data);
             await getMenus();
             toast.success(successMessage);
         } catch (error) {
@@ -571,6 +565,7 @@ export default function Menus() {
                     columns={[
                         {
                             header: "Estatus",
+                            width: "10%",
                             accessor: "menu_estatus",
                             cell: ({ item: { menu_estatus } }) => {
                                 const color = String(menu_estatus) === "1"
@@ -582,21 +577,27 @@ export default function Menus() {
                                 );
                             },
                         },
-                        { header: 'Nombre', accessor: 'menu_nombre' },
-                        { header: 'ID Padre', accessor: 'menu_idPadre' },
-                        { header: 'URL', accessor: 'menu_url' },
-                        { header: 'Tooltip', accessor: 'menu_tooltip' },
-                        // Columna para mostrar el ícono en la tabla
-                        { 
-                            header: 'Icono', 
-                            accessor: 'menu_icono', 
-                            cell: ({ item: { menu_icono } }) => {
-                                const IconComponent = ICON_COMPONENTS[menu_icono] || AlertCircle; 
-                                return IconComponent ? <IconComponent size={20} className="text-gray-600" /> : <span>-</span>;
-                            } 
+                        { header: 'Nombre', width: "20%", accessor: 'menu_nombre' },
+                        { header: 'ID Padre', width: "20%", accessor: 'menu_idPadre' },
+                        { header: 'URL', width: "20%", accessor: 'menu_url' },
+                        {
+                            header: 'Icono (Tooltip)',
+                            accessor: 'menu_tooltip',
+                            width: "10%",
+                            // 1. Center the Header Text
+                            headerClassName: 'text-center',
+                            cell: ({ item: { menu_tooltip } }) => {
+                                const IconComponent = ICON_COMPONENTS[menu_tooltip] || AlertCircle;
+                                return (
+                                    // 2. Center the Cell Content (the Icon)
+                                    <div className="flex justify-center items-center h-full">
+                                        {IconComponent ? <IconComponent size={20} className="text-gray-600" /> : <span>-</span>}
+                                    </div>
+                                );
+                            }
                         },
                         {
-                            header: "Acciones", accessor: "Acciones", cell: (eprops) => (<>
+                            header: "Acciones", width: "10%", accessor: "Acciones", cell: (eprops) => (<>
                                 <button
                                     onClick={() => openEditModal(eprops.item)}
                                     className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200 transition"
@@ -608,7 +609,7 @@ export default function Menus() {
                     ]}
                 />
             )}
-            
+
             <MenuFormDialog
                 isOpen={isDialogOpen}
                 closeModal={closeModal}
