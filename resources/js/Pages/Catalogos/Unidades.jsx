@@ -57,8 +57,9 @@ const initialUnitData = {
     Unidades_kilometraje: 0,
     Unidades_mantenimiento: 0,
     Unidades_estatus: "1",
+    Unidades_capGasolina: "",
     // Aquí se asigna el valor:
-    Unidades_usuarioID: userObject.Personas_usuarioID 
+    Unidades_usuarioID: userObject.Personas_usuarioID
 };
 // Componente del Formulario de Unidad (Modal de Headless UI)
 function UnitFormDialog({ isOpen, closeModal, onSubmit, unitToEdit, action, errors, setErrors }) {
@@ -219,6 +220,18 @@ function UnitFormDialog({ isOpen, closeModal, onSubmit, unitToEdit, action, erro
                                 className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
                             />
                         </label>
+                        <label className="block">
+                            <span className="text-sm font-medium text-gray-700">Capacidad tanque:</span>
+                            <input
+                                type="text"
+                                name="Unidades_capGasolina"
+                                value={unitData.Unidades_capGasolina}
+                                onChange={handleChange}
+                                className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+                            />
+                        </label>
+
+
 
                         {/* Checkbox Estatus (centrado) */}
                         <div className="flex justify-center w-full">
@@ -361,7 +374,7 @@ export default function Unidades() {
     }, [])
 
     return (
-        
+
         <div className="relative h-[100%] pb-4 px-3 overflow-auto blue-scroll">
 
             <div className="flex justify-between items-center p-3 border-b mb-4">
@@ -401,6 +414,8 @@ export default function Unidades() {
                         { header: 'Año', accessor: 'Unidades_ano' },
                         { header: 'Placa', accessor: 'Unidades_placa' },
                         { header: 'Mantenimiento', accessor: 'Unidades_mantenimiento' },
+                        { header: 'Capacidad tanque', accessor: 'Unidades_capGasolina' },
+
                         {
                             header: "Acciones", accessor: "Acciones", cell: (eprops) => (<>
                                 <button

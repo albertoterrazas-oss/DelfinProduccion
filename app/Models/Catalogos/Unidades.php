@@ -22,5 +22,7 @@ class Unidades extends Model
         'Unidades_estatus',
         'Unidades_usuarioID',
         'Unidades_fechaCreacion',
+        'Unidades_capGasolina',
+
     ];
 }

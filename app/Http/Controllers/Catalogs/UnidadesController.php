@@ -35,6 +35,8 @@ class UnidadesController extends Controller
             'Unidades_estatus' => 'required',
             'Unidades_usuarioID' => 'required',
 
+            'Unidades_capGasolina' => 'required',
+
             // CAMBIADO: Ahora es requerido y debe tener formato datetime completo para SQL Server
             // 'Unidades_fechaCreacion' => 'required|date_format:Y-m-d H:i:s',
             // 'Unidades_usuarioID' => 'required|integer',

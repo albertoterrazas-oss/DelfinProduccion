@@ -154,10 +154,12 @@ class RegistroEntradaController extends Controller
 
             // Datos a enviar en el correo
             $Datos = (object) [
-                "Titulo" => "CORREO DE INCIDENCIAS",
+                "Titulo" => "CORREO DE INCIDENCIAS: ". $request->movementType ,
                 "Incidencias" => $incidenciasGuardadas,
             ];
 
+
+            // dd($incidenciasGuardadas);
             // 🚀 VERIFICACIÓN CLAVE: Solo entra al bucle si la colección $Correos no está vacía
             if ($Correos->isNotEmpty()) {
                 foreach ($Correos as $correo) {

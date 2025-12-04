@@ -13,17 +13,18 @@ class ConfiguracionCorreo extends Mailable
 {
     use Queueable, SerializesModels;
     public $information;
- 
-    public function __construct( $information)
+
+    public function __construct($information)
     {
         $this->information = $information;
     }
     // ConfiguracionCorreos
     public function build()
     {
-        return $this->subject("PRUEBA DE CORREO")
+        return $this->subject("Incidencias de correo")
             ->view('ConfiguracionCorreos', [
                 'information' => $this->information,
+                'incidencias' => $this->information->Incidencias,
             ]);
     }
 }
