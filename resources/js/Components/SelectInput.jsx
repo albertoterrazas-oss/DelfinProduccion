@@ -66,38 +66,12 @@ const SelectInput = forwardRef(({
                 {label} {isRequired && <span className="text-red-500">*</span>}
             </label>
             <div className="relative">
-                {/* <select
-                    id={name}
-                    name={name}
-                    ref={ref}
-                    value={value}
-                    onChange={onChange}
-                    required={isRequired}
-                    disabled={disabled} // Se aplica la inhabilitación del select
-                    className={`${baseClasses} ${disabled ? disabledClasses : activeClasses}`}
-                >
-                    {/* Placeholder option (disabled and hidden) }
-                <option value="" disabled hidden>
-                    {placeholder}
-                </option>
-
-                {/* Map over the options array }
-                    {options.map((option, index) => (
-                        <option
-                            key={option[valueKey] || index}
-                            value={option[valueKey]}
-                            className="p-2 text-gray-700"
-                        >
-                            {option[labelKey]}
-                        </option>
-                    ))}
-                </select> */}
                 <Select
                     id={name}
                     name={name}
                     ref={ref}
                     value={value}
-                    onChange={onChange}
+                    onValueChange={onChange}
                     required={isRequired}
                     disabled={disabled}
                 >
@@ -116,11 +90,6 @@ const SelectInput = forwardRef(({
                                     {option[labelKey]}
                                 </SelectItem>
                             ))}
-                            {/* <SelectItem value="apple">Apple</SelectItem>
-                            <SelectItem value="banana">Banana</SelectItem>
-                            <SelectItem value="blueberry">Blueberry</SelectItem>
-                            <SelectItem value="grapes">Grapes</SelectItem>
-                            <SelectItem value="pineapple">Pineapple</SelectItem> */}
                         </SelectGroup>
                     </SelectContent>
                 </Select>

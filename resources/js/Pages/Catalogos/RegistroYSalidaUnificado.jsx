@@ -253,9 +253,6 @@ const RegistroYSalidaUnificado = () => {
         loadAllData();
     }, []);
 
-
-
-
     const [form, setForm] = useState(initialFormState);
 
     const handleAuthorization = (authCode) => {
@@ -267,7 +264,6 @@ const RegistroYSalidaUnificado = () => {
         toast.success("Autorización exitosa. Proceda a registrar el movimiento.");
         // Opcionalmente, puedes llamar a CrearAsignacion() aquí para reintentar automáticamente
     };
-
 
     useEffect(() => { if (form.unit) { fetchUltimosMovimientos(form.unit); } }, [form.unit]);
 
@@ -325,15 +321,12 @@ const RegistroYSalidaUnificado = () => {
         }
     };
 
-
     // Efecto para determinar si se necesita autorización (estatusCode)
     useEffect(() => {
         // Determinar si existe al menos un elemento con observación "No"
         const hasNoObservation = form.checklist.some(item => item.observacion === "No");
-
         // 1 (Requiere autorización) si hay "No", 0 (No requiere) si todos son "Sí"
         const newStatusCode = hasNoObservation ? 1 : 0;
-
         // Si el estatus cambia de 1 a 0, se limpia el código de autorización
         if (newStatusCode === 0 && form.estatusCode === 1) {
             setForm(prevForm => ({
@@ -347,169 +340,50 @@ const RegistroYSalidaUnificado = () => {
                 estatusCode: newStatusCode
             }));
         }
-
     }, [form.checklist, setForm])
 
-
-    // const CrearAsignacion = async () => {
-    //     setIsSubmitting(true);
-
-    //     const refaccionesNecesarias = form.estatusCode === 1; // Basado en el checklist
-
-    //     // 1. Si se necesita autorización Y aún no se ha provisto el código
-    //     if (refaccionesNecesarias && !form.authorizationCode) {
-
-    //         toast.info("Se detectaron fallas. Solicitando código de autorización...");
-    //         openAuthorizationModal();
-
-    //         setIsSubmitting(false); // Esperar la autorización en el modal
-    //         return;
-    //     }
-
-    //     // 2. Si pasa la verificación (no se necesita código o ya se autorizó)
-    //     try {
-    //         // **IMPORTANTE**: Asegúrate de que `route('asignaciones.store')` es correcto
-    //         const response = await fetch(route('asignaciones.store'), {
-    //             method: 'POST',
-    //             body: JSON.stringify(form),
-    //             headers: { 'Content-Type': 'application/json' },
-    //         });
-
-    //         if (!response.ok) {
-    //             const errorText = await response.text();
-    //             toast.error(`Error al registrar el movimiento: ${errorText}. Vuelve a intentar el proceso.`);
-    //             throw new Error("Respuesta no ok");
-    //         }
-
-    //         // Éxito en la creación
-    //         toast.success("Se ha creado un movimiento con éxito");
-
-    //         // Restablecer el formulario (manteniendo el ID de usuario)
-    //         setForm({ ...initialFormState, user: userObject.Personas_usuarioID });
-
-    //         // Recargar datos
-    //         getAllData();
-    //         setRequests(prevRequests => ({
-    //             ...prevRequests,
-    //             UltimosMovimientos: [], // Limpiar historial
-    //         }));
-
-    //     } catch (err) {
-    //         console.error('Error al crear el movimiento:', err);
-    //     } finally {
-    //         setIsSubmitting(false);
-    //     }
-    // };
-
     const CrearAsignacion = async () => {
-
         setIsSubmitting(true);
-
-
-
         const refaccionesNecesarias = form.checklist.some(item => item.observacion === "No");
 
-
-
         try {
-
             // Lógica final de envío de asignación
-
             const response = await fetch(route('asignaciones.store'), {
-
                 method: 'POST',
-
                 body: JSON.stringify(form),
-
                 headers: { 'Content-Type': 'application/json' },
-
             });
-
-
-
             if (!response.ok) {
-
                 const errorText = await response.text();
-
                 toast.error(`Error al registrar el movimiento: ${errorText}. Vuelve a intentar el proceso.`);
-
                 throw new Error("Respuesta no ok");
-
             }
-
-
-
-            if (refaccionesNecesarias) {
-
-
-
-            } else {
-
+            if (!refaccionesNecesarias) {
                 toast.success("Se ha creado un movimiento con éxito");
-
                 setForm({ ...initialFormState, authorizationCode: form.authorizationCode });
-
                 getAllData();
-
                 setRequests(prevRequests => ({
-
                     ...prevRequests,
-
                     UltimosMovimientos: [],
-
                 }));
-
-
-
             }
-
-
-
         } catch (err) {
-
             console.error('Error al crear el movimiento:', err);
-
             // El error ya fue notificado con toast.error previamente
-
         } finally {
-
             setIsSubmitting(false);
-
         }
-
-
-
-
-
         if (refaccionesNecesarias) {
-
             // try {
-
             toast.info("Solicitando código de autorización...");
-
-
-
-
-
             setForm(prevForm => ({
-
                 ...prevForm,
-
                 kilometers: ''
-
             }));
-
-
-
             openAuthorizationModal();
-
             toast.info("Código de autorización enviado. Ingrésalo en la ventana emergente.");
-
         }
-
     };
-
-
 
     const handleChecklistToggle = (listId, statusValue) => {
         setForm(prevForm => {
@@ -592,9 +466,9 @@ const RegistroYSalidaUnificado = () => {
         if (QuienConQuien) {
             setForm(prevForm => ({
                 ...prevForm,
-                motive: QuienConQuien.CUA_motivoID,
-                destination: QuienConQuien.CUA_destino,
-                driver: QuienConQuien.CUA_choferID,
+                motive: Number(QuienConQuien.CUA_motivoID),
+                destination: Number(QuienConQuien.CUA_destino),
+                driver: Number(QuienConQuien.CUA_choferID),
                 // kilometers se carga en fetchUltimosMovimientos
             }));
 
@@ -696,6 +570,10 @@ const RegistroYSalidaUnificado = () => {
         : form.estatusCode === 1 && !form.authorizationCode
             ? 'SOLICITAR AUTORIZACIÓN'
             : 'REGISTRAR MOVIMIENTO';
+            
+            useEffect(() => {
+    console.log('Formulario actual:', form);
+            }, [form])
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
@@ -749,22 +627,22 @@ const RegistroYSalidaUnificado = () => {
                             <SelectInput
                                 label="Motivo"
                                 value={form.motive}
-                                onChange={(event) => {
-                                    setForm({ ...form, motive: event.target.value });
+                                onChange={(value) => {
+                                    setForm({ ...form, motive: value });
                                 }}
                                 options={requests.Motivos}
                                 placeholder="Seleccionar motivo..."
                                 valueKey="Motivos_motivoID"
                                 labelKey="Motivos_nombre"
-                                disabled={true} // Deshabilitado, se carga de QuienconQuienControl
+                                // disabled={true} // Deshabilitado, se carga de QuienconQuienControl
                             />
 
                             {/* SELECT Unidad */}
                             <SelectInput
                                 label="Unidad (Número Económico)"
                                 value={form.unit}
-                                onChange={(event) => {
-                                    setForm({ ...form, unit: event.target.value });
+                                onChange={(value) => {
+                                    setForm({ ...form, unit: value });
                                     setForm(prevForm => ({ ...prevForm, authorizationCode: '' })); // Limpiar autorización al cambiar unidad
                                 }}
                                 options={requests.QuienconQuienControl}
@@ -777,7 +655,7 @@ const RegistroYSalidaUnificado = () => {
                             <SelectInput
                                 label="Chofer / Ayudante"
                                 value={form.driver}
-                                onChange={(event) => { setForm({ ...form, driver: event.target.value }); }}
+                                onChange={(value) => { setForm({ ...form, driver: value }); }}
                                 options={requests.Choferes}
                                 placeholder="Seleccionar Chofer / ayudante"
                                 valueKey="Personas_usuarioID"
@@ -789,7 +667,7 @@ const RegistroYSalidaUnificado = () => {
                             <SelectInput
                                 label="Destino"
                                 value={form.destination}
-                                onChange={(event) => { setForm({ ...form, destination: event.target.value }); }}
+                                onChange={(value) => { setForm({ ...form, destination: value }); }}
                                 options={requests.Destinos}
                                 placeholder="Seleccionar destino..."
                                 valueKey="Destinos_Id"
@@ -801,7 +679,7 @@ const RegistroYSalidaUnificado = () => {
                             <SelectInput
                                 label="Combustible"
                                 value={form.combustible}
-                                onChange={(event) => { setForm({ ...form, combustible: event.target.value }); }}
+                                onChange={(value) => { setForm({ ...form, combustible: value }); }}
                                 options={FUEL_OPTIONS}
                                 placeholder="Seleccionar combustible"
                                 valueKey="escala_valor"
@@ -814,7 +692,7 @@ const RegistroYSalidaUnificado = () => {
                                     Kilometraje Actual
                                 </label>
 
-                                <input
+                                <TextInput
                                     type="number"
                                     name="kilometers"
                                     value={form.kilometers}
@@ -896,66 +774,48 @@ const RegistroYSalidaUnificado = () => {
                     {/* === COLUMNA DERECHA: RESUMEN Y EVIDENCIAS === */}
                     <div className="bg-white p-6 rounded-xl shadow-lg">
                         <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Resumen y Evidencias</h2>
-
                         {/* Resumen de Datos (enlazados al estado actual) */}
                         <div className="flex flex-col gap-2 mb-6 p-3 border border-gray-200 rounded-lg">
                             <h3 className="text-md font-semibold text-gray-700">Datos Clave</h3>
                             <ResumenItem label="Tipo de Movimiento" value={form.movementType} />
                             <ResumenItem label="Unidad" value={informacion.NombreUnidad || '—'} />
                             <ResumenItem label="Chofer" value={informacion.NombreOperador || '—'} />
-
                             <hr className="my-1 border-gray-100" />
-
                             <ResumenItem
                                 label="Motivo"
                                 value={(requests.Motivos.find(m => m.Motivos_motivoID === form.motive)?.Motivos_nombre) || '—'}
                             />
-
                             <ResumenItem
                                 label="Destino"
                                 value={(requests.Destinos.find(d => d.Destinos_Id === form.destination)?.Destinos_Nombre) || '—'}
                             />
-
                             <hr className="my-1 border-gray-100" />
-
                             <ResumenItem label="Kilometraje Registrado" value={`${form.kilometers} km`} />
                             <ResumenItem
                                 label="Nivel Combustible"
                                 value={FUEL_OPTIONS.find(f => f.escala_valor == form.combustible)?.nombre || '—'}
                             />
-
                             <hr className="my-1 border-gray-100" />
-
                             <div className="flex justify-between items-center py-1">
                                 <span className="text-sm font-medium text-gray-600">Fallas Detectadas</span>
                                 <span className={`text-sm font-bold ${form.estatusCode === 1 ? 'text-red-600' : 'text-green-600'}`}>
                                     {form.estatusCode === 1 ? 'Sí (Requiere Autorización)' : 'No'}
                                 </span>
                             </div>
-
                         </div>
 
                         {/* DATATABLE de Últimos Movimientos */}
                         <h3 className="text-md font-semibold text-gray-700 mb-2">Historial Reciente de Unidad</h3>
                         <div className="overflow-x-auto">
                             <Datatable
-
                                 data={requests.UltimosMovimientos}
-
                                 virtual={true}
-
                                 searcher={false}
-
                                 columns={[
-
                                     { header: 'Tipo', width: '25%', accessor: 'Movimientos_tipoMovimiento' },
-
                                     { header: 'Fecha', width: '25%', accessor: 'Movimientos_fecha' },
-
                                     { header: 'KM', width: '25%', accessor: 'Movimientos_kilometraje' },
-
                                     { header: 'Chofer', width: '25%', accessor: 'nombre_chofer' },
-
                                 ]}
 
                             />
