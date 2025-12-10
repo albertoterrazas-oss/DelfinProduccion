@@ -5,8 +5,8 @@ import { Link } from 'react-router-dom'
 
 export default function Header() {
   return (
-    <header className="w-full">
-      <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+    <header className="pt-[5px] px-[5px]">
+      <div className="header">
 
         <div className="flex items-center space-x-3">
           

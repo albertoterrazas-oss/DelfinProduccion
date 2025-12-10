@@ -59,7 +59,6 @@ export default function Home({ auth }) {
         // debas agregar una clase de estado aquí, como <div id="page-container" className={`flex h-screen w-screen overflow-hidden ${!showMenu ? 'body-container open' : ''}`}>
         // Pero por ahora, nos enfocamos en el ancho.
         <div id="page-container" className="flex h-screen w-screen overflow-hidden">
-
             {/** 1. Menú Lateral Fijo (Columna 1) **/}
             {/* 🔴 CAMBIO CLAVE: Se eliminan las clases w-64 y bg-gray-800. */}
             {/* LeftMenu ahora controlará su propio ancho (290px -> 49px) y fondo. */}
@@ -69,14 +68,14 @@ export default function Home({ auth }) {
             </div>
 
             {/** 2. Contenido Principal (Columna 2) - Ocupa el espacio restante **/}
-            <div className="flex flex-col flex-grow min-w-0 h-full bg-gray-100">
+            <div className="content sm:overflow-auto md:overflow-hidden bg-gray-100 font-sans">
 
                 {/** A. Header Fijo **/}
                 <Header />
 
                 {/** B. Área Desplazable de Rutas (Páginas) **/}
                 {/* flex-grow asegura que ocupe todo el espacio vertical restante después del Header */}
-                <div className="flex-grow overflow-y-auto p-4 styled-scroll">
+                <div className="scrollable-content styled-scroll px-4">
                     <Routes>
                         {
                             routes.map((route, index) => (

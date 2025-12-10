@@ -1,5 +1,14 @@
 
 import React, { forwardRef } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select"
 
 // --- SelectInput Component ---
 /**
@@ -57,7 +66,7 @@ const SelectInput = forwardRef(({
                 {label} {isRequired && <span className="text-red-500">*</span>}
             </label>
             <div className="relative">
-                <select
+                {/* <select
                     id={name}
                     name={name}
                     ref={ref}
@@ -67,35 +76,67 @@ const SelectInput = forwardRef(({
                     disabled={disabled} // Se aplica la inhabilitación del select
                     className={`${baseClasses} ${disabled ? disabledClasses : activeClasses}`}
                 >
-                    {/* Placeholder option (disabled and hidden) */}
-                    <option value="" disabled hidden>
-                        {placeholder}
-                    </option>
+                    {/* Placeholder option (disabled and hidden) }
+                <option value="" disabled hidden>
+                    {placeholder}
+                </option>
 
-                    {/* Map over the options array */}
+                {/* Map over the options array }
                     {options.map((option, index) => (
-                        <option 
-                            key={option[valueKey] || index} 
+                        <option
+                            key={option[valueKey] || index}
                             value={option[valueKey]}
                             className="p-2 text-gray-700"
                         >
                             {option[labelKey]}
                         </option>
                     ))}
-                </select>
+                </select> */}
+                <Select
+                    id={name}
+                    name={name}
+                    ref={ref}
+                    value={value}
+                    onChange={onChange}
+                    required={isRequired}
+                    disabled={disabled}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder={placeholder} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            {/* <SelectLabel>Fruits</SelectLabel> */}
+                            {options.map((option, index) => (
+                                <SelectItem
+                                    key={option[valueKey] || index}
+                                    value={option[valueKey]}
+                                    className="p-2 text-gray-700"
+                                >
+                                    {option[labelKey]}
+                                </SelectItem>
+                            ))}
+                            {/* <SelectItem value="apple">Apple</SelectItem>
+                            <SelectItem value="banana">Banana</SelectItem>
+                            <SelectItem value="blueberry">Blueberry</SelectItem>
+                            <SelectItem value="grapes">Grapes</SelectItem>
+                            <SelectItem value="pineapple">Pineapple</SelectItem> */}
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
                 {/* Custom arrow icon (ajustado el color para el estado disabled) */}
-                <div 
+                <div
                     className={`
                         pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 
                         ${disabled ? 'text-gray-500' : 'text-gray-700'}
                     `}
                 >
-                  
+
                 </div>
             </div>
         </div>
     );
-});
+})
 
 export default SelectInput;
 
