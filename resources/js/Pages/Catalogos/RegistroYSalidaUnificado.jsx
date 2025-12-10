@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Datatable from "@/Components/Datatable"; // Asegúrate de la ruta correcta
 import SelectInput from "@/components/SelectInput"; // Asegúrate de la ruta correcta
 import { toast } from 'sonner';
+import TextInput from "@/components/TextInput"; // Asegúrate de la ruta correcta
 
 const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
     const [code, setCode] = useState('');
