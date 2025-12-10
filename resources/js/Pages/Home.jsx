@@ -27,6 +27,9 @@ const routes = [
     { path: "/QuienConQuienTransporte", import: lazy(() => import('./Catalogos/QuienConQuienTransporte')) },
     { path: "/roles", import: lazy(() => import('./Catalogos/Roles')) },
     { path: "/correosnotificaciones", import: lazy(() => import('./Catalogos/Correos')) },
+    { path: "/MonitorCodes", import: lazy(() => import('./Catalogos/MonitorCodes')) },
+
+
 ];
 
 export default function Home({ auth }) {
@@ -61,7 +64,7 @@ export default function Home({ auth }) {
             {/* 🔴 CAMBIO CLAVE: Se eliminan las clases w-64 y bg-gray-800. */}
             {/* LeftMenu ahora controlará su propio ancho (290px -> 49px) y fondo. */}
             {/* Se mantiene flex-shrink-0 y h-full. */}
-            <div className="flex-shrink-0 h-full"> 
+            <div className="flex-shrink-0 h-full">
                 <LeftMenu auth={usuario} />
             </div>
 

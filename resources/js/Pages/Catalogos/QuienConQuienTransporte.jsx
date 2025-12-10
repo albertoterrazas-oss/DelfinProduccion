@@ -33,6 +33,7 @@ export default function QuienConQuienTransporte() {
         tipo: ''
     });
 
+    const userObject = JSON.parse(localStorage.getItem('user'));
 
     const getWho = async () => {
         const [
@@ -103,36 +104,36 @@ export default function QuienConQuienTransporte() {
     };
 
 
-    const submit = async () => {
-        try {
-            const response = await fetch(route('changesswho'), {
-                method: "POST",
-                body: JSON.stringify({ quienconquien: states.quienConQuien }),
-                headers: { "Content-Type": "application/json" }
-            });
+    // const submit = async () => {
+    //     try {
+    //         const response = await fetch(route('changesswho'), {
+    //             method: "POST",
+    //             body: JSON.stringify({ quienconquien: states.quienConQuien }),
+    //             headers: { "Content-Type": "application/json" }
+    //         });
 
-            if (response.ok) {
-                setStates({ ...states, open: false });
-                toast.success("Se ha actualizado correctamente el quienconquien");
+    //         if (response.ok) {
+    //             setStates({ ...states, open: false });
+    //             toast.success("Se ha actualizado correctamente el quienconquien");
 
-                getWho();
-                // showNotification('Actualización exitosa', 'success', 'metroui', 'bottomRight', 5000);
-            } else {
-                const errorData = await response.json();
-                const message = errorData?.message || 'Error al actualizar';
-                showNotification(message, 'error', 'metroui', 'bottomRight', 7000);
-            }
-        } catch (error) {
-            showNotification('Error inesperado: ' + error.message, 'error', 'metroui', 'bottomRight', 7000);
-        }
-    };
+    //             getWho();
+    //             // showNotification('Actualización exitosa', 'success', 'metroui', 'bottomRight', 5000);
+    //         } else {
+    //             const errorData = await response.json();
+    //             const message = errorData?.message || 'Error al actualizar';
+    //             showNotification(message, 'error', 'metroui', 'bottomRight', 7000);
+    //         }
+    //     } catch (error) {
+    //         showNotification('Error inesperado: ' + error.message, 'error', 'metroui', 'bottomRight', 7000);
+    //     }
+    // };
 
 
     const SubmitQuien = async (e) => {
         try {
             const response = await fetch(route('WhoDestint'), {
                 method: "POST",
-                body: JSON.stringify({ quienconquien: e }),
+                body: JSON.stringify({ quienconquien: e , user: userObject.Personas_usuarioID }),
                 headers: { "Content-Type": "application/json" }
             });
 
@@ -141,7 +142,6 @@ export default function QuienConQuienTransporte() {
                 toast.success("Se ha actualizado correctamente el quienconquien");
 
                 getWho();
-                // showNotification('Actualización exitosa', 'success', 'metroui', 'bottomRight', 5000);
             } else {
                 const errorData = await response.json();
                 const message = errorData?.message || 'Error al actualizar';

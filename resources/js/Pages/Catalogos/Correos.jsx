@@ -1,28 +1,11 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogPanel, DialogTitle, Transition } from '@headlessui/react';
 import { toast } from 'sonner';
-// Asumiendo que Datatable y LoadingDiv existen en tu entorno de componentes
 import Datatable from "@/Components/Datatable";
 import LoadingDiv from "@/Components/LoadingDiv";
 import request from "@/utils";
 
-// --- DUMMY FUNCTIONS (Ajustar a tu backend) ---
-// Función para simular las rutas de la API (ACTUALIZADAS PARA CORREOS)
-const route = (name, params = {}) => {
-    const id = params.correoNotificaciones_id;
-    const routeMap = {
-        "correos.index": "/api/correos",
 
-        "users.index": "/api/users",
-
-        "correos.store": "/api/correos",
-        "correos.update": `/api/correos/${id}`,
-        "correos.destroy": `/api/correos/${id}`,
-    };
-    return routeMap[name] || `/${name}`;
-};
-
-// Función DUMMY de validación para correos (ACTUALIZADA)
 const validateInputs = (validations, data) => {
     let formErrors = {};
 
@@ -30,14 +13,16 @@ const validateInputs = (validations, data) => {
     if (validations.correoNotificaciones_correo) {
         if (!data.correoNotificaciones_correo?.trim()) {
             formErrors.correoNotificaciones_correo = 'El correo es obligatorio.';
-        } else if (!/\S+@\S+\.\S+/.test(data.correoNotificaciones_correo)) {
+        } else if (!/\S+@\S+\.\S/.test(data.correoNotificaciones_correo)) {
             formErrors.correoNotificaciones_correo = 'Formato de correo inválido.';
         }
     }
 
     // Validación de ID de Usuario (Requerido y debe ser un número)
     if (validations.correoNotificaciones_idUsuario) {
-        if (data.correoNotificaciones_idUsuario === "" || isNaN(data.correoNotificaciones_idUsuario) || Number(data.correoNotificaciones_idUsuario) <= 0) {
+        // Importante: el valor del select es un string que debe convertirse
+        const idUsuario = Number(data.correoNotificaciones_idUsuario);
+        if (data.correoNotificaciones_idUsuario === "" || isNaN(idUsuario) || idUsuario <= 0) {
             formErrors.correoNotificaciones_idUsuario = 'El ID de Usuario es obligatorio y debe ser un número positivo.';
         }
     }
@@ -55,28 +40,248 @@ const correoValidations = {
 const initialCorreoData = {
     correoNotificaciones_id: null,
     correoNotificaciones_correo: "",
-    correoNotificaciones_idUsuario: "", // Cambiado a string para el input
-    correoNotificaciones_estatus: "1", // Activo por defecto
+    correoNotificaciones_idUsuario: "", // String para el input/select
+    correoNotificaciones_estatus: "1", // Activo por defecto ("1" o "0")
 };
 
-// Componente del Formulario de Correo (Modal de Headless UI)
+// Datos iniciales de la configuración SMTP (Claves usadas en el estado del formulario)
+const initialSMTPConfig = {
+    smtp_correo: "",
+    smtp_password: "",
+    smtp_host: "",
+    smtp_port: "587",
+    smtp_security: "ssl",
+};
+
+const validateConfig = (data) => {
+    const errors = {};
+    if (!data.smtp_correo || !/\S+@\S+\.\S/.test(data.smtp_correo)) {
+        errors.smtp_correo = "Correo de servidor es inválido.";
+    }
+    if (!data.smtp_password) {
+        errors.smtp_password = "La contraseña es requerida.";
+    }
+    if (!data.smtp_host) {
+        errors.smtp_host = "El Host es requerido.";
+    }
+    // Puerto debe ser un número positivo válido
+    const port = Number(data.smtp_port);
+    if (!data.smtp_port || isNaN(port) || port <= 0 || port > 65535) {
+        errors.smtp_port = "El Puerto es inválido (1-65535).";
+    }
+    if (!data.smtp_security) {
+        errors.smtp_security = "El tipo de seguridad (ssl/tls) es requerido.";
+    }
+
+    return {
+        isValid: Object.keys(errors).length === 0,
+        errors,
+    };
+};
+
+// ======================================================================
+// ✉️ COMPONENTE: ConfiguracionSMTPForm
+// ======================================================================
+
+function ConfiguracionSMTPForm({ config, reloadConfig, isLoading }) {
+    // Usamos el estado local, inicializado con la prop 'config' que viene del padre
+    const [formData, setFormData] = useState(config || initialSMTPConfig);
+    const [isSaving, setIsSaving] = useState(false);
+    const [errors, setErrors] = useState({});
+
+    // Sincroniza el estado local cuando la prop 'config' cambia (ej. después de cargarse inicialmente)
+    useEffect(() => {
+        setFormData(config || initialSMTPConfig);
+    }, [config]);
+
+
+    // Manejador para actualizar el estado del formulario con cada cambio de input
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevData => ({
+            ...prevData,
+            [name]: value
+        }));
+        // Limpia el error para el campo modificado
+        setErrors(prevErrors => ({
+            ...prevErrors,
+            [name]: undefined
+        }));
+    };
+
+    // Manejador del envío del formulario
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const validationResult = validateConfig(formData);
+        setErrors(validationResult.errors);
+
+        if (!validationResult.isValid) {
+            toast.error("Por favor, corrige los errores en el formulario.");
+            return;
+        }
+
+        setIsSaving(true);
+
+        try {
+            // **CORRECCIÓN CLAVE:** Mapeo de claves del estado (smtp_*) a las claves del backend (*correoEnvioNotificaciones_*)
+            const payload = {
+                correoEnvioNotificaciones_correoNotificacion: formData.smtp_correo,
+                correoEnvioNotificaciones_passwordCorreo: formData.smtp_password,
+                correoEnvioNotificaciones_host: formData.smtp_host,
+                correoEnvioNotificaciones_puerto: formData.smtp_port,
+                correoEnvioNotificaciones_seguridadSSL: formData.smtp_security,
+            };
+
+            // Usamos 'request'. Asumimos que lanza una excepción en caso de error (4xx/5xx)
+            await request(route("ConfiguracionCorreoStore"), "POST", payload);
+
+            // Si llegamos aquí, fue exitoso.
+            await reloadConfig(); // Recarga la configuración global en el padre
+            toast.success("Configuración de correo guardada con éxito.");
+
+        } catch (error) {
+            console.error("Error al guardar la configuración SMTP:", error);
+            // Capturamos la excepción y mostramos un mensaje general
+            toast.error(`Hubo un error al guardar la configuración: ${error.message || 'Error de red o servidor.'}`);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <div className="bg-white p-6 rounded-xl shadow-lg border-2 border-blue-100 mb-6">
+            {/* <h3 className="text-xl font-bold mb-4 text-blue-700">✉️ Configuración del Servidor de Correo (SMTP)</h3> */}
+
+            {isLoading && <LoadingDiv text="Cargando Configuración..." />}
+
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="lg:col-span-2">
+                    <label htmlFor="smtp_correo" className="block text-sm font-medium text-gray-700">Correo Servidor</label>
+                    <input
+                        id="smtp_correo"
+                        type="email"
+                        name="smtp_correo"
+                        value={formData.smtp_correo || ''}
+                        onChange={handleChange}
+                        placeholder="servidor@dominio.com"
+                        className={`mt-1 block w-full rounded-md border p-2 text-sm focus:border-blue-500 focus:ring-blue-500 ${errors.smtp_correo ? 'border-red-500' : 'border-gray-300'}`}
+                        required
+                    />
+                    {errors.smtp_correo && <p className="mt-1 text-xs text-red-500">{errors.smtp_correo}</p>}
+                </div>
+
+                <div>
+                    <label htmlFor="smtp_password" className="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <input
+                        id="smtp_password"
+                        type="text"
+                        name="smtp_password"
+                        value={formData.smtp_password || ''}
+                        onChange={handleChange}
+                        placeholder="Contraseña"
+                        className={`mt-1 block w-full rounded-md border p-2 text-sm focus:border-blue-500 focus:ring-blue-500 ${errors.smtp_password ? 'border-red-500' : 'border-gray-300'}`}
+                        required
+                    />
+                    {errors.smtp_password && <p className="mt-1 text-xs text-red-500">{errors.smtp_password}</p>}
+                </div>
+
+                <div>
+                    <label htmlFor="smtp_host" className="block text-sm font-medium text-gray-700">Host</label>
+                    <input
+                        id="smtp_host"
+                        type="text"
+                        name="smtp_host"
+                        value={formData.smtp_host || ''}
+                        onChange={handleChange}
+                        placeholder="smtp.ejemplo.com"
+                        className={`mt-1 block w-full rounded-md border p-2 text-sm focus:border-blue-500 focus:ring-blue-500 ${errors.smtp_host ? 'border-red-500' : 'border-gray-300'}`}
+                        required
+                    />
+                    {errors.smtp_host && <p className="mt-1 text-xs text-red-500">{errors.smtp_host}</p>}
+                </div>
+
+                <div>
+                    <label htmlFor="smtp_port" className="block text-sm font-medium text-gray-700">Puerto</label>
+                    <input
+                        id="smtp_port"
+                        type="number"
+                        name="smtp_port"
+                        value={formData.smtp_port || ''}
+                        onChange={handleChange}
+                        placeholder="587"
+                        className={`mt-1 block w-full rounded-md border p-2 text-sm focus:border-blue-500 focus:ring-blue-500 ${errors.smtp_port ? 'border-red-500' : 'border-gray-300'}`}
+                        required
+                    />
+                    {errors.smtp_port && <p className="mt-1 text-xs text-red-500">{errors.smtp_port}</p>}
+                </div>
+
+                <div>
+                    <label htmlFor="smtp_security" className="block text-sm font-medium text-gray-700">Tipo de seguridad</label>
+                    <input
+                        id="smtp_security"
+                        type="text"
+                        name="smtp_security"
+                        value={formData.smtp_security || ''}
+                        onChange={handleChange}
+                        placeholder="ssl o tls"
+                        className={`mt-1 block w-full rounded-md border p-2 text-sm focus:border-blue-500 focus:ring-blue-500 ${errors.smtp_security ? 'border-red-500' : 'border-gray-300'}`}
+                        required
+                    />
+                    {errors.smtp_security && <p className="mt-1 text-xs text-red-500">{errors.smtp_security}</p>}
+                </div>
+
+                <div className="md:col-span-2 lg:col-span-5 flex justify-end pt-2">
+                    <button
+                        type="submit"
+                        disabled={isSaving || isLoading}
+                        className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+                    >
+                        {isSaving ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    );
+}
+
+// ----------------------------------------------------------------------
+
+// ✉️ COMPONENTE: CorreoFormDialog
 function CorreoFormDialog({ isOpen, closeModal, onSubmit, correoToEdit, action, errors, setErrors }) {
     const [correoData, setCorreoData] = useState(initialCorreoData);
     const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState([]);
 
+    // Lógica para cargar datos del correo a editar o inicial
     useEffect(() => {
         if (isOpen) {
-            // Asegura que correoToEdit esté cargado o usa el estado inicial
-            const dataToLoad = correoToEdit || initialCorreoData;
-            // Asegura que idUsuario sea string para el input
+            const dataToLoad = correoToEdit && correoToEdit.correoNotificaciones_id ? correoToEdit : initialCorreoData;
             setCorreoData({
                 ...dataToLoad,
+                // Asegurar que el idUsuario sea string para el select
                 correoNotificaciones_idUsuario: String(dataToLoad.correoNotificaciones_idUsuario || ""),
             });
             setErrors({});
         }
     }, [isOpen, correoToEdit, setErrors]);
+
+    // Lógica para cargar la lista de usuarios
+    const getUsers = async () => {
+        try {
+            const response = await fetch(route("users.index"));
+            const data = await response.json();
+            setUsers(data.data || data || []);
+        } catch (error) {
+            console.error('Error al obtener los usuarios:', error);
+            toast.error("No se pudieron cargar los usuarios.");
+        }
+    }
+
+    useEffect(() => {
+        getUsers()
+    }, [])
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -87,7 +292,6 @@ function CorreoFormDialog({ isOpen, closeModal, onSubmit, correoToEdit, action, 
             [name]: finalValue
         }));
 
-        // Limpiar error específico si se empieza a escribir
         if (errors[name]) {
             setErrors(prevErrors => {
                 const newErrors = { ...prevErrors };
@@ -97,53 +301,26 @@ function CorreoFormDialog({ isOpen, closeModal, onSubmit, correoToEdit, action, 
         }
     };
 
-    const handleNumericChange = (e) => {
-        const { name, value } = e.target;
-        // Permite solo dígitos. Podrías permitir el signo '-' si fuera necesario, pero no para un ID de usuario.
-        const filteredValue = value.replace(/[^\d]/g, '');
-
-        setCorreoData(prevState => ({
-            ...prevState,
-            [name]: filteredValue
-        }));
-    };
-
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
-        // Convertir idUsuario a número para la validación/envío, aunque se almacene como string en el estado
+        // Convertir idUsuario a número antes del submit final
         const dataToSend = {
             ...correoData,
             correoNotificaciones_idUsuario: Number(correoData.correoNotificaciones_idUsuario)
         };
 
         try {
+            // El padre (Correos) maneja la validación y el guardado
             await onSubmit(dataToSend);
             closeModal();
         } catch (error) {
-            // El error de validación ya fue manejado en la función onSubmit
+            // El error se maneja en el padre, y no cerramos el modal si falla
         } finally {
             setLoading(false);
         }
     };
-
-
-    const getUsers = async () => {
-        try {
-            // Simulación: Si request no está definido para GET, usamos fetch
-            const data = await fetch(route("users.index")).then(res => res.json());
-            setUsers(data);
-        } catch (error) {
-            console.error('Error al obtener los usuarios:', error);
-        }
-    }
-
-
-    useEffect(() => {
-        getUsers() // Llamar a getUnits al montar
-    }, [])
 
 
     const dialogTitle = action === 'create' ? 'Crear Nuevo Correo' : 'Editar Correo';
@@ -171,31 +348,35 @@ function CorreoFormDialog({ isOpen, closeModal, onSubmit, correoToEdit, action, 
                                     onChange={handleChange}
                                     className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.correoNotificaciones_correo ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
                                     placeholder="ejemplo@dominio.com"
+                                    required
                                 />
                                 {errors.correoNotificaciones_correo && <p className="text-red-500 text-xs mt-1">{errors.correoNotificaciones_correo}</p>}
                             </label>
 
+                            {/* Select Usuario */}
                             <label className="block">
                                 <span className="text-sm font-medium text-gray-700">Usuario: <span className="text-red-500">*</span></span>
                                 <select
                                     name="correoNotificaciones_idUsuario"
                                     value={correoData.correoNotificaciones_idUsuario || ''}
-                                    onChange={(event) => { setCorreoData({ ...correoData, correoNotificaciones_idUsuario: event.target.value }); }}
+                                    onChange={handleChange}
                                     className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.correoNotificaciones_idUsuario ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+                                    required
                                 >
                                     <option value="" disabled>Selecciona un Usuario</option>
-                                    {users.map((dept) => (
+                                    {users.map((user) => (
                                         <option
-                                            key={dept.Personas_usuarioID}
-                                            value={dept.Personas_usuarioID}
+                                            key={user.Personas_usuarioID}
+                                            value={user.Personas_usuarioID}
                                         >
-                                            {dept.nombre_completo}
+                                            {user.nombre_completo}
                                         </option>
                                     ))}
                                 </select>
                                 {errors.correoNotificaciones_idUsuario && <p className="text-red-500 text-xs mt-1">{errors.correoNotificaciones_idUsuario}</p>}
                             </label>
 
+                            {/* Checkbox Estatus */}
                             <div className="flex justify-center w-full mt-2">
                                 <label className="flex items-center space-x-2">
                                     <input
@@ -236,10 +417,10 @@ function CorreoFormDialog({ isOpen, closeModal, onSubmit, correoToEdit, action, 
 }
 
 // ----------------------------------------------------------------------
-// Componente principal Correos
-// ----------------------------------------------------------------------
 
+// 👑 COMPONENTE PRINCIPAL: Correos
 export default function Correos() {
+    // Estado para Correos de Notificación
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [correos, setCorreos] = useState([]);
     const [action, setAction] = useState('create');
@@ -247,6 +428,61 @@ export default function Correos() {
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(true);
 
+    // Estado para Configuración SMTP
+    const [smtpConfig, setSmtpConfig] = useState(initialSMTPConfig);
+    const [isSmtpLoading, setIsSmtpLoading] = useState(true);
+
+    // --- Lógica de Correos de Notificación (Fetch de la tabla) ---
+    const getCorreos = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(route("correos.index"));
+            const result = await response.json();
+            setCorreos(result.data || result);
+
+        } catch (error) {
+            console.error('Error al obtener los correos:', error);
+            toast.error("No se pudieron cargar los correos de notificación.");
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    // --- Lógica de Configuración SMTP (Fetch del formulario) ---
+    const getSmtpConfig = async () => {
+        setIsSmtpLoading(true);
+        try {
+            const response = await fetch(route("indexconfiguracioncorreo"));
+            if (!response.ok) {
+                // Si fetch falla aquí, lanzamos para capturar el error general
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            const result = await response.json();
+
+            // **Mapeo de claves del backend a claves de estado**
+            setSmtpConfig({
+                smtp_correo: result.correoEnvioNotificaciones_correoNotificacion || "",
+                smtp_password: result.correoEnvioNotificaciones_passwordCorreo || "",
+                smtp_host: result.correoEnvioNotificaciones_host || "",
+                smtp_port: String(result.correoEnvioNotificaciones_puerto || "587"),
+                smtp_security: result.correoEnvioNotificaciones_seguridadSSL || "ssl",
+            });
+        } catch (error) {
+            console.error('Error al obtener la configuración SMTP:', error);
+            // Si no se pudo cargar, se mantiene el initialSMTPConfig
+            setSmtpConfig(initialSMTPConfig);
+        } finally {
+            setIsSmtpLoading(false);
+        }
+    }
+
+
+    useEffect(() => {
+        getCorreos();
+        getSmtpConfig();
+    }, [])
+
+    // --- Lógica de Modales ---
     const openCreateModal = () => {
         setAction('create');
         setCorreoData(initialCorreoData);
@@ -267,72 +503,69 @@ export default function Correos() {
         setErrors({});
     };
 
-    // Función para crear/actualizar un correo
+    // --- Lógica de Correos de Notificación (Submit) ---
     const submit = async (data) => {
-        console.log("Datos a enviar:", data); // Depuración
-        setErrors({});
+
+        console.log("entro");
+        // Validación
         const validationResult = validateInputs(correoValidations, data);
 
         if (!validationResult.isValid) {
             setErrors(validationResult.errors);
             toast.error("Por favor, corrige los errores en el formulario.");
+            //   console.log("dsd");
+            // Lanza un error para detener el flujo en CorreoFormDialog
             throw new Error("Validation Failed");
         }
 
         const isEdit = data.correoNotificaciones_id;
+
+
+        // console.log("isedit",isEdit)
         const ruta = isEdit
-            ? route("correos.update", { correoNotificaciones_id: data.correoNotificaciones_id })
+            ? route("correos.update", { id: data.correoNotificaciones_id })
             : route("correos.store");
 
         const method = isEdit ? "PUT" : "POST";
         const successMessage = isEdit ? "Correo actualizado con éxito." : "Correo creado con éxito.";
 
         try {
-            // Envía solo los campos fillable
             const payload = {
+                correoNotificaciones_id: data.correoNotificaciones_id,
+
                 correoNotificaciones_correo: data.correoNotificaciones_correo,
                 correoNotificaciones_idUsuario: data.correoNotificaciones_idUsuario,
                 correoNotificaciones_estatus: data.correoNotificaciones_estatus,
             };
 
+            // Usamos la función 'request'
             await request(ruta, method, payload);
-            await getCorreos();
+
+            await getCorreos(); // Recarga la tabla
             toast.success(successMessage);
         } catch (error) {
             console.error("Error al guardar el correo:", error);
-            toast.error("Hubo un error al guardar el correo.");
-            throw error;
+            toast.error(`Hubo un error al guardar el correo: ${error.message || 'Error de red.'}`);
+            throw error; // Propagar para que el diálogo sepa que falló
         }
     };
 
 
-    // Función para obtener la lista de correos
-    const getCorreos = async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch(route("correos.index"));
-            // Simular respuesta JSON si no tienes un backend real
-            const result = await response.json();
-
-            // Si la respuesta es un array y no un objeto con 'data', úsalo directamente:
-            setCorreos(result.data || result);
-
-        } catch (error) {
-            console.error('Error al obtener los correos:', error);
-            toast.error("No se pudieron cargar los correos.");
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
-    useEffect(() => {
-        getCorreos()
-    }, [])
-
     return (
         <div className="relative h-[100%] pb-4 px-3 overflow-auto blue-scroll">
             <div className="flex justify-between items-center p-3 border-b mb-4">
-                <h2 className="text-3xl font-bold text-gray-800">Gestión de Correos de Notificación</h2>
+                <h2 className="text-3xl font-bold text-gray-800">Configuración de Correo</h2>
+            </div>
+
+            {/* Componente de Formulario de Configuración SMTP */}
+            <ConfiguracionSMTPForm
+                config={smtpConfig}
+                isLoading={isSmtpLoading}
+                reloadConfig={getSmtpConfig}
+            />
+
+            <div className="flex justify-between items-center p-3 border-b mb-4">
+                <h2 className="text-3xl font-bold text-gray-800">Correos Electrónicos de Notificación</h2>
                 <button
                     onClick={openCreateModal}
                     className="flex items-center px-4 py-2 text-base font-semibold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 transition duration-150 ease-in-out"
@@ -341,6 +574,7 @@ export default function Correos() {
                 </button>
             </div>
 
+            {/* Sección de Gestión de Correos de Notificación (Datatable) */}
             {isLoading ? (
                 <div className='flex items-center justify-center h-[100%] w-full'> <LoadingDiv /> </div>
 
@@ -355,12 +589,10 @@ export default function Correos() {
                             width: '10%',
                             cell: ({ item: { correoNotificaciones_estatus } }) => {
                                 const isActivo = String(correoNotificaciones_estatus) === "1";
-                                const color = isActivo
-                                    ? "bg-green-300"
-                                    : "bg-red-300";
+                                const color = isActivo ? "bg-green-500" : "bg-red-500";
 
                                 return (
-                                    <span className={`inline-flex items-center justify-center rounded-full ${color} w-4 h-4`}
+                                    <span className={`inline-flex items-center justify-center rounded-full ${color} w-3 h-3`}
                                         title={isActivo ? "Activo" : "Inactivo"}
                                     />
                                 );

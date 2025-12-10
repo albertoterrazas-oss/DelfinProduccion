@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Catalogs;
 
 use App\Http\Controllers\Controller;
 use App\Models\Catalogos\ChoferUnidadAsignar;
+use App\Models\Catalogos\CodigoAutorizacion;
 use App\Models\Catalogos\IncidenciasMovimiento;
 use App\Models\Catalogos\Movimientos;
 use Illuminate\Http\Request;
@@ -559,59 +560,275 @@ class UnidadesController extends Controller
 
 
 
+    // public function QuienconQuienControl(Request $request)
+    // {
+    //     $today = now()->toDateString();
+    //     // Obtener el valor del filtro 'id' (ej: 'SALIDA' o 'ENTRADA')
+    //     $filterType = $request->query('id');
+
+    //     // 1. Obtener las asignaciones completas de hoy
+    //     $unidadesCompletasDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
+    //         ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_choferID')
+    //         ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_destino')
+    //         ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_motivoID')
+    //         ->join('dbo.Unidades', 'dbo.ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
+    //         ->select(
+    //             'dbo.ChoferUnidadAsignada.CUA_asignacionID',
+    //             'dbo.ChoferUnidadAsignada.CUA_unidadID',
+    //             'dbo.ChoferUnidadAsignada.CUA_choferID',
+    //             'dbo.ChoferUnidadAsignada.CUA_destino',
+    //             'dbo.ChoferUnidadAsignada.CUA_motivoID',
+    //             'dbo.ChoferUnidadAsignada.CUA_fechaAsignacion',
+    //             'Unidades.Unidades_numeroEconomico'
+    //         )
+    //         ->where('dbo.ChoferUnidadAsignada.CUA_estatus', 1)
+    //         ->get();
+
+    //     // 2. Iterar, obtener el último movimiento y determinar el 'type'
+    //     foreach ($unidadesCompletasDeHoy as $unidad) {
+    //         $Movimiento = Movimientos::where('Movimientos_asignacionID', $unidad->CUA_asignacionID)
+    //             ->latest('Movimientos_fecha')
+    //             ->first();
+
+    //         $unidad->ultimoMovimiento = $Movimiento;
+
+    //         if ($Movimiento) {
+    //             $unidad->type = $Movimiento->Movimientos_tipoMovimiento;
+    //             $unidad->KM = $Movimiento->Movimientos_kilometraje;
+    //             $unidad->EstatusCodigo = $Movimiento->Movimientos_estatus;
+    //         } else {
+    //             $unidad->type = 'SALIDA';
+    //             $unidad->KM =  0;
+    //             $unidad->EstatusCodigo = 0;
+    //         }
+    //     }
+
+    //     if ($filterType) {
+    //         $unidadesCompletasDeHoy = $unidadesCompletasDeHoy->filter(function ($unidad) use ($filterType) {
+    //             if ($filterType === 'ENTRADA') {
+    //                 return $unidad->type === 'SALIDA' && $unidad->ultimoMovimiento !== null;
+    //             }
+
+    //             if ($filterType === 'SALIDA') {
+    //                 return $unidad->type === 'ENTRADA' || ($unidad->type === 'SALIDA' && $unidad->ultimoMovimiento === null);
+    //             }
+
+    //             return false;
+    //         })->values(); // Re-indexa el array después de filtrar
+    //     }
+
+    //     return $unidadesCompletasDeHoy;
+    // }
+
+    // public function QuienconQuienControl(Request $request)
+    // {
+    //     $today = now()->toDateString();
+    //     // Obtener el valor del filtro 'id' (ej: 'SALIDA' o 'ENTRADA')
+    //     $filterType = $request->query('id');
+
+    //     // 1. Obtener las asignaciones completas de hoy (código original)
+    //     $unidadesCompletasDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
+    //         ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_choferID')
+    //         ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_destino')
+    //         ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_motivoID')
+    //         ->join('dbo.Unidades', 'dbo.ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
+    //         ->select(
+    //             'dbo.ChoferUnidadAsignada.CUA_asignacionID',
+    //             'dbo.ChoferUnidadAsignada.CUA_unidadID',
+    //             'dbo.ChoferUnidadAsignada.CUA_choferID',
+    //             'dbo.ChoferUnidadAsignada.CUA_destino',
+    //             'dbo.ChoferUnidadAsignada.CUA_motivoID',
+    //             'dbo.ChoferUnidadAsignada.CUA_fechaAsignacion',
+    //             'Unidades.Unidades_numeroEconomico'
+    //         )
+    //         ->where('dbo.ChoferUnidadAsignada.CUA_estatus', 1)
+    //         ->get();
+
+    //     // 2. Iterar, obtener el último movimiento y determinar el 'type' (código original)
+    //     foreach ($unidadesCompletasDeHoy as $unidad) {
+    //         $Movimiento = Movimientos::where('Movimientos_asignacionID', $unidad->CUA_asignacionID)
+    //             ->latest('Movimientos_fecha')
+    //             ->first();
+
+    //         $unidad->ultimoMovimiento = $Movimiento;
+
+    //         if ($Movimiento) {
+    //             $unidad->type = $Movimiento->Movimientos_tipoMovimiento;
+    //             $unidad->KM = $Movimiento->Movimientos_kilometraje;
+    //             $unidad->EstatusCodigo = $Movimiento->Movimientos_estatus;
+    //         } else {
+    //             $unidad->type = 'SALIDA';
+    //             $unidad->KM = 0;
+    //             $unidad->EstatusCodigo = 0;
+    //         }
+    //     }
+
+    //     if ($filterType) {
+    //         $unidadesCompletasDeHoy = $unidadesCompletasDeHoy->filter(function ($unidad) use ($filterType) {
+
+    //             // ⭐ REGLA CLAVE: Si EstatusCodigo es "1", siempre se incluye en la lista.
+    //             if ($unidad->EstatusCodigo == "1") {
+    //                 return true;
+    //             }
+
+    //             // Lógica de filtrado original para ENT y SAL
+    //             if ($filterType === 'ENTRADA') {
+    //                 // Se busca unidades listas para ENTRADA (último movimiento fue SALIDA y existe un movimiento)
+    //                 return $unidad->type === 'SALIDA' && $unidad->ultimoMovimiento !== null;
+    //             }
+
+    //             if ($filterType === 'SALIDA') {
+    //                 // Se busca unidades listas para SALIDA (último movimiento fue ENTRADA o no hay movimientos)
+    //                 return $unidad->type === 'ENTRADA' || ($unidad->type === 'SALIDA' && $unidad->ultimoMovimiento === null);
+    //             }
+
+    //             // Si el filtro no es 'ENTRADA' o 'SALIDA' y EstatusCodigo no es "1", no se incluye
+    //             return false;
+    //         })->values(); // Re-indexa el array después de filtrar
+    //     }
+
+    //     return $unidadesCompletasDeHoy;
+    // }
+
     public function QuienconQuienControl(Request $request)
-    {
-        $today = now()->toDateString();
-        // Obtener el valor del filtro 'id' (ej: 'SALIDA' o 'ENTRADA')
-        $filterType = $request->query('id');
+{
+    $today = now()->toDateString();
+    $filterType = $request->query('id');
 
-        // 1. Obtener las asignaciones completas de hoy
-        $unidadesCompletasDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
-            ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_choferID')
-            ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_destino')
-            ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_motivoID')
-            ->join('dbo.Unidades', 'dbo.ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
-            ->select(
-                'dbo.ChoferUnidadAsignada.CUA_asignacionID',
-                'dbo.ChoferUnidadAsignada.CUA_unidadID',
-                'dbo.ChoferUnidadAsignada.CUA_choferID',
-                'dbo.ChoferUnidadAsignada.CUA_destino',
-                'dbo.ChoferUnidadAsignada.CUA_motivoID',
-                'dbo.ChoferUnidadAsignada.CUA_fechaAsignacion',
-                'Unidades.Unidades_numeroEconomico'
-            )
-            ->where('dbo.ChoferUnidadAsignada.CUA_estatus', 1)
-            ->get();
+    // ... (Obtención de datos y bucle foreach - sin cambios) ...
 
-        // 2. Iterar, obtener el último movimiento y determinar el 'type'
-        foreach ($unidadesCompletasDeHoy as $unidad) {
-            $Movimiento = Movimientos::where('Movimientos_asignacionID', $unidad->CUA_asignacionID)
-                ->latest('Movimientos_fecha')
-                ->first();
+    $unidadesCompletasDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
+        ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_choferID')
+        ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_destino')
+        ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_motivoID')
+        ->join('dbo.Unidades', 'dbo.ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
+        ->select(
+            'dbo.ChoferUnidadAsignada.CUA_asignacionID',
+            'dbo.ChoferUnidadAsignada.CUA_unidadID',
+            'dbo.ChoferUnidadAsignada.CUA_choferID',
+            'dbo.ChoferUnidadAsignada.CUA_destino',
+            'dbo.ChoferUnidadAsignada.CUA_motivoID',
+            'dbo.ChoferUnidadAsignada.CUA_fechaAsignacion',
+            'Unidades.Unidades_numeroEconomico'
+        )
+        ->where('dbo.ChoferUnidadAsignada.CUA_estatus', 1)
+        ->get();
 
-            $unidad->ultimoMovimiento = $Movimiento;
+    foreach ($unidadesCompletasDeHoy as $unidad) {
+        $Movimiento = Movimientos::where('Movimientos_asignacionID', $unidad->CUA_asignacionID)
+            ->latest('Movimientos_fecha')
+            ->first();
 
-            if ($Movimiento) {
-                $unidad->type = $Movimiento->Movimientos_tipoMovimiento;
-            } else {
-                $unidad->type = 'SALIDA';
-            }
+        $unidad->ultimoMovimiento = $Movimiento;
+
+        if ($Movimiento) {
+            $unidad->type = $Movimiento->Movimientos_tipoMovimiento;
+            $unidad->KM = $Movimiento->Movimientos_kilometraje;
+            $unidad->EstatusCodigo = $Movimiento->Movimientos_estatus;
+        } else {
+            $unidad->type = 'SALIDA';
+            $unidad->KM = 0;
+            $unidad->EstatusCodigo = 0;
         }
-
-        if ($filterType) {
-            $unidadesCompletasDeHoy = $unidadesCompletasDeHoy->filter(function ($unidad) use ($filterType) {
-                if ($filterType === 'ENTRADA') {
-                    return $unidad->type === 'SALIDA' && $unidad->ultimoMovimiento !== null;
-                }
-
-                if ($filterType === 'SALIDA') {
-                    return $unidad->type === 'ENTRADA' || ($unidad->type === 'SALIDA' && $unidad->ultimoMovimiento === null);
-                }
-
-                return false;
-            })->values(); // Re-indexa el array después de filtrar
-        }
-
-        return $unidadesCompletasDeHoy;
     }
+
+    if ($filterType) {
+        $unidadesCompletasDeHoy = $unidadesCompletasDeHoy->filter(function ($unidad) use ($filterType) {
+
+            // ⭐ Lógica nueva: Si el estatus es "1", la unidad se queda en el listado 
+            // que coincida con su ÚLTIMO TIPO DE MOVIMIENTO (type).
+            if ($unidad->EstatusCodigo == "1") {
+                return $unidad->type === $filterType;
+            }
+
+            // Lógica original (para unidades no activas o que esperan la siguiente acción):
+            
+            // FILTRO ENTRADA: Muestra las unidades que tienen SALIDA y no están activas (EstatusCodigo != 1).
+            if ($filterType === 'ENTRADA') {
+                return $unidad->type === 'SALIDA' && $unidad->ultimoMovimiento !== null;
+            }
+
+            // FILTRO SALIDA: Muestra las unidades que tienen ENTRADA o no tienen movimiento (están listas para salir).
+            if ($filterType === 'SALIDA') {
+                return $unidad->type === 'ENTRADA' || ($unidad->type === 'SALIDA' && $unidad->ultimoMovimiento === null);
+            }
+
+            return false;
+        })->values();
+    }
+
+    return $unidadesCompletasDeHoy;
+}
+
+    // public function QuienconQuienControl(Request $request)
+    // {
+    //     $today = now()->toDateString();
+    //     $filterType = $request->query('id');
+
+    //     // ... (Se mantiene la obtención de datos y el bucle foreach, ya que son correctos) ...
+    //     // 1. Obtener las asignaciones completas de hoy
+    //     $unidadesCompletasDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
+    //         ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_choferID')
+    //         ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_destino')
+    //         ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_motivoID')
+    //         ->join('dbo.Unidades', 'dbo.ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
+    //         ->select(
+    //             'dbo.ChoferUnidadAsignada.CUA_asignacionID',
+    //             'dbo.ChoferUnidadAsignada.CUA_unidadID',
+    //             'dbo.ChoferUnidadAsignada.CUA_choferID',
+    //             'dbo.ChoferUnidadAsignada.CUA_destino',
+    //             'dbo.ChoferUnidadAsignada.CUA_motivoID',
+    //             'dbo.ChoferUnidadAsignada.CUA_fechaAsignacion',
+    //             'Unidades.Unidades_numeroEconomico'
+    //         )
+    //         ->where('dbo.ChoferUnidadAsignada.CUA_estatus', 1)
+    //         ->get();
+
+    //     // 2. Iterar y obtener el último movimiento
+    //     foreach ($unidadesCompletasDeHoy as $unidad) {
+    //         $Movimiento = Movimientos::where('Movimientos_asignacionID', $unidad->CUA_asignacionID)
+    //             ->latest('Movimientos_fecha')
+    //             ->first();
+
+    //         $unidad->ultimoMovimiento = $Movimiento;
+
+    //         if ($Movimiento) {
+    //             $unidad->type = $Movimiento->Movimientos_tipoMovimiento;
+    //             $unidad->KM = $Movimiento->Movimientos_kilometraje;
+    //             $unidad->EstatusCodigo = $Movimiento->Movimientos_estatus;
+    //         } else {
+    //             $unidad->type = 'SALIDA';
+    //             $unidad->KM = 0;
+    //             $unidad->EstatusCodigo = 0;
+    //         }
+    //     }
+
+    //     if ($filterType) {
+    //         $unidadesCompletasDeHoy = $unidadesCompletasDeHoy->filter(function ($unidad) use ($filterType) {
+
+    //             // Si el estatus es "1", la unidad está ACTIVA.
+    //             // La unidad debe aparecer en el filtro que corresponde a su siguiente acción.
+    //             // Si el último tipo fue 'SALIDA', está esperando una 'ENTRADA'.
+    //             // Si el último tipo fue 'ENTRADA', está esperando una 'SALIDA'.
+
+    //             if ($filterType === 'ENTRADA') {
+    //                 // Buscamos unidades listas para ENTRADA (último Movimiento fue SALIDA).
+    //                 // NOTA: Si EstatusCodigo es "1", y type es "SALIDA", ¡debe aparecer aquí!
+    //                 // El filtro original ya maneja esto:
+    //                 return $unidad->type === 'SALIDA'; // Aquí ya no necesitas verificar `!== null` si la lógica es que el estatus "1" la mantiene activa.
+    //             }
+
+    //             if ($filterType === 'SALIDA') {
+    //                 // Buscamos unidades listas para SALIDA (último Movimiento fue ENTRADA o no hay movimientos).
+    //                 // NOTA: Si EstatusCodigo es "1", y type es "ENTRADA", ¡debe aparecer aquí!
+    //                 // El filtro original ya maneja esto:
+    //                 return $unidad->type === 'ENTRADA' || ($unidad->type === 'SALIDA' && $unidad->ultimoMovimiento === null);
+    //             }
+
+    //             return false;
+    //         })->values();
+    //     }
+
+    //     return $unidadesCompletasDeHoy;
+    // }
 }

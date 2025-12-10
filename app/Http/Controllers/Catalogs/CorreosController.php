@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Catalogs;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ConfiguracionCorreo;
+use App\Models\Catalogos\ConfiguracionCorreo as CatalogosConfiguracionCorreo;
 use App\Models\Catalogos\CorreoNotificacion;
 use Illuminate\Http\Request;
 // use App\Models\CorreoNotificacion; // Importamos el modelo
@@ -68,6 +70,55 @@ class CorreosController extends Controller
 
             return response()->json([
                 'message' => 'Correo de notificación creado exitosamente',
+                'data' => $correo
+            ], 201); // Código 201 Created
+
+        } catch (\Exception $e) {
+            // 3. Manejo de errores
+            return response()->json([
+                'message' => 'Ocurrió un error al guardar el correo',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function indexconfiguracioncorreo()
+    {
+        // Obtiene el registro más reciente basado en la columna 'created_at'
+        // $correo = CatalogosConfiguracionCorreo::latest()->first();
+        $correo = CatalogosConfiguracionCorreo::orderBy('correoEnvioNotificaciones_id', 'desc')->first();
+        return response()->json($correo);
+    }
+
+
+    public function ConfiguracionCorreoStore(Request $request)
+    {
+        // 1. Validar los datos de entrada
+        $validator = Validator::make($request->all(), [
+            'correoEnvioNotificaciones_correoNotificacion'     => 'required',
+            'correoEnvioNotificaciones_passwordCorreo'  => 'required',
+            'correoEnvioNotificaciones_host'    => 'required',
+            'correoEnvioNotificaciones_puerto'    => 'required',
+            'correoEnvioNotificaciones_seguridadSSL'    => 'required',
+        ]);
+
+
+        
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422); // Código 422 Unprocessable Entity
+        }
+
+        try {
+            // 2. Crear el nuevo registro
+            $correo = CatalogosConfiguracionCorreo::create($validator->validated());
+
+            return response()->json([
+                'message' => 'Configuracion del correo exitosamente',
                 'data' => $correo
             ], 201); // Código 201 Created
 
