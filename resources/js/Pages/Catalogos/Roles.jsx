@@ -9,6 +9,7 @@ import Datatable from "@/components/Datatable";
 import { useEffect, useState } from "react";
 import { useForm } from "@inertiajs/react";
 import { Dialog, DialogPanel, DialogTitle, Transition } from '@headlessui/react';
+import { Width } from "devextreme-react/chart";
 
 const rolesValidation = { roles_descripcion: ['required', 'max:150'] }
 // Datos de ejemplo para el estado inicial del formulario de Roles
@@ -245,10 +246,11 @@ export default function Roles() {
                         virtual={true}
                         data={roles}
                         columns={[
-                            { header: "Nombre", accessor: "roles_descripcion", type: 'text' },
+                            { header: "Nombre",Width:'80%', accessor: "roles_descripcion", type: 'text' },
                             {
                                 header: "Acciones",
                                 accessor: "Acciones",
+                                Width:'80%',
                                 cell: (eprops) => (
                                     <div className="flex space-x-2"> {/* Contenedor div con espacio entre elementos */}
                                         <button

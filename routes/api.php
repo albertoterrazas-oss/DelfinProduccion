@@ -93,6 +93,10 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
 
     Route::get('menus-tree', [MenuController::class, 'getTree'])->name('menus-tree');
     Route::get('QuienconQuienUnidades', [UnidadesController::class, 'QuienconQuienUnidades'])->name('QuienconQuienUnidades');
+    Route::get('QuienconQuienUnidadesDashboard', [UnidadesController::class, 'QuienconQuienUnidadesDashboard'])->name('QuienconQuienUnidadesDashboard');
+
+
+    
     Route::get('QuienconQuienControl', [UnidadesController::class, 'QuienconQuienControl'])->name('QuienconQuienControl');
     Route::get('DashboardUnidad', [UnidadesController::class, 'DashboardUnidad'])->name('DashboardUnidad');
     Route::get('UnidadesQuiencQuien', [UnidadesController::class, 'UnidadesQuiencQuien'])->name('UnidadesQuiencQuien');
@@ -103,8 +107,20 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
     Route::get('DepartamentosActivos', [DepartamentoController::class, 'DepartamentosActivos'])->name('DepartamentosActivos');
 
     Route::post('/asignaciones', [RegistroEntradaController::class, 'store'])->name('asignaciones.store');
+    Route::post('/codesend', [RegistroEntradaController::class, 'codesend'])->name('codesend');
+    Route::post('/verifycode', [RegistroEntradaController::class, 'verifycode'])->name('verifycode');
+
+
+    
     Route::post('/changesswho',  [RegistroEntradaController::class, 'changesswho'])->name('changesswho');
     Route::post('/WhoDestint',  [RegistroEntradaController::class, 'WhoDestint'])->name('WhoDestint');
+    Route::get('/choferes', [UserController::class, 'choferes'])->name('choferes');
+
+    Route::get('indexconfiguracioncorreo', [CorreosController::class, 'indexconfiguracioncorreo'])->name('indexconfiguracioncorreo');
+    Route::post('ConfiguracionCorreoStore', [CorreosController::class, 'ConfiguracionCorreoStore'])->name('ConfiguracionCorreoStore');
+
+       
+    
 
     
     Route::post('ultimos-movimientos-unidad', [RegistroEntradaController::class, 'getUltimosMovimientosUnidad'])->name('ultimos-movimientos-unidad');

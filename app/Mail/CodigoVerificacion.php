@@ -9,9 +9,11 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class ConfiguracionCorreo extends Mailable
+class CodigoVerificacion extends Mailable
 {
     use Queueable, SerializesModels;
+
+    // use Queueable, SerializesModels;
     public $information;
 
     public function __construct($information)
@@ -19,14 +21,15 @@ class ConfiguracionCorreo extends Mailable
         $this->information = $information;
     }
     // ConfiguracionCorreos
+    // app/Mail/CodigoVerificacion.php
+
     public function build()
     {
-        return $this->subject("Incidencias de correo")
-            ->view('ConfiguracionCorreos', [
+        return $this->subject("Codigo Verificacion")
+            // **Asegúrate de que 'CodigoSs' es el nombre correcto de tu archivo .blade.php**
+            ->view('CodigoSs', [
                 'information' => $this->information,
-                'incidencias' => $this->information->Incidencias,
                 'Codigo' => $this->information->Codigo,
-
             ]);
     }
 }

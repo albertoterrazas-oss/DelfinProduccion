@@ -24,8 +24,8 @@ const validateInputs = (validations, data) => {
     let formErrors = {};
 
     if (validations.Destinos_Nombre && !data.Destinos_Nombre?.trim()) formErrors.Destinos_Nombre = 'El nombre del destino es obligatorio.';
-    if (validations.Destinos_Latitud && (data.Destinos_Latitud === "" || isNaN(data.Destinos_Latitud))) formErrors.Destinos_Latitud = 'La latitud es obligatoria y debe ser un número.';
-    if (validations.Destinos_Longitud && (data.Destinos_Longitud === "" || isNaN(data.Destinos_Longitud))) formErrors.Destinos_Longitud = 'La longitud es obligatoria y debe ser un número.';
+    // if (validations.Destinos_Latitud && (data.Destinos_Latitud === "" || isNaN(data.Destinos_Latitud))) formErrors.Destinos_Latitud = 'La latitud es obligatoria y debe ser un número.';
+    // if (validations.Destinos_Longitud && (data.Destinos_Longitud === "" || isNaN(data.Destinos_Longitud))) formErrors.Destinos_Longitud = 'La longitud es obligatoria y debe ser un número.';
 
     return { isValid: Object.keys(formErrors).length === 0, errors: formErrors };
 };
@@ -33,8 +33,8 @@ const validateInputs = (validations, data) => {
 // Validaciones requeridas para el formulario de Destino (¡Sin Descripción!)
 const destinationValidations = {
     Destinos_Nombre: true,
-    Destinos_Latitud: true,
-    Destinos_Longitud: true,
+    Destinos_Latitud: false,
+    Destinos_Longitud: false,
 };
 
 const userObject = JSON.parse(localStorage.getItem('user'));
@@ -45,10 +45,10 @@ const userObject = JSON.parse(localStorage.getItem('user'));
 const initialDestinationData = {
     Destinos_Id: null,
     Destinos_Nombre: "",
-    Destinos_Latitud: "",
-    Destinos_Longitud: "",
+    Destinos_Latitud: null,
+    Destinos_Longitud: null,
     Destinos_Estatus: "1", // Activo por defecto
-    Destinos_UsuarioID: userObject.Personas_usuarioID 
+    Destinos_UsuarioID: userObject.Personas_usuarioID
 };
 
 // Componente del Formulario de Destino (Modal de Headless UI)
@@ -150,7 +150,7 @@ function DestinationFormDialog({ isOpen, closeModal, onSubmit, destinationToEdit
                             <div className="grid grid-cols-2 gap-4">
                                 {/* Input Latitud */}
                                 <label className="block">
-                                    <span className="text-sm font-medium text-gray-700">Latitud: <span className="text-red-500">*</span></span>
+                                    <span className="text-sm font-medium text-gray-700">Latitud (No requerido): <span className="text-red-500">*</span></span>
                                     <input
                                         type="text"
                                         name="Destinos_Latitud"
@@ -164,7 +164,7 @@ function DestinationFormDialog({ isOpen, closeModal, onSubmit, destinationToEdit
 
                                 {/* Input Longitud */}
                                 <label className="block">
-                                    <span className="text-sm font-medium text-gray-700">Longitud: <span className="text-red-500">*</span></span>
+                                    <span className="text-sm font-medium text-gray-700">Longitud (No requerido): <span className="text-red-500">*</span></span>
                                     <input
                                         type="text"
                                         name="Destinos_Longitud"
@@ -273,11 +273,16 @@ export default function Destinos() {
         try {
             // Envía solo los campos fillable
             const payload = {
-                Destinos_Nombre: data.Destinos_Nombre,
-                Destinos_Latitud: data.Destinos_Latitud,
-                Destinos_Longitud: data.Destinos_Longitud,
-                Destinos_Estatus: data.Destinos_Estatus,
-                Destinos_UsuarioID:data.Destinos_UsuarioID
+                // Si data.Destinos_Nombre es null o undefined, usa null
+                Destinos_Nombre: data.Destinos_Nombre ?? null,
+                // Si data.Destinos_Latitud es null o undefined, usa null
+                Destinos_Latitud: data.Destinos_Latitud ?? null,
+                // Si data.Destinos_Longitud es null o undefined, usa null
+                Destinos_Longitud: data.Destinos_Longitud ?? null,
+                // Si data.Destinos_Estatus es null o undefined, usa null
+                Destinos_Estatus: data.Destinos_Estatus ?? null,
+                // Si data.Destinos_UsuarioID es null o undefined, usa null
+                Destinos_UsuarioID: data.Destinos_UsuarioID ?? null
             };
 
             await request(ruta, method, payload);

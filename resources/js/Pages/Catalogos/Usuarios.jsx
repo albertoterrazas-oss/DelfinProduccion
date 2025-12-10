@@ -19,6 +19,7 @@ const route = (name, params = {}) => {
     const routeMap = {
         "users.index": "/api/users",
         "roles.index": "/api/roles",
+        "puestos.index": "/api/puestos",
 
         "menus-tree": "/api/menus-tree",
         "users.store": "/api/users",
@@ -59,6 +60,9 @@ const validateInputs = (validations, data) => {
     }
 
 
+    
+
+
     if (data.Personas_correo && !/\S+@\S+\.\S+/.test(data.Personas_correo)) {
         formErrors.Personas_correo = 'El correo no es válido.';
     }
@@ -70,6 +74,7 @@ const validateInputs = (validations, data) => {
 const userValidations = {
     Personas_nombres: true,
     Personas_usuario: true,
+    Personas_puesto:true,
     // Contraseña solo es obligatoria si no existe un ID (creación)
     Personas_contrasena: (data) => !data.Personas_usuarioID,
     Personas_correo: true,
@@ -92,7 +97,8 @@ const initialPersonData = {
     Personas_usuario: "",
     Personas_contrasena: "",
     Personas_esEmpleado: true,
-    usuario_idRol: ''
+    usuario_idRol: '',
+    // Personas_puesto:''
 };
 
 // Componente del Formulario de Persona (Modal de Headless UI)
@@ -102,6 +108,7 @@ function PersonFormDialog({ isOpen, closeModal, onSubmit, personToEdit, action, 
     const [personData, setPersonData] = useState(initialPersonData);
     const [loading, setLoading] = useState(false);
     const [roles, setRoles] = useState([]);
+    const [puestos, setPuestos] = useState([]);
 
     // Sincroniza los datos al abrir el modal o cambiar la persona a editar
     useEffect(() => {
@@ -178,11 +185,22 @@ function PersonFormDialog({ isOpen, closeModal, onSubmit, personToEdit, action, 
             console.error('Error al obtener los usuarios:', error);
         }
     }
+
+    const getpuestos = async () => {
+        try {
+            // Simulación: Si request no está definido para GET, usamos fetch
+            const data = await fetch(route("puestos.index")).then(res => res.json());
+            setPuestos(data);
+        } catch (error) {
+            console.error('Error al obtener los usuarios:', error);
+        }
+    }
     // const [roles, setRoles] = useState([]);
 
 
     useEffect(() => {
         getRoles() // Llamar a getUnits al montar
+        getpuestos()
     }, [])
 
     const dialogTitle = action === 'create' ? 'Crear Nuevo Usuario/Persona' : 'Editar Usuario/Persona';
@@ -276,17 +294,7 @@ function PersonFormDialog({ isOpen, closeModal, onSubmit, personToEdit, action, 
                                     />
                                     {errors.Personas_correo && <p className="text-red-500 text-xs mt-1">{errors.Personas_correo}</p>}
                                 </label>
-                                {/* Input Puesto */}
-                                <label className="block">
-                                    <span className="text-sm font-medium text-gray-700">Puesto:</span>
-                                    <input
-                                        type="text"
-                                        name="Personas_puesto"
-                                        value={personData.Personas_puesto}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
-                                    />
-                                </label>
+                              
                                 {/* Input Usuario (Username) */}
                                 <label className="block">
                                     <span className="text-sm font-medium text-gray-700">Usuario (Username): <span className="text-red-500">*</span></span>
@@ -379,6 +387,30 @@ function PersonFormDialog({ isOpen, closeModal, onSubmit, personToEdit, action, 
                                 </select>
                                 {errors.roles_id && <p className="text-red-500 text-xs mt-1">{errors.roles_id}</p>}
                             </label>
+
+                            <label className="block">
+                                <span className="text-sm font-medium text-gray-700">Puesto: <span className="text-red-500">*</span></span>
+                                <select
+                                    name="puesto"
+                                    value={personData.Personas_puesto || ''}
+                                    // onChange={handleChange}
+                                    onChange={(event) => { setPersonData({ ...personData, Personas_puesto: event.target.value }); }}
+
+                                    className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Personas_puesto ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+                                >
+                                    <option value="" disabled>Selecciona un puesto</option>
+                                    {puestos.map((dept) => (
+                                        <option
+                                            key={dept.Puestos_id}
+                                            value={dept.Puestos_id}
+                                        >
+                                            {dept.Puestos_nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.Personas_puesto && <p className="text-red-500 text-xs mt-1">{errors.Personas_puesto}</p>}
+                            </label>
+
 
 
                             {/* Botones */}

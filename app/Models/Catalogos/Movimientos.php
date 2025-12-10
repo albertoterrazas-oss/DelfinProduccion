@@ -27,5 +27,6 @@ class Movimientos extends Model
         'Movimientos_combustible',
         'Movimientos_observaciones',
         'Movimientos_usuarioID',
+        'Movimientos_estatus'
     ];
 }

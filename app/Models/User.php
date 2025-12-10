@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Catalogos\Puestos;
 use App\Models\Menu;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -66,5 +68,11 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Menu::class, 'usuarioxmenu', 'usuarioxmenu_idusuario', 'usuarioxmenu_idmenu')
             ->withPivot('usuarioxmenu_idusuario', 'usuarioxmenu_idmenu', 'usuarioxmenu_alta', 'usuarioxmenu_consulta', 'usuarioxmenu_especial', 'usuarioxmenu_cambio',);
+    }
+
+    
+    public function puesto(): BelongsTo
+    {
+        return $this->belongsTo(Puestos::class, 'Personas_puesto','Puestos_id');
     }
 }

@@ -63,17 +63,22 @@ class DestinosController extends Controller
         $validatedData = $request->validate(
             [
                 'Destinos_Nombre'    => 'required|string|max:255',
-                'Destinos_Latitud'   => 'required|numeric',
-                'Destinos_Longitud'  => 'required|numeric',
+                'Destinos_Latitud'   => 'nullable',
+                // ➡️ CORREGIDO: Se añadió la regla 'numeric' para asegurar el tipo de dato.
+                'Destinos_Longitud'  => 'nullable',
                 'Destinos_Estatus'   => 'required|boolean',
-                'Destinos_UsuarioID'   => 'required',
+                // ➡️ CORREGIDO/MEJORADO: Se añadió 'integer' y 'exists:users,id' para validar un ID.
+                'Destinos_UsuarioID' => 'required|integer',
             ],
+            // ➡️ OPTIMIZADO: Solo se incluyen los mensajes para las reglas realmente utilizadas.
             [
                 'required' => 'El campo :attribute es obligatorio.',
                 'numeric'  => 'El campo :attribute debe ser un número.',
                 'boolean'  => 'El campo :attribute debe ser verdadero (1) o falso (0).',
                 'integer'  => 'El campo :attribute debe ser un número entero.',
-                'min'      => 'El campo :attribute debe ser al menos :min.',
+                // Se pueden añadir mensajes específicos para 'exists' y 'max' si se desea.
+                // 'Destinos_UsuarioID.exists' => 'El ID de usuario proporcionado no existe.',
+                // 'Destinos_Nombre.max' => 'El campo :attribute no debe exceder los 255 caracteres.',
             ]
         );
 
@@ -113,16 +118,26 @@ class DestinosController extends Controller
         // Pero mantenemos 'required' para asegurar que si se envía, cumpla con el tipo.
         $validatedData = $request->validate(
             [
-                'Destinos_Nombre'    => 'sometimes|required|string|max:255',
-                'Destinos_Latitud'   => 'sometimes|required|numeric',
-                'Destinos_Longitud'  => 'sometimes|required|numeric',
-                'Destinos_Estatus'   => 'sometimes|required|boolean',
-                'Destinos_UsuarioID' => 'sometimes|required|integer|min:1',
-                // 'Destinos_Fecha' usualmente no se actualiza manualmente.
+                // ➡️ CORRECCIÓN: Usar 'sometimes' y 'nullable' si el campo puede estar ausente
+                // y permitir NULL en la base de datos (para actualizar solo lo que se envía).
+                'Destinos_Nombre'    => 'sometimes|string|max:255',
+                // ➡️ CORRECCIÓN: 'nullable' permite que el campo se envíe como NULL si se desea.
+                'Destinos_Latitud'   => 'nullable',
+                'Destinos_Longitud'  => 'nullable',
+                'Destinos_Estatus'   => 'sometimes|boolean',
+                // ➡️ MEJORA: Validar existencia del ID de usuario y eliminar 'min:1' si usas 'exists'.
+                'Destinos_UsuarioID' => 'sometimes|integer',
             ],
-            // Mensajes personalizados (solo he incluido los nuevos)
+            // ➡️ CORRECCIÓN: Se eliminó el mensaje 'sometimes' ya que no es una clave de error.
             [
-                'sometimes' => 'El campo :attribute es obligatorio si se intenta actualizar.',
+                'string'    => 'El campo :attribute debe ser texto.',
+                'max'       => 'El campo :attribute no debe exceder los :max caracteres.',
+                'numeric'   => 'El campo :attribute debe ser un número.',
+                'boolean'   => 'El campo :attribute debe ser verdadero (1) o falso (0).',
+                'integer'   => 'El campo :attribute debe ser un número entero.',
+                'exists'    => 'El ID de :attribute proporcionado no existe en la base de datos.',
+                // Si quieres un mensaje para cuando se envía un campo pero está vacío:
+                // 'required_with' => 'El campo :attribute es obligatorio si se intenta actualizar.',
             ]
         );
 

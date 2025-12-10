@@ -1,10 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Dialog } from '@headlessui/react';
 import { toast } from 'sonner';
-import { SquarePen } from 'lucide-react';
+
+// ⚠️ SOLUCIÓN AL TREE SHAKING: Importación explícita de todos los íconos
+import {
+    X, Search, ChevronLeft, ChevronRight, SquarePen, AlertCircle,
+    Home, Settings, User, Menu, LogOut, Award, BarChart, Bell, Book,
+    Car, Check, Clock, Code, CreditCard, Database, DollarSign, Download,
+    Eye, Heart, Key, Lightbulb, Link, List, Lock, Mail, Map, Monitor,
+    Moon, Phone, Plus, Power, Save, Star, Sun, Trash2, Truck, Upload,
+    Users, Video, Volume2, Wallet, Layers, Filter, Anchor, Apple, Archive,
+    Briefcase, Calendar, Camera, Cloud, Coffee, Construction, Droplet,
+    Feather, FileText, FlaskConical, Folder, Gift, Globe, Hammer, Image,
+    Info, Minus, MoreHorizontal, Move, Music, Package, Paperclip, Pause,
+    PenTool, Pin, Plane, Printer, QrCode, Radar, Send, Server, Tablet,
+    Tag, Terminal, ThumbsUp, ToggleLeft, Watch, Wifi, Zap, ZoomIn, ZoomOut
+} from 'lucide-react';
+
 import Datatable from "@/Components/Datatable";
 import LoadingDiv from "@/Components/LoadingDiv";
 import request from "@/utils";
+
+// ----------------------------------------------------
+// I. UTILERÍAS GLOBALES Y DATOS INICIALES
+// ----------------------------------------------------
 
 const route = (name, params = {}) => {
     const routeMap = {
@@ -15,116 +34,264 @@ const route = (name, params = {}) => {
     return routeMap[name] || `/${name}`;
 };
 
-// Validaciones requeridas para el formulario de Menú
 const menuValidations = {
     menu_nombre: true,
     menu_url: true,
     estatus: true,
+    // La validación del ícono (ahora en menu_tooltip) podría ser necesaria aquí si no es opcional
 };
 
-// Función DUMMY de validación adaptada para Menús
 const validateInputs = (validations, data) => {
     let formErrors = {};
-
-    // Validación de prueba básica:
     if (validations.menu_nombre && !data.menu_nombre?.trim()) formErrors.menu_nombre = 'El nombre del menú es obligatorio.';
     if (validations.menu_url && !data.menu_url?.trim()) formErrors.menu_url = 'La URL es obligatoria.';
     if (validations.estatus && !data.estatus?.trim()) formErrors.estatus = 'El estatus es obligatorio.';
-
     return { isValid: Object.keys(formErrors).length === 0, errors: formErrors };
 };
 
-// Datos de ejemplo para el estado inicial del formulario de Menú
 const initialMenuData = {
     menu_id: null,
     menu_nombre: "",
-    menu_idPadre: null, // Puede ser null
+    menu_idPadre: null,
     menu_url: "",
-    menu_tooltip: "",
-    estatus: "Activo",
+    menu_tooltip: "Home", // ⬅️ AHORA USADO PARA GUARDAR EL NOMBRE DEL ÍCONO
+    // menu_icono: "Home", // ⬅️ PROPIEDAD ELIMINADA
+    estatus: "1",
 };
 
-// Componente del Formulario de Menú (Modal de Headless UI)
+/**
+ * Mapeo de componentes para acceder a ellos por string.
+ */
+const ICON_COMPONENTS = {
+    Home, Settings, User, Menu, LogOut, Award, BarChart, Bell, Book, Car,
+    Check, Clock, Code, CreditCard, Database, DollarSign, Download, Eye, Heart,
+    Key, Lightbulb, Link, List, Lock, Mail, Map, Monitor, Moon, Phone, Plus,
+    Power, Save, Star, Sun, Trash2, Truck, Upload, Users, Video, Volume2,
+    Wallet, Layers, Filter, Anchor, Apple, Archive, Briefcase, Calendar,
+    Camera, Cloud, Coffee, Construction, Droplet, Feather, FileText, FlaskConical,
+    Folder, Gift, Globe, Hammer, Image, Info, Minus, MoreHorizontal, Move,
+    Music, Package, Paperclip, Pause, PenTool, Pin, Plane, Printer, QrCode,
+    Radar, Send, Server, Tablet, Tag, Terminal, ThumbsUp, ToggleLeft, Watch,
+    Wifi, Zap, ZoomIn, ZoomOut
+};
+
+const allIconNames = Object.keys(ICON_COMPONENTS);
+
+// ----------------------------------------------------
+// II. COMPONENTE: SELECTOR DE ÍCONOS EN CUADRÍCULA CON BÚSQUEDA Y PAGINACIÓN
+// ----------------------------------------------------
+
+function IconGridPickerModal({ isOpen, closeModal, onSelect, selectedIconName }) {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const ICONS_PER_PAGE = 30;
+
+    const filteredIcons = useMemo(() => {
+        if (!searchTerm) return allIconNames;
+
+        return allIconNames.filter(name =>
+            name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [searchTerm]);
+
+    const totalPages = Math.ceil(filteredIcons.length / ICONS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ICONS_PER_PAGE;
+    const currentIcons = filteredIcons.slice(startIndex, startIndex + ICONS_PER_PAGE);
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
+
+    const handleIconClick = (name) => {
+        onSelect(name); // Guarda el nombre del ícono
+        closeModal();
+    };
+
+    const hasIconsLoaded = allIconNames.length > 0;
+
+    return (
+        <Dialog open={isOpen} onClose={closeModal} className="relative z-50">
+            <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+                <Dialog.Panel className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-2xl">
+                    <div className="flex justify-between items-center border-b pb-3 mb-4">
+                        <Dialog.Title className="text-xl font-bold text-gray-800">
+                            Seleccionar Ícono ({filteredIcons.length} disponibles)
+                        </Dialog.Title>
+                        <button onClick={closeModal} className="text-gray-400 hover:text-gray-700">
+                            <X size={24} />
+                        </button>
+                    </div>
+
+                    {hasIconsLoaded ? (
+                        <>
+                            {/* Buscador */}
+                            <div className="relative mb-4">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar ícono por nombre..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                />
+                            </div>
+
+                            {/* Cuadrícula de Íconos */}
+                            <div className="grid grid-cols-5 sm:grid-cols-6 gap-3 max-h-96 overflow-y-auto p-2 border rounded-lg">
+                                {currentIcons.length > 0 ? (
+                                    currentIcons.map((name) => {
+                                        const IconComponent = ICON_COMPONENTS[name];
+                                        const isSelected = name === selectedIconName;
+                                        return (
+                                            <div
+                                                key={name}
+                                                onClick={() => handleIconClick(name)}
+                                                className={`flex flex-col items-center justify-center p-3 rounded-lg cursor-pointer transition-all border-2 
+                                                    ${isSelected ? 'border-blue-500 bg-blue-100 shadow-md' : 'border-gray-100 hover:bg-gray-50 hover:border-gray-300'}`}
+                                                title={name}
+                                            >
+                                                <span className={`mb-1 ${isSelected ? 'text-blue-600' : 'text-gray-600'}`}>
+                                                    {IconComponent && <IconComponent size={24} />}
+                                                </span>
+                                                <span className="text-xs font-medium text-gray-600 truncate w-full text-center">
+                                                    {name}
+                                                </span>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <div className="col-span-6 text-center py-10 text-gray-500">
+                                        No se encontraron íconos con el término "{searchTerm}".
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Paginación */}
+                            {totalPages > 1 && (
+                                <div className="flex justify-center items-center mt-4 space-x-4">
+                                    <button
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                        className="p-2 border rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                                    >
+                                        <ChevronLeft size={20} />
+                                    </button>
+                                    <span className="text-sm font-medium text-gray-700">
+                                        Página {currentPage} de {totalPages}
+                                    </span>
+                                    <button
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                        className="p-2 border rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                                    >
+                                        <ChevronRight size={20} />
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-center p-8 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-lg font-semibold text-red-700 mb-2">⚠️ Error de Carga de Librería</p>
+                            <p className="text-sm text-red-600">
+                                La lista de íconos (**lucide-react**) está vacía. Confirma la instalación y el reinicio del servidor.
+                            </p>
+                        </div>
+                    )}
+
+                </Dialog.Panel>
+            </div>
+        </Dialog>
+    );
+}
+
+// Componente de Display
+// Ahora recibe el nombre del ícono a través de selectedIconName, que será menu_tooltip
+function IconDisplayField({ selectedIconName, onOpenModal, label = "Ícono Seleccionado:" }) {
+    // Usamos el nombre del ícono para obtener el componente visual
+    const CurrentIcon = ICON_COMPONENTS[selectedIconName] || AlertCircle;
+
+    return (
+        <div className="relative">
+            <label className="text-sm font-medium text-gray-700 block mb-1">
+                {label}
+            </label>
+
+            <div
+                className="flex items-center justify-between rounded-md border border-gray-300 p-2 text-sm cursor-pointer hover:border-blue-500 transition-all"
+                onClick={onOpenModal}
+            >
+                <div className="flex items-center">
+                    <span className="mr-3 text-blue-600">
+                        {CurrentIcon && <CurrentIcon size={20} />}
+                    </span>
+                    <span className="font-medium text-gray-700">
+                        {selectedIconName}
+                    </span>
+                </div>
+                <SquarePen size={18} className="text-gray-500" />
+            </div>
+            <p className="text-xs mt-1 text-gray-500">Haz clic para buscar y seleccionar.</p>
+        </div>
+    );
+}
+
+// ----------------------------------------------------
+// III. COMPONENTE: MODAL DEL FORMULARIO (MenuFormDialog)
+// ----------------------------------------------------
+
 function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, errors, setErrors }) {
     const [menuData, setMenuData] = useState(initialMenuData);
     const [loading, setLoading] = useState(false);
     const [menus2, setMenus2] = useState();
+    const [isIconModalOpen, setIsIconModalOpen] = useState(false);
 
-    // Sincroniza los datos al abrir el modal o cambiar el menú a editar
     useEffect(() => {
         if (isOpen) {
             const dataToLoad = menuToEdit
                 ? {
                     ...menuToEdit,
-                    // Aseguramos valores por defecto para campos que pueden ser null
                     menu_nombre: menuToEdit.menu_nombre || "",
                     menu_idPadre: menuToEdit.menu_idPadre || null,
                     menu_url: menuToEdit.menu_url || "",
-                    menu_tooltip: menuToEdit.menu_tooltip || "",
-                    estatus: menuToEdit.estatus || "Activo",
+                    // ⚠️ AHORA USAMOS menu_tooltip PARA EL ÍCONO
+                    menu_tooltip: menuToEdit.menu_tooltip || menuToEdit.menu_icono || "Home",
+                    estatus: String(menuToEdit.estatus) === "1" ? "1" : "0",
                 }
                 : initialMenuData;
+
+            // ⚠️ Limpiamos la propiedad antigua 'menu_icono' si existe, para asegurar
+            if (dataToLoad.menu_icono) delete dataToLoad.menu_icono;
+
             setMenuData(dataToLoad);
-            setErrors({}); // Limpia errores al abrir
+            setErrors({});
+            if (!menus2) fetchdata();
         }
     }, [isOpen, menuToEdit]);
 
-
-    // // Función genérica para manejar los cambios en los inputs
-    // const handleChange = (e) => {
-    //     const { name, value, type } = e.target;
-
-    //     // Manejo especial para menu_idPadre (debe ser null o un número)
-    //     let newValue = value;
-    //     if (name === 'menu_idPadre') {
-    //         newValue = value === "" ? null : Number(value);
-    //     }
-
-    //     //  setPositionData(prevData => ({
-    //     //     ...prevData,
-    //     //     [name]: type === 'checkbox' ? (checked ? "1" : "0") : value
-    //     // }));
-
-    //     setMenuData(prevData => ({
-    //         ...prevData,
-    //         [name]: type === 'checkbox' ? (checked ? "1" : "0") : value
-    //     }));
-
-    //     // Limpiar error al cambiar el campo
-    //     if (errors[name]) {
-    //         setErrors(prevErrors => {
-    //             const newErrors = { ...prevErrors };
-    //             delete newErrors[name];
-    //             return newErrors;
-    //         });
-    //     }
-    // };
-
     const handleChange = (e) => {
-        // 1. Extraer 'checked' (para checkboxes) junto con 'name', 'value' y 'type'
         const { name, value, type, checked } = e.target;
-
         let finalValue = value;
 
-        // 2. Manejo especial para menu_idPadre (debe ser null o un número)
         if (name === 'menu_idPadre') {
-            // Asignar null si está vacío, o convertir a número
             finalValue = value === "" ? null : Number(value);
         }
-
-        // 3. Manejo especial para checkboxes (convierte boolean a "1" o "0")
         if (type === 'checkbox') {
             finalValue = checked ? "1" : "0";
         }
 
-        // 4. Actualizar el estado con el valor final calculado
         setMenuData(prevData => ({
             ...prevData,
-            // Usamos 'finalValue' que ya ha sido procesado para menu_idPadre y checkboxes
             [name]: finalValue
         }));
 
-        // 5. Limpiar error al cambiar el campo (si existe)
         if (errors[name]) {
             setErrors(prevErrors => {
                 const newErrors = { ...prevErrors };
@@ -134,11 +301,21 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
         }
     };
 
+    // 🚀 La función de selección ahora guarda el nombre del ícono en menu_tooltip
+    const handleIconSelect = (iconName) => {
+        setMenuData(prevData => ({
+            ...prevData,
+            menu_tooltip: iconName, // ⬅️ CAMBIO: Guarda en menu_tooltip
+        }));
+    };
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         setLoading(true);
         try {
+            // menuData ahora solo tiene menu_tooltip (con el nombre del ícono)
             await onSubmit(menuData);
             closeModal();
         } catch (error) {
@@ -149,145 +326,148 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
     };
 
     const fetchdata = async () => {
-        const response = await fetch(route("menus.index"));
-        const data = await response.json();
-        setMenus2([{ menu_id: 0, menu_nombre: "Raiz" }].concat(data))
-
+        try {
+            const response = await fetch(route("menus.index"));
+            const data = await response.json();
+            setMenus2([{ menu_id: '0', menu_nombre: "Raiz" }].concat(data));
+        } catch (e) {
+            console.error("Fallo al cargar la lista de menús padre:", e);
+        }
     };
-    useEffect(() => {
-        fetchdata();
 
-    }, [])
+    useEffect(() => {
+        if (isOpen && !menus2) {
+            fetchdata();
+        }
+    }, [isOpen]);
 
     const dialogTitle = action === 'create' ? 'Crear Nuevo Elemento de Menú' : 'Editar Elemento de Menú';
 
     return (
-        <Dialog open={isOpen} onClose={closeModal} className="relative z-50">
-            {/* Overlay de fondo */}
-            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <>
+            <Dialog open={isOpen} onClose={closeModal} className="relative z-40">
+                <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+                <div className="fixed inset-0 flex items-center justify-center p-4">
+                    <Dialog.Panel className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl relative">
 
-            {/* Contenedor del Modal */}
-            <div className="fixed inset-0 flex items-center justify-center p-4">
-                <Dialog.Panel className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl relative">
+                        {loading && <LoadingDiv />}
 
-                    {/* Indicador de carga */}
-                    {loading && <LoadingDiv />}
+                        <Dialog.Title className="text-2xl font-bold mb-4 text-gray-900 border-b pb-2">
+                            {dialogTitle}
+                        </Dialog.Title>
 
-                    <Dialog.Title className="text-2xl font-bold mb-4 text-gray-900 border-b pb-2">
-                        {dialogTitle}
-                    </Dialog.Title>
-
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
-                        <div className="space-y-3">
-                            {/* Input Nombre */}
-                            <label className="block">
-                                <span className="text-sm font-medium text-gray-700">Nombre del Menú: <span className="text-red-500">*</span></span>
-                                <input
-                                    type="text"
-                                    name="menu_nombre"
-                                    value={menuData.menu_nombre}
-                                    onChange={handleChange}
-                                    className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.menu_nombre ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
-                                />
-                                {errors.menu_nombre && <p className="text-red-500 text-xs mt-1">{errors.menu_nombre}</p>}
-                            </label>
-
-                            {/* Input URL */}
-                            <label className="block">
-                                <span className="text-sm font-medium text-gray-700">URL/Ruta: <span className="text-red-500">*</span></span>
-                                <input
-                                    type="text"
-                                    name="menu_url"
-                                    value={menuData.menu_url}
-                                    onChange={handleChange}
-                                    className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.menu_url ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
-                                />
-                                {errors.menu_url && <p className="text-red-500 text-xs mt-1">{errors.menu_url}</p>}
-                            </label>
-
-                            <label className="block">
-                                <span className="text-sm font-medium text-gray-700">Menu padre: <span className="text-red-500">*</span></span>
-                                <select
-                                    name="menu"
-                                    value={menuData.menu_idPadre || ''}
-                                    onChange={(event) => { setMenuData({ ...menuData, menu_idPadre: event.target.value }); }}
-                                    className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.menu_idPadre ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
-                                >
-                                    <option value="" disabled>Selecciona un menu</option>
-                                    {/* Usamos (menus2 ?? []) para asegurar que sea un array antes de mapear */}
-                                    {(menus2 ?? []).map((menu) => {
-
-                                        // Construye el nombre jerárquico del menú
-                                        const nombreJerarquico = `${menu.menu_padre?.menu_padre?.menu_nombre ? '/ ' + menu.menu_padre?.menu_padre?.menu_nombre : ''} ${menu.menu_padre?.menu_nombre ? '/ ' + menu.menu_padre?.menu_nombre : ''} ${'/ ' + menu.menu_nombre}`;
-
-                                        return (
-                                            <option
-                                                key={menu.menu_id} // Usa el menu_id como key
-                                                value={menu.menu_id} // Usa el menu_id como valor
-                                            >
-                                                {/* Muestra el nombre jerárquico */}
-                                                {nombreJerarquico}
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-                                {errors.menu_idPadre && <p className="text-red-500 text-xs mt-1">{errors.menu_idPadre}</p>}
-                            </label>
-
-                            {/* Input Tooltip */}
-                            <label className="block">
-                                <span className="text-sm font-medium text-gray-700">Tooltip (Ayuda):</span>
-                                <input
-                                    type="text"
-                                    name="menu_tooltip"
-                                    value={menuData.menu_tooltip}
-                                    onChange={handleChange}
-                                    className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
-                                />
-                            </label>
-
-                            <div className="flex justify-center w-full"> {/* <-- Contenedor agregado y clases de centrado */}
-                                <label className="flex items-center space-x-2">
+                        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
+                            <div className="space-y-3">
+                                {/* Campos estandár */}
+                                <label className="block">
+                                    <span className="text-sm font-medium text-gray-700">Nombre del Menú: <span className="text-red-500">*</span></span>
                                     <input
-                                        type="checkbox"
-                                        name="estatus"
-                                        checked={menuData.estatus == 1} // Usamos == para manejar 1 o '1'
+                                        type="text"
+                                        name="menu_nombre"
+                                        value={menuData.menu_nombre}
                                         onChange={handleChange}
-                                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.menu_nombre ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
                                     />
-                                    <span className="text-sm font-medium text-gray-700">Estatus</span>
+                                    {errors.menu_nombre && <p className="text-red-500 text-xs mt-1">{errors.menu_nombre}</p>}
                                 </label>
+
+                                <label className="block">
+                                    <span className="text-sm font-medium text-gray-700">URL/Ruta: <span className="text-red-500">*</span></span>
+                                    <input
+                                        type="text"
+                                        name="menu_url"
+                                        value={menuData.menu_url}
+                                        onChange={handleChange}
+                                        className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.menu_url ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+                                    />
+                                    {errors.menu_url && <p className="text-red-500 text-xs mt-1">{errors.menu_url}</p>}
+                                </label>
+
+                                <label className="block">
+                                    <span className="text-sm font-medium text-gray-700">Menú Padre:</span>
+                                    <select
+                                        name="menu_idPadre"
+                                        value={menuData.menu_idPadre === null ? '' : String(menuData.menu_idPadre)}
+                                        onChange={handleChange}
+                                        className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.menu_idPadre ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+                                    >
+                                        <option value="" disabled={menuData.menu_idPadre !== null}>Selecciona un menú padre</option>
+                                        {(menus2 ?? []).map((menu) => {
+                                            if (action === 'edit' && menu.menu_id === menuData.menu_id) return null;
+
+                                            const nombreJerarquico = menu.menu_id === '0'
+                                                ? '— Raíz (Sin Padre) —'
+                                                : `${menu.menu_padre?.menu_padre?.menu_nombre ? '/ ' + menu.menu_padre?.menu_padre?.menu_nombre : ''} ${menu.menu_padre?.menu_nombre ? '/ ' + menu.menu_padre?.menu_nombre : ''} ${'/ ' + menu.menu_nombre}`;
+
+                                            return (
+                                                <option
+                                                    key={menu.menu_id}
+                                                    value={menu.menu_id === '0' ? '' : menu.menu_id}
+                                                >
+                                                    {nombreJerarquico}
+                                                </option>
+                                            );
+                                        })}
+                                    </select>
+                                    {errors.menu_idPadre && <p className="text-red-500 text-xs mt-1">{errors.menu_idPadre}</p>}
+                                </label>
+
+                                {/* 🚀 CAMPO DE ÍCONO CONECTADO A menu_tooltip */}
+                                <IconDisplayField
+                                    selectedIconName={menuData.menu_tooltip} // ⬅️ Pasa menu_tooltip
+                                    onOpenModal={() => setIsIconModalOpen(true)}
+                                    label="Ícono (Guardado en 'menu_tooltip'):" // Nuevo label
+                                />
+
+                                <div className="flex justify-center w-full pt-2">
+                                    <label className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            name="estatus"
+                                            checked={menuData.estatus == "1"}
+                                            onChange={handleChange}
+                                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">Activo (Estatus)</span>
+                                    </label>
+                                </div>
+
                             </div>
 
-                        </div>
+                            <div className="flex justify-end gap-3 pt-4 border-t mt-4">
+                                <button
+                                    type="button"
+                                    onClick={closeModal}
+                                    disabled={loading}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? (action === 'create' ? 'Registrando...' : 'Actualizando...') : (action === 'create' ? 'Guardar Menú' : 'Actualizar Menú')}
+                                </button>
+                            </div>
+                        </form>
+                    </Dialog.Panel>
+                </div>
+            </Dialog>
 
-                        {/* Botones */}
-                        <div className="flex justify-end gap-3 pt-4 border-t mt-4">
-                            <button
-                                type="button"
-                                onClick={closeModal}
-                                disabled={loading}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
-                            >
-                                {loading ? (action === 'create' ? 'Registrando...' : 'Actualizando...') : (action === 'create' ? 'Guardar Menú' : 'Actualizar Menú')}
-                            </button>
-                        </div>
-                    </form>
-                </Dialog.Panel>
-            </div>
-        </Dialog>
+            <IconGridPickerModal
+                isOpen={isIconModalOpen}
+                closeModal={() => setIsIconModalOpen(false)}
+                onSelect={handleIconSelect} // ⬅️ La función guarda en menu_tooltip
+                selectedIconName={menuData.menu_tooltip} // ⬅️ Pasa menu_tooltip
+            />
+        </>
     )
 }
 
 // ----------------------------------------------------------------------
-// Componente principal MENUS
+// IV. COMPONENTE PRINCIPAL (Menus)
 // ----------------------------------------------------------------------
 
 export default function Menus() {
@@ -298,7 +478,6 @@ export default function Menus() {
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(true);
 
-    // Funciones de control del modal
     const openCreateModal = () => {
         setAction('create');
         setMenuData(initialMenuData);
@@ -319,13 +498,8 @@ export default function Menus() {
         setErrors({});
     };
 
-    /**
-     * Función que maneja la validación y la petición POST/PUT real.
-     */
     const submit = async (data) => {
         setErrors({});
-
-        // 1. VALIDACIÓN
         const validationResult = validateInputs(menuValidations, data);
 
         if (!validationResult.isValid) {
@@ -334,29 +508,19 @@ export default function Menus() {
             throw new Error("Validation Failed");
         }
 
-        // 2. RUTAS Y MÉTODO
         const isEdit = data.menu_id;
-        // La ID que se pasa a route debe ser la del Menú
-        const ruta = isEdit
-            ? route("menus.update", data.menu_id)
-            : route("menus.store");
-
+        const ruta = isEdit ? route("menus.update", data.menu_id) : route("menus.store");
         const method = isEdit ? "PUT" : "POST";
         const successMessage = isEdit ? "Menú actualizado con éxito." : "Menú creado con éxito.";
 
-        // 3. PETICIÓN (Request)
         try {
-            // Nota: Aquí data contiene todos los campos, incluido menu_idPadre (null o número)
             await request(ruta, method, data);
-
-            // 4. POST-ÉXITO
-            await getMenus(); // Obtener lista actualizada
+            await getMenus();
             toast.success(successMessage);
         } catch (error) {
             console.error("Error al guardar el menú:", error);
-            // Mostrar error más genérico al usuario
             toast.error("Hubo un error al guardar el menú.");
-            throw error; // Propagar el error al Dialog para evitar que cierre el modal
+            throw error;
         }
     };
 
@@ -376,7 +540,7 @@ export default function Menus() {
     }
 
     useEffect(() => {
-        getMenus() // Llamar a getMenus al montar
+        getMenus()
     }, [])
 
     return (
@@ -401,24 +565,48 @@ export default function Menus() {
                     columns={[
                         {
                             header: "Estatus",
+                            width: "10%",
                             accessor: "menu_estatus",
-                            // width: '20%',
                             cell: ({ item: { menu_estatus } }) => {
                                 const color = String(menu_estatus) === "1"
-                                    ? "bg-green-300" // Si es "1"
-                                    : "bg-red-300";  // Si NO es "1" (incluyendo "2", "0", null, etc.)
+                                    ? "bg-green-300"
+                                    : "bg-red-300";
 
                                 return (
                                     <span className={`inline-flex items-center justify-center rounded-full ${color} w-4 h-4`} />
                                 );
                             },
                         },
-                        { header: 'Nombre', accessor: 'menu_nombre' },
-                        { header: 'ID Padre', accessor: 'menu_idPadre' },
-                        { header: 'URL', accessor: 'menu_url' },
-                        { header: 'Tooltip', accessor: 'menu_tooltip' },
+                        { header: 'Nombre', width: "20%", accessor: 'menu_nombre' },
+                        // { header: 'ID Padre', width: "20%", accessor: 'menu_idPadre' },
+                        { header: 'URL', width: "20%", accessor: 'menu_url' },
+
                         {
-                            header: "Acciones", accessor: "Acciones", cell: (eprops) => (<>
+                            header: 'Menu padre', width: '20%', cell: ({ item }) => (
+                                <span>{
+                                    `${item.menu_padre?.menu_padre?.menu_nombre ? '/ ' + item.menu_padre?.menu_padre?.menu_nombre : ''}
+                                        ${item.menu_padre?.menu_nombre ? '/ ' + item.menu_padre?.menu_nombre : '/'}`
+                                }</span>
+                            )
+                        },
+                        {
+                            header: 'Icono (Tooltip)',
+                            accessor: 'menu_tooltip',
+                            width: "10%",
+                            // 1. Center the Header Text
+                            headerClassName: 'text-center',
+                            cell: ({ item: { menu_tooltip } }) => {
+                                const IconComponent = ICON_COMPONENTS[menu_tooltip] || AlertCircle;
+                                return (
+                                    // 2. Center the Cell Content (the Icon)
+                                    <div className="flex justify-center items-center h-full">
+                                        {IconComponent ? <IconComponent size={20} className="text-gray-600" /> : <span>-</span>}
+                                    </div>
+                                );
+                            }
+                        },
+                        {
+                            header: "Acciones", width: "10%", accessor: "Acciones", cell: (eprops) => (<>
                                 <button
                                     onClick={() => openEditModal(eprops.item)}
                                     className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200 transition"
@@ -430,7 +618,7 @@ export default function Menus() {
                     ]}
                 />
             )}
-            {/* Componente Modal de Headless UI */}
+
             <MenuFormDialog
                 isOpen={isDialogOpen}
                 closeModal={closeModal}

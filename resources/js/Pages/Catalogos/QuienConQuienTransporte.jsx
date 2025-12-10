@@ -5,16 +5,16 @@ import request from "@/utils";
 
 
 import {
-  Truck,
-  User,
-  Plus,
-  ArrowRight,
-  ClipboardList,
-  FileText,
-  Clock,
-  ArrowUpRight,
-  ArrowDownLeft,
-  ChevronsRight, SendHorizontal
+    Truck,
+    User,
+    Plus,
+    ArrowRight,
+    ClipboardList,
+    FileText,
+    Clock,
+    ArrowUpRight,
+    ArrowDownLeft,
+    ChevronsRight, SendHorizontal
 } from 'lucide-react';
 
 import { useEffect, useState } from "react";
@@ -29,21 +29,27 @@ export default function QuienConQuienTransporte() {
         destinos: [],
         motivos: [],
         quienConQuien: [],
+        dashboard: [],
         tipo: ''
     });
 
+    const userObject = JSON.parse(localStorage.getItem('user'));
 
     const getWho = async () => {
         const [
             destinos,
             motivos,
             choferes,
-            Qconquien
+            Qconquien,
+            dashboard
         ] = await Promise.all([
             request(route('DestinosQuiencQuien')),
             request(route('MotivosQuiencQuien')),
             request(route('users.index')),
             request(route('QuienconQuienUnidades')),
+            request(route('QuienconQuienUnidadesDashboard')),
+
+
         ]);
 
         setStates(prev => ({
@@ -52,6 +58,7 @@ export default function QuienConQuienTransporte() {
             motivos: motivos,
             destinos: destinos,
             choferes: choferes,
+            dashboard: dashboard,
             loading: false,
         }));
     };
@@ -97,36 +104,36 @@ export default function QuienConQuienTransporte() {
     };
 
 
-    const submit = async () => {
-        try {
-            const response = await fetch(route('changesswho'), {
-                method: "POST",
-                body: JSON.stringify({ quienconquien: states.quienConQuien }),
-                headers: { "Content-Type": "application/json" }
-            });
+    // const submit = async () => {
+    //     try {
+    //         const response = await fetch(route('changesswho'), {
+    //             method: "POST",
+    //             body: JSON.stringify({ quienconquien: states.quienConQuien }),
+    //             headers: { "Content-Type": "application/json" }
+    //         });
 
-            if (response.ok) {
-                setStates({ ...states, open: false });
-                toast.success("Se ha actualizado correctamente el quienconquien");
+    //         if (response.ok) {
+    //             setStates({ ...states, open: false });
+    //             toast.success("Se ha actualizado correctamente el quienconquien");
 
-                getWho();
-                // showNotification('Actualización exitosa', 'success', 'metroui', 'bottomRight', 5000);
-            } else {
-                const errorData = await response.json();
-                const message = errorData?.message || 'Error al actualizar';
-                showNotification(message, 'error', 'metroui', 'bottomRight', 7000);
-            }
-        } catch (error) {
-            showNotification('Error inesperado: ' + error.message, 'error', 'metroui', 'bottomRight', 7000);
-        }
-    };
+    //             getWho();
+    //             // showNotification('Actualización exitosa', 'success', 'metroui', 'bottomRight', 5000);
+    //         } else {
+    //             const errorData = await response.json();
+    //             const message = errorData?.message || 'Error al actualizar';
+    //             showNotification(message, 'error', 'metroui', 'bottomRight', 7000);
+    //         }
+    //     } catch (error) {
+    //         showNotification('Error inesperado: ' + error.message, 'error', 'metroui', 'bottomRight', 7000);
+    //     }
+    // };
 
 
     const SubmitQuien = async (e) => {
         try {
             const response = await fetch(route('WhoDestint'), {
                 method: "POST",
-                body: JSON.stringify({ quienconquien: e }),
+                body: JSON.stringify({ quienconquien: e , user: userObject.Personas_usuarioID }),
                 headers: { "Content-Type": "application/json" }
             });
 
@@ -135,7 +142,6 @@ export default function QuienConQuienTransporte() {
                 toast.success("Se ha actualizado correctamente el quienconquien");
 
                 getWho();
-                // showNotification('Actualización exitosa', 'success', 'metroui', 'bottomRight', 5000);
             } else {
                 const errorData = await response.json();
                 const message = errorData?.message || 'Error al actualizar';
@@ -180,10 +186,10 @@ export default function QuienConQuienTransporte() {
     }
 
     const stats = [
-        { name: 'Unidades fuera de area', value: 0, icon: Truck, color: 'text-green-600' },
-        { name: 'Unidades en patio', value: 0, icon: Truck, color: 'text-yellow-600' },
-        { name: 'Unidades sin asignar ', value: 0, icon: Truck, color: 'text-red-500' },
-    ]
+        { name: 'Unidades fuera de area', value: states.dashboard.totalVerde ?? 0, icon: Truck, color: 'text-green-600' },
+        { name: 'Unidades en patio', value: states.dashboard.totalAmarillo ?? 0, icon: Truck, color: 'text-yellow-600' },
+        { name: 'Unidades sin asignar ', value: states.dashboard.totalRojo ?? 0, icon: Truck, color: 'text-red-500' },
+    ];
 
     return (
         <div className="relative h-[98%] pb-4 px-3 overflow-auto blue-scroll">
@@ -196,12 +202,7 @@ export default function QuienConQuienTransporte() {
 
                     <div className="flex justify-between items-center p-3 border-b mb-4">
                         <h2 className="text-3xl font-bold text-gray-800">Gestion de Quien con quien </h2>
-                        {/* <button
-                            onClick={submit}
-                            className="flex items-center px-4 py-2 text-base font-semibold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 transition duration-150 ease-in-out"
-                        >
-                            Guardar quien con quien
-                        </button> */}
+                       
                     </div>
 
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-8">
@@ -250,13 +251,7 @@ export default function QuienConQuienTransporte() {
                                             );
                                         },
                                     },
-                                    // {
-                                    //     header: 'UltimoMovimiento',
-                                    //     accessor: 'UltimoMovimiento',
-                                    //     alignment: 'start',
-                                    //     width: '10%',
-                                    //     editable: false
-                                    // },
+
                                     {
                                         header: 'Unidad',
                                         accessor: 'Unidades_numeroEconomico',
