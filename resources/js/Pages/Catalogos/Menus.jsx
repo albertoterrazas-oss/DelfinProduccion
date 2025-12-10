@@ -25,11 +25,19 @@ import request from "@/utils";
 // I. UTILERÍAS GLOBALES Y DATOS INICIALES
 // ----------------------------------------------------
 
+/**
+ * Función de ruteo simple. Espera el ID directamente para 'menus.update'.
+ * @param {string} name - Nombre de la ruta.
+ * @param {any} params - Parámetros (asume que es el ID para update).
+ */
 const route = (name, params = {}) => {
+    // Si params es un objeto y tiene un id, lo usa, sino, asume que params es el id
+    const id = (typeof params === 'object' && params !== null && params.id) ? params.id : params;
+
     const routeMap = {
         "menus.index": "/api/menus",
         "menus.store": "/api/menus",
-        "menus.update": `/api/menus/${params}`,
+        "menus.update": `/api/menus/${id}`,
     };
     return routeMap[name] || `/${name}`;
 };
@@ -37,26 +45,25 @@ const route = (name, params = {}) => {
 const menuValidations = {
     menu_nombre: true,
     menu_url: true,
-    estatus: true,
-    // La validación del ícono (ahora en menu_tooltip) podría ser necesaria aquí si no es opcional
+    menu_estatus: true,
 };
 
 const validateInputs = (validations, data) => {
     let formErrors = {};
     if (validations.menu_nombre && !data.menu_nombre?.trim()) formErrors.menu_nombre = 'El nombre del menú es obligatorio.';
     if (validations.menu_url && !data.menu_url?.trim()) formErrors.menu_url = 'La URL es obligatoria.';
-    if (validations.estatus && !data.estatus?.trim()) formErrors.estatus = 'El estatus es obligatorio.';
+    // La validación de estatus ahora permite "1" o "0" (del checkbox)
+    if (validations.menu_estatus && (data.menu_estatus !== "1" && data.menu_estatus !== "0")) formErrors.menu_estatus = 'El estatus es obligatorio.';
     return { isValid: Object.keys(formErrors).length === 0, errors: formErrors };
 };
 
 const initialMenuData = {
     menu_id: null,
     menu_nombre: "",
-    menu_idPadre: null,
+    menu_idPadre: null, // null para "Raíz"
     menu_url: "",
-    menu_tooltip: "Home", // ⬅️ AHORA USADO PARA GUARDAR EL NOMBRE DEL ÍCONO
-    // menu_icono: "Home", // ⬅️ PROPIEDAD ELIMINADA
-    estatus: "1",
+    menu_tooltip: "Home", // ⬅️ USADO PARA GUARDAR EL NOMBRE DEL ÍCONO (ej: "Home")
+    menu_estatus: "1",
 };
 
 /**
@@ -215,8 +222,9 @@ function IconGridPickerModal({ isOpen, closeModal, onSelect, selectedIconName })
 // Componente de Display
 // Ahora recibe el nombre del ícono a través de selectedIconName, que será menu_tooltip
 function IconDisplayField({ selectedIconName, onOpenModal, label = "Ícono Seleccionado:" }) {
-    // Usamos el nombre del ícono para obtener el componente visual
-    const CurrentIcon = ICON_COMPONENTS[selectedIconName] || AlertCircle;
+    // Usamos el nombre del ícono para obtener el componente visual. Si no existe, usa AlertCircle.
+    const iconName = selectedIconName && ICON_COMPONENTS.hasOwnProperty(selectedIconName) ? selectedIconName : "AlertCircle";
+    const CurrentIcon = ICON_COMPONENTS[iconName];
 
     return (
         <div className="relative">
@@ -229,11 +237,11 @@ function IconDisplayField({ selectedIconName, onOpenModal, label = "Ícono Selec
                 onClick={onOpenModal}
             >
                 <div className="flex items-center">
-                    <span className="mr-3 text-blue-600">
-                        {CurrentIcon && <CurrentIcon size={20} />}
+                    <span className={`mr-3 ${selectedIconName ? 'text-blue-600' : 'text-gray-400'}`}>
+                        {CurrentIcon ? <CurrentIcon size={20} /> : <AlertCircle size={20} />}
                     </span>
                     <span className="font-medium text-gray-700">
-                        {selectedIconName}
+                        {selectedIconName || "(Ninguno/Inválido, haga click para seleccionar)"}
                     </span>
                 </div>
                 <SquarePen size={18} className="text-gray-500" />
@@ -250,7 +258,7 @@ function IconDisplayField({ selectedIconName, onOpenModal, label = "Ícono Selec
 function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, errors, setErrors }) {
     const [menuData, setMenuData] = useState(initialMenuData);
     const [loading, setLoading] = useState(false);
-    const [menus2, setMenus2] = useState();
+    const [menus2, setMenus2] = useState(null); // Usamos null para indicar que aún no se ha cargado
     const [isIconModalOpen, setIsIconModalOpen] = useState(false);
 
     useEffect(() => {
@@ -259,17 +267,16 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
                 ? {
                     ...menuToEdit,
                     menu_nombre: menuToEdit.menu_nombre || "",
-                    menu_idPadre: menuToEdit.menu_idPadre || null,
+                    // Asegura que sea null o un número. No debe ser el string '0' de 'Raiz'.
+                    menu_idPadre: menuToEdit.menu_idPadre ? Number(menuToEdit.menu_idPadre) : null, 
                     menu_url: menuToEdit.menu_url || "",
-                    // ⚠️ AHORA USAMOS menu_tooltip PARA EL ÍCONO
+                    // Mapea el ícono, usando menu_tooltip si existe, sino el obsoleto menu_icono, sino "Home"
                     menu_tooltip: menuToEdit.menu_tooltip || menuToEdit.menu_icono || "Home",
-                    estatus: String(menuToEdit.estatus) === "1" ? "1" : "0",
+                    menu_estatus: String(menuToEdit.menu_estatus) === "1" ? "1" : "0",
                 }
                 : initialMenuData;
 
-            // ⚠️ Limpiamos la propiedad antigua 'menu_icono' si existe, para asegurar
-            if (dataToLoad.menu_icono) delete dataToLoad.menu_icono;
-
+            // No es necesario eliminar menu_icono si solo se usa una copia (dataToLoad)
             setMenuData(dataToLoad);
             setErrors({});
             if (!menus2) fetchdata();
@@ -281,9 +288,9 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
         let finalValue = value;
 
         if (name === 'menu_idPadre') {
-            finalValue = value === "" ? null : Number(value);
-        }
-        if (type === 'checkbox') {
+            // El valor '0' del select se usa para representar 'Raiz' (null) en la data.
+            finalValue = value === "" || value === '0' ? null : Number(value);
+        } else if (type === 'checkbox') {
             finalValue = checked ? "1" : "0";
         }
 
@@ -313,13 +320,19 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // 1. Clonar data y asegurar que el ID Padre es nulo si es '0' o cadena vacía (aunque handleChange lo maneja)
+        // const dataToSend = {
+        //     ...menuData,
+        //     menu_idPadre: menuData.menu_idPadre === '' || menuData.menu_idPadre === '0' ? null : menuData.menu_idPadre,
+        // }
+
         setLoading(true);
         try {
-            // menuData ahora solo tiene menu_tooltip (con el nombre del ícono)
             await onSubmit(menuData);
             closeModal();
         } catch (error) {
             console.error("Error al enviar el formulario:", error);
+            // El error es manejado por el componente padre (Menus), pero se mantiene la lógica de control.
         } finally {
             setLoading(false);
         }
@@ -328,10 +341,14 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
     const fetchdata = async () => {
         try {
             const response = await fetch(route("menus.index"));
+            if (!response.ok) throw new Error("Fallo al cargar menús");
             const data = await response.json();
-            setMenus2([{ menu_id: '0', menu_nombre: "Raiz" }].concat(data));
+            // Agregar la opción "Raíz" manualmente al inicio. Usamos '0' como ID temporal.
+            setMenus2([{ menu_id: 0, menu_nombre: "Raíz" }].concat(data));
         } catch (e) {
             console.error("Fallo al cargar la lista de menús padre:", e);
+            toast.error("Fallo al cargar la lista de menús padre.");
+            setMenus2([]); // Inicializar a array vacío para evitar reintentos infinitos
         }
     };
 
@@ -385,30 +402,37 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
 
                                 <label className="block">
                                     <span className="text-sm font-medium text-gray-700">Menú Padre:</span>
-                                    <select
-                                        name="menu_idPadre"
-                                        value={menuData.menu_idPadre === null ? '' : String(menuData.menu_idPadre)}
-                                        onChange={handleChange}
-                                        className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.menu_idPadre ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
-                                    >
-                                        <option value="" disabled={menuData.menu_idPadre !== null}>Selecciona un menú padre</option>
-                                        {(menus2 ?? []).map((menu) => {
-                                            if (action === 'edit' && menu.menu_id === menuData.menu_id) return null;
+                                    {menus2 ? (
+                                        <select
+                                            name="menu_idPadre"
+                                            // Si es null, selecciona la opción vacía (Raíz).
+                                            value={menuData.menu_idPadre === null ? 0 : menuData.menu_idPadre}
+                                            onChange={handleChange}
+                                            className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.menu_idPadre ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+                                        >
+                                            {(menus2 ?? []).map((menu) => {
+                                                // Prevenir que un menú sea su propio padre.
+                                                if (action === 'edit' && menu.menu_id === menuData.menu_id) return null;
 
-                                            const nombreJerarquico = menu.menu_id === '0'
-                                                ? '— Raíz (Sin Padre) —'
-                                                : `${menu.menu_padre?.menu_padre?.menu_nombre ? '/ ' + menu.menu_padre?.menu_padre?.menu_nombre : ''} ${menu.menu_padre?.menu_nombre ? '/ ' + menu.menu_padre?.menu_nombre : ''} ${'/ ' + menu.menu_nombre}`;
+                                                const isRoot = menu.menu_id === 0;
+                                                const displayValue = isRoot ? '— Raíz (Sin Padre) —' : `${menu.menu_padre?.menu_padre?.menu_nombre ? '/ ' + menu.menu_padre?.menu_padre?.menu_nombre : ''} ${menu.menu_padre?.menu_nombre ? '/ ' + menu.menu_padre?.menu_nombre : ''} ${'/ ' + menu.menu_nombre}`;
 
-                                            return (
-                                                <option
-                                                    key={menu.menu_id}
-                                                    value={menu.menu_id === '0' ? '' : menu.menu_id}
-                                                >
-                                                    {nombreJerarquico}
-                                                </option>
-                                            );
-                                        })}
-                                    </select>
+                                                return (
+                                                    <option
+                                                        key={menu.menu_id}
+                                                        // El valor 0 se usa para mapear a null en handleChange
+                                                        value={isRoot ? 0 : menu.menu_id}
+                                                    >
+                                                        {displayValue}
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                    ) : (
+                                        <div className="mt-1 block w-full rounded-md border p-2 text-sm bg-gray-100 text-gray-500">
+                                            Cargando menús padre...
+                                        </div>
+                                    )}
                                     {errors.menu_idPadre && <p className="text-red-500 text-xs mt-1">{errors.menu_idPadre}</p>}
                                 </label>
 
@@ -423,8 +447,8 @@ function MenuFormDialog({ isOpen, closeModal, onSubmit, menuToEdit, action, erro
                                     <label className="flex items-center space-x-2">
                                         <input
                                             type="checkbox"
-                                            name="estatus"
-                                            checked={menuData.estatus == "1"}
+                                            name="menu_estatus"
+                                            checked={menuData.menu_estatus == "1"}
                                             onChange={handleChange}
                                             className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                         />
@@ -487,7 +511,7 @@ export default function Menus() {
 
     const openEditModal = (menu) => {
         setAction('edit');
-        setMenuData(menu);
+        setMenuData(menu); // Pasa el objeto original, el modal lo mapeará y limpiará
         setErrors({});
         setIsDialogOpen(true);
     };
@@ -508,17 +532,24 @@ export default function Menus() {
             throw new Error("Validation Failed");
         }
 
-        const isEdit = data.menu_id;
+        const isEdit = !!data.menu_id;
         const ruta = isEdit ? route("menus.update", data.menu_id) : route("menus.store");
         const method = isEdit ? "PUT" : "POST";
         const successMessage = isEdit ? "Menú actualizado con éxito." : "Menú creado con éxito.";
 
         try {
-            await request(ruta, method, data);
+            // Asegurarse de enviar null como ID Padre si es 0 (para la API)
+            const dataToSend = {
+                ...data,
+                menu_idPadre: data.menu_idPadre === 0 ? null : data.menu_idPadre,
+            }
+
+            await request(ruta, method, dataToSend);
             await getMenus();
             toast.success(successMessage);
         } catch (error) {
             console.error("Error al guardar el menú:", error);
+            // Si el error contiene un JSON de errores de validación de la API, se podría manejar aquí.
             toast.error("Hubo un error al guardar el menú.");
             throw error;
         }
@@ -534,6 +565,7 @@ export default function Menus() {
             setMenus(data);
         } catch (error) {
             console.error('Error al obtener los menús:', error);
+            toast.error("No se pudieron cargar los menús.");
         } finally {
             setIsLoading(false);
         }
@@ -568,24 +600,30 @@ export default function Menus() {
                             width: "10%",
                             accessor: "menu_estatus",
                             cell: ({ item: { menu_estatus } }) => {
-                                const color = String(menu_estatus) === "1"
-                                    ? "bg-green-300"
-                                    : "bg-red-300";
+                                const isActive = String(menu_estatus) === "1";
+                                const color = isActive
+                                    ? "bg-green-500" // Color más fuerte para activo
+                                    : "bg-red-500"; // Color más fuerte para inactivo
 
                                 return (
-                                    <span className={`inline-flex items-center justify-center rounded-full ${color} w-4 h-4`} />
+                                    <span 
+                                        className={`inline-flex items-center justify-center rounded-full ${color} w-3 h-3 mx-auto`}
+                                        title={isActive ? "Activo" : "Inactivo"}
+                                    />
                                 );
                             },
                         },
                         { header: 'Nombre', width: "20%", accessor: 'menu_nombre' },
-                        // { header: 'ID Padre', width: "20%", accessor: 'menu_idPadre' },
                         { header: 'URL', width: "20%", accessor: 'menu_url' },
 
                         {
                             header: 'Menu padre', width: '20%', cell: ({ item }) => (
                                 <span>{
-                                    `${item.menu_padre?.menu_padre?.menu_nombre ? '/ ' + item.menu_padre?.menu_padre?.menu_nombre : ''}
-                                        ${item.menu_padre?.menu_nombre ? '/ ' + item.menu_padre?.menu_nombre : '/'}`
+                                    // Se recomienda simplificar esta lógica si la data no es consistente en el nivel de anidamiento.
+                                    // Usando el nombre del padre inmediato si existe:
+                                    item.menu_idPadre === null ? 'Raíz' : (item.menu_padre?.menu_nombre || 'Menú Padre No Encontrado')
+                                    // La lógica original es más compleja:
+                                    // `${item.menu_padre?.menu_padre?.menu_nombre ? '/ ' + item.menu_padre?.menu_padre?.menu_nombre : ''} ${item.menu_padre?.menu_nombre ? '/ ' + item.menu_padre?.menu_nombre : '/'}`
                                 }</span>
                             )
                         },
@@ -600,7 +638,7 @@ export default function Menus() {
                                 return (
                                     // 2. Center the Cell Content (the Icon)
                                     <div className="flex justify-center items-center h-full">
-                                        {IconComponent ? <IconComponent size={20} className="text-gray-600" /> : <span>-</span>}
+                                        {IconComponent ? <IconComponent size={20} className="text-gray-600" /> : <AlertCircle size={20} className="text-red-500" />}
                                     </div>
                                 );
                             }

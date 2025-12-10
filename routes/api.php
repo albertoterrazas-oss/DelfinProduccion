@@ -4,6 +4,7 @@
 
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RolesController;
+use App\Http\Controllers\Catalogs\CodigosController;
 use App\Http\Controllers\Catalogs\CorreosController;
 use App\Http\Controllers\Catalogs\DepartamentoController;
 use App\Http\Controllers\Catalogs\DestinosController;
@@ -84,6 +85,16 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
         'store',  // Registra el método store (POST)
         'update'  // Registra el método update (PUT/PATCH)
     ]);
+
+
+     Route::resource('codigos', CodigosController::class)->only([
+        'index',  // Registra el método index (GET)
+        'store',  // Registra el método store (POST)
+        'update'  // Registra el método update (PUT/PATCH)
+    ]);
+
+    // Route::get('menus-tree', [MenuController::class, 'getTree'])->name('menus-tree');
+
 
 
     // Route::get('user/menus', [UserController::class, 'menus'])->name('user.menus');

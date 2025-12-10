@@ -19,7 +19,9 @@ class ListaVerificacionController extends Controller
         'ListaVerificacion_nombre'       => 'required|string|max:255',
         'ListaVerificacion_tipo'         => 'required',
         'ListaVerificacion_observaciones' => 'required|string', // Cambiado a 'string'
-        // 'ListaVerificacion_usuarioID'    => 'required|integer', // Asumiendo que es un ID de usuario entero
+        'ListaVerificacion_usuarioID'    => 'required|integer', // Asumiendo que es un ID de usuario entero
+        'ListaVerificacion_imgVehiculo'    => 'required|integer', // Asumiendo que es un ID de usuario entero
+
     ];
 
     /**
@@ -43,11 +45,11 @@ class ListaVerificacionController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            $user = $request->user();
+            // $user = $request->user();
 
             $validatedData = $request->validate($this->validationRules);
 
-            $validatedData['ListaVerificacion_usuarioID'] = $user->Personas_usuarioID;
+            // $validatedData['ListaVerificacion_usuarioID'] = $user->Personas_usuarioID;
 
             // 2. Crear el nuevo registro (Mass Assignment seguro debido a $fillable)
             $lista = ListaVerificacion::create($validatedData);

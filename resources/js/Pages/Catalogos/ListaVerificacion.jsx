@@ -22,6 +22,7 @@ const listaVerificacionValidations = {
     ListaVerificacion_nombre: true,
     ListaVerificacion_tipo: true,
     ListaVerificacion_observaciones: true,
+    ListaVerificacion_imgVehiculo: true
     // ListaVerificacion_usuarioID: true, // Se omite la validación de usuario en el frontend si el valor es fijo o viene del contexto
 };
 
@@ -37,6 +38,7 @@ const validateInputs = (validations, data) => {
 };
 // FIN DUMMY FUNCTIONS
 // ======================================================================
+const userObject = JSON.parse(localStorage.getItem('user'));
 
 // Datos de ejemplo para el estado inicial del formulario de ListaVerificacion (CORREGIDOS)
 const initialListData = {
@@ -44,7 +46,8 @@ const initialListData = {
     ListaVerificacion_nombre: "",
     ListaVerificacion_tipo: "", // Ejemplo de tipo inicial
     ListaVerificacion_observaciones: "",
-    // ListaVerificacion_usuarioID: 1, // Valor de ejemplo
+    ListaVerificacion_imgVehiculo: true,
+    ListaVerificacion_usuarioID: userObject.Personas_usuarioID, // Valor de ejemplo
     // ListaVerificacion_fechaCreacion: new Date().toISOString().slice(0, 10), 
 };
 
@@ -64,6 +67,7 @@ function ListaVerificacionFormDialog({ isOpen, closeModal, onSubmit, listToEdit,
                     ListaVerificacion_tipo: listToEdit.ListaVerificacion_tipo || "Inspección",
                     ListaVerificacion_observaciones: listToEdit.ListaVerificacion_observaciones || "",
                     ListaVerificacion_usuarioID: listToEdit.ListaVerificacion_usuarioID || 1,
+                    ListaVerificacion_imgVehiculo: listToEdit.ListaVerificacion_imgVehiculo
                 }
                 : initialListData;
             setListData(dataToLoad);
@@ -72,15 +76,24 @@ function ListaVerificacionFormDialog({ isOpen, closeModal, onSubmit, listToEdit,
     }, [isOpen, listToEdit]);
 
 
-    // Función genérica para manejar los cambios en los inputs
-    const handleChange = (e) => {
-        const { name, value } = e.target;
+   
+
+     const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        let finalValue = value;
+
+        if (name === 'menu_idPadre') {
+            // El valor '0' del select se usa para representar 'Raiz' (null) en la data.
+            finalValue = value === "" || value === '0' ? null : Number(value);
+        } else if (type === 'checkbox') {
+            finalValue = checked ? "1" : "0";
+        }
+
         setListData(prevData => ({
             ...prevData,
-            [name]: value
+            [name]: finalValue
         }));
 
-        // Limpiar error al cambiar el campo
         if (errors[name]) {
             setErrors(prevErrors => {
                 const newErrors = { ...prevErrors };
@@ -166,6 +179,23 @@ function ListaVerificacionFormDialog({ isOpen, closeModal, onSubmit, listToEdit,
                                 />
                                 {errors.ListaVerificacion_observaciones && <p className="text-red-500 text-xs mt-1">{errors.ListaVerificacion_observaciones}</p>}
                             </label>
+
+
+                            <div className="flex justify-center w-full pt-2">
+                                <label className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        name="ListaVerificacion_imgVehiculo"
+                                        checked={listData.ListaVerificacion_imgVehiculo == "1"}
+                                        onChange={handleChange}
+                                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">Imagen (Estatus)</span>
+                                </label>
+                            </div>
+
+                            {/* :listToEdit.ListaVerificacion_imgVehiculo */}
+
 
                         </div>
 

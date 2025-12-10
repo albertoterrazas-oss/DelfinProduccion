@@ -17,6 +17,7 @@ class ListaVerificacion extends Model
         'ListaVerificacion_tipo',
         'ListaVerificacion_observaciones',
         'ListaVerificacion_usuarioID',
+        'ListaVerificacion_imgVehiculo'
     ];
 
 
