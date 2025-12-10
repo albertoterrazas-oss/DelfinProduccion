@@ -1,38 +1,209 @@
-import { forwardRef, useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import { InputGroup, InputGroupInput } from './ui/input-group';
 
-export default forwardRef(function TextInput({ type = 'text', className = '', isFocused = false, placeholder = '', ...props }, ref) {
+const TextInput = forwardRef(function TextInput({
+    type = 'text',
+    className = '',
+    placeholder = '',
+    allowDecimals = true,
+    allowNegative = false,
+    value = '',
+    onChange, // ← AÑADE ESTO
+    onFocus: onFocusProp, // Renombra para evitar conflictos
+    onBlur: onBlurProp, // Renombra para evitar conflictos
+    min, // ← AÑADE ESTO
+    max, // ← AÑADE ESTO
+    ...props 
+}, ref) {
+    const [isFocused, setIsFocused] = useState(false);
     const input = ref ? ref : useRef();
+
+    const handleChange = (e) => {
+        if (type !== 'number') {
+            if (onChange) onChange(e); // Verifica que onChange existe
+            return;
+        }
+
+        let inputValue = e.target.value;
+
+        if (inputValue === '') {
+            if (onChange) onChange(e);
+            return;
+        }
+
+        if (inputValue === '.' && allowDecimals) {
+            e.target.value = '0.';
+            if (onChange) onChange(e);
+            return;
+        }
+
+        if (inputValue === '-' && allowNegative) {
+            if (onChange) onChange(e);
+            return;
+        }
+
+        let regex = allowNegative
+            ? /^-?\d*\.?\d*$/
+            : /^\d*\.?\d*$/;
+
+        if (!allowDecimals) {
+            regex = allowNegative ? /^-?\d*$/ : /^\d*$/;
+        }
+
+        if (!regex.test(inputValue)) {
+            return;
+        }
+
+        if (inputValue.length > 1 && inputValue[0] === '0' && inputValue[1] !== '.') {
+            inputValue = inputValue.replace(/^0+/, '');
+            e.target.value = inputValue;
+        }
+
+        if (inputValue === '-.' && allowDecimals && allowNegative) {
+            e.target.value = '-0.';
+            if (onChange) onChange(e);
+            return;
+        }
+
+        const numValue = parseFloat(inputValue);
+
+        if (!isNaN(numValue)) {
+            if (min !== undefined && numValue < min && inputValue !== '' && inputValue !== '-') {
+                return;
+            }
+            if (max !== undefined && numValue > max) {
+                return;
+            }
+        }
+
+        if (onChange) onChange(e);
+    };
+
+    const handleFocus = (e) => {
+        setIsFocused(true);
+
+        if (type === 'number') {
+            if (e.target.value === '0' || e.target.value === '0.00') {
+                e.target.select();
+            }
+        }
+
+        if (onFocusProp) {
+            onFocusProp(e);
+        }
+    };
+
+    const handleBlur = (e) => {
+        setIsFocused(false);
+
+        if (type === 'number') {
+            let inputValue = e.target.value;
+
+            if (inputValue === '' || inputValue === '-' || inputValue === '.') {
+                const syntheticEvent = {
+                    ...e,
+                    target: {
+                        ...e.target,
+                        value: '0'
+                    }
+                };
+                if (onChange) onChange(syntheticEvent);
+            } else if (inputValue.endsWith('.') && inputValue.length > 1) {
+                const syntheticEvent = {
+                    ...e,
+                    target: {
+                        ...e.target,
+                        value: inputValue.slice(0, -1)
+                    }
+                };
+                if (onChange) onChange(syntheticEvent);
+            }
+        }
+
+        if (onBlurProp) {
+            onBlurProp(e);
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (type !== 'number') return;
+
+        const allowedKeys = [
+            'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+            'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+            'Home', 'End'
+        ];
+
+        if (allowedKeys.includes(e.key)) return;
+        if (e.ctrlKey || e.metaKey) return;
+
+        const blockedChars = ['e', 'E', '+'];
+        if (!allowNegative) blockedChars.push('-');
+        if (!allowDecimals) blockedChars.push('.');
+
+        if (e.key === '.' && allowDecimals) {
+            const cursorPos = e.target.selectionStart;
+            const currentValue = e.target.value;
+
+            if (cursorPos === 0 && currentValue === '') {
+                return;
+            }
+
+            if (currentValue.includes('.')) {
+                e.preventDefault();
+                return;
+            }
+        }
+
+        if (blockedChars.includes(e.key) || /[a-zA-Z]/.test(e.key)) {
+            e.preventDefault();
+        }
+    };
+
+    const handlePaste = (e) => {
+        if (type !== 'number') return;
+
+        const pastedText = e.clipboardData.getData('text');
+
+        let regex = allowNegative ? /^-?\d*\.?\d*$/ : /^\d*\.?\d*$/;
+        if (!allowDecimals) {
+            regex = allowNegative ? /^-?\d*$/ : /^\d*$/;
+        }
+
+        if (!regex.test(pastedText)) {
+            e.preventDefault();
+        }
+    };
+
+    const displayValue = (type === 'number' && !isFocused && (value === '' || value === null || value === undefined))
+        ? '0'
+        : value;
 
     useEffect(() => {
         if (isFocused) {
-            input.current.focus();
+            input.current?.focus();
         }
-    }, []);
+    }, [isFocused]);
 
     return (
         <InputGroup>
             <InputGroupInput
                 placeholder={placeholder}
-                className={
-                    // 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm ' +
-                    className
-                }
+                className={className}
                 ref={input}
+                onChange={handleChange}
+                onFocus={handleFocus}
+                onKeyDown={handleKeyDown}
+                onBlur={handleBlur}
+                onPaste={handlePaste}
+                value={displayValue}
+                inputMode={type === 'number' ? 'decimal' : undefined}
                 {...props}
             />
-            {/* <InputGroupAddon>
-                <SearchIcon />
-            </InputGroupAddon> */}
         </InputGroup>
-        // <input
-        //     {...props}
-        //     type={type}
-        //     className={
-        //         'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm ' +
-        //         className
-        //     }
-        //     ref={input}
-        // />
     );
 });
+
+TextInput.displayName = 'TextInput';
+
+export default TextInput;
