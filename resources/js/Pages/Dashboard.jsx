@@ -86,20 +86,14 @@ export default function Dashboard() {
     });
 
     const getUnits = async () => {
-
         try {
             const response = await fetch(route("DashboardUnidad"));
-
             if (!response.ok) {
                 throw new Error(`Error en la solicitud: ${response.statusText} (${response.status})`);
             }
-
             const data = await response.json();
-
             // ⭐️ ¡Aquí se guardan los datos en el estado! ⭐️
             setDashboardData(data);
-
-            console.log('dashboard obtenidas:', data);
 
         } catch (error) {
             console.error('Error al obtener las unidades:', error);

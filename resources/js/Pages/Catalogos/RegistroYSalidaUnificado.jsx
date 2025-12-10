@@ -4,10 +4,10 @@ import Datatable from "@/Components/Datatable";
 import SelectInput from "@/components/SelectInput";
 
 import { toast } from 'sonner';
+import TextInput from '@/Components/TextInput';
 
 
 const RegistroYSalidaUnificado = () => {
-
     const [requests, setRequests] = useState({
         Motivos: [],
         Unidades: [],
@@ -18,8 +18,6 @@ const RegistroYSalidaUnificado = () => {
         UltimosMovimientos: [],
         QuienconQuienControl: []
     });
-
-
     const [informacion, setInformacion] = useState({
         NombreUnidad: '',
         UltimoKilometraje: '',
@@ -27,8 +25,6 @@ const RegistroYSalidaUnificado = () => {
         NombreOperador: '',
         Estado: '',
     });
-
-
     const userObject = JSON.parse(localStorage.getItem('user'));
 
     // Función auxiliar para obtener datos de una ruta
@@ -127,7 +123,6 @@ const RegistroYSalidaUnificado = () => {
         }
     };
 
-
     const CrearAsignacion = async () => {
         try {
             const response = await fetch(route('asignaciones.store'), {
@@ -203,7 +198,6 @@ const RegistroYSalidaUnificado = () => {
         }));
     };
 
-
     const ToggleButton = ({ label, isActive, onClick }) => (
         <button
             onClick={onClick}
@@ -217,14 +211,9 @@ const RegistroYSalidaUnificado = () => {
     );
 
     useEffect(() => {
-
-
         const Unidad = requests.Unidades.find(u => u.Unidades_unidadID === Number(form.unit));
         const QuienConQuien = requests.QuienconQuienControl.find(u => Number(u.CUA_unidadID) === Number(form.unit));
-
         const Chofer = requests.Choferes.find(C => C.Personas_usuarioID === Number(form.driver));
-
-
 
         // Variables para almacenar la información, con valores predeterminados seguros
         let nombreUnidad = '';
@@ -241,7 +230,6 @@ const RegistroYSalidaUnificado = () => {
             nombreOperador = Chofer.nombre_completo || '';
         }
 
-        console.log("QuienConQuien", QuienConQuien);
         if (QuienConQuien) {
             setForm({
                 ...form,
@@ -251,7 +239,6 @@ const RegistroYSalidaUnificado = () => {
                 user: userObject.Personas_usuarioID
 
             });
-            console.log("Estado 'form' actualizado con datos de QuienConQuien.");
         }
         // 3. Establecer el estado con la información recopilada
         setInformacion({
@@ -332,28 +319,25 @@ const RegistroYSalidaUnificado = () => {
         </div>
     );
 
-
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="flex flex-col gap-4 pb-4">
 
             {/* Encabezado General */}
-            <div className="flex justify-between mb-8 border-b pb-4">
+            <div className="flex justify-between py-4 border-b">
                 <div className="text-xl font-bold text-gray-800">Unidad Seleccionada: <span className="text-blue-600">
                     {informacion.NombreUnidad || '—'}
                 </span></div>
                 <div className="text-xl font-bold text-gray-800">Chofer: <span className="text-blue-600">{informacion.NombreOperador || '—'}</span></div>
-                <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-semibold">
+                <div className="bg-blue-100 text-blue-800 px-4 py-0 rounded-full font-semibold">
                     Estado: <span className="font-bold">Pendiente</span>
                 </div>
             </div>
 
             {/* Contenedor Principal de las 2 Columnas */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
                 {/* === COLUMNA IZQUIERDA: DATOS DEL MOVIMIENTO === */}
                 <div className="bg-white p-6 rounded-xl shadow-lg">
                     <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Datos del Movimiento</h2>
-
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         {/* Toggle ENTRADA/SALIDA */}
                         <div className="flex gap-2 col-span-1 ">
@@ -368,8 +352,6 @@ const RegistroYSalidaUnificado = () => {
                                 onClick={() => setMovementType('SALIDA')}
                             />
                         </div>
-
-
                         <SelectInput
                             label="Motivo"
                             value={form.motive}
@@ -382,11 +364,9 @@ const RegistroYSalidaUnificado = () => {
                             labelKey="Motivos_nombre"
                             disabled={true}
                         />
-
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 mb-6">
-
                         <SelectInput
                             label="Unidad (Número Económico)"
                             value={form.unit}
@@ -398,7 +378,6 @@ const RegistroYSalidaUnificado = () => {
                             valueKey="CUA_unidadID"
                             labelKey="Unidades_numeroEconomico"
                         />
-
                         <SelectInput
                             label="Chofer / Ayudante"
                             value={form.driver}
@@ -409,7 +388,6 @@ const RegistroYSalidaUnificado = () => {
                             labelKey="nombre_completo"
                             disabled={true}
                         />
-
                         <SelectInput
                             label="Destino"
                             value={form.destination}
@@ -420,7 +398,6 @@ const RegistroYSalidaUnificado = () => {
                             labelKey="Destinos_Nombre"
                             disabled={true}
                         />
-
                         <SelectInput
                             label="Combustible"
                             value={form.combustible}
@@ -471,15 +448,11 @@ const RegistroYSalidaUnificado = () => {
                             valueKey="escala_valor"
                             labelKey="nombre"
                         />
-
-
-
                         <div className={`flex flex-col gap-1 h-full`}>
                             <label className="text-sm font-medium text-gray-600">
                                 Kilometraje
                             </label>
-
-                            <input
+                            <TextInput
                                 type="number"
                                 name="Motivos_nombre"
                                 value={form.kilometers}
@@ -489,14 +462,11 @@ const RegistroYSalidaUnificado = () => {
                                 className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
                         </div>
-
-
                         <div className={`flex flex-col gap-1 h-full`}>
                             <label className="text-sm font-medium text-gray-600">
                                 Observaciones
                             </label>
-
-                            <input
+                            <TextInput
                                 type="text"
                                 name="Motivos_nombre"
                                 value={form.observation}
@@ -511,17 +481,14 @@ const RegistroYSalidaUnificado = () => {
                     {/* Checklist y Condiciones */}
                     <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Checklist y Condiciones</h2>
                     <div className="grid grid-cols-2 gap-x-8 gap-y-2 mb-6 p-3 border border-gray-200 rounded-lg">
-
                         {requests.ListasVerificacion.map((item) => {
                             const listId = item.ListaVerificacion_listaID.toString();
-
                             // 🚨 CORRECCIÓN CLAVE: Asegurar que form.checklist sea un array antes de buscar.
                             const currentItem = Array.isArray(form.checklist)
                                 ? form.checklist.find(i => i.id === listId)
                                 : undefined;
 
                             // Esto evita el error si form.checklist es undefined, null, o un objeto {}
-
                             const currentValue = currentItem ? currentItem.observacion : undefined;
 
                             return (
