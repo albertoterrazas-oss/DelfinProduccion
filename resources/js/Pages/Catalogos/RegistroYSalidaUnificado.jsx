@@ -151,19 +151,7 @@ const FUEL_OPTIONS = [
 ];
 
 const RegistroYSalidaUnificado = () => {
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [requests, setRequests] = useState({
-        Motivos: [],
-        Unidades: [],
-        Choferes: [],
-        Ayudantes: [],
-        Destinos: [],
-        ListasVerificacion: [],
-        UltimosMovimientos: [],
-        QuienconQuienControl: []
-    });
-
+    const userObject = JSON.parse(localStorage.getItem('user') || '{}');
     const ESTADO_INICIAL = {
         NombreUnidad: '',
         UltimoKilometraje: '',
@@ -171,7 +159,6 @@ const RegistroYSalidaUnificado = () => {
         NombreOperador: '',
         Estado: '',
     };
-    const userObject = JSON.parse(localStorage.getItem('user') || '{}');
     const initialFormState = {
         movementType: 'ENTRADA',
         unit: '',
@@ -186,25 +173,39 @@ const RegistroYSalidaUnificado = () => {
         user: userObject.Personas_usuarioID, // ID del usuario actual
         estatusCode: 0
     };
-
-
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [requests, setRequests] = useState({
+        Motivos: [],
+        Unidades: [],
+        Choferes: [],
+        Ayudantes: [],
+        Destinos: [],
+        ListasVerificacion: [],
+        UltimosMovimientos: [],
+        QuienconQuienControl: []
+    });
     const [informacion, setInformacion] = useState(ESTADO_INICIAL);
-
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [form, setForm] = useState(initialFormState)
+    
+    // Condición de habilitación del botón: KM es válido solo si es mayor al último en ENTRADA
+    const isKmValid = form.movementType === 'SALIDA' ? true : form.kilometers > informacion.UltimoKilometraje;
+    // Condición de validación básica del formulario
+    const isFormValid = (
+        form.unit !== '' &&
+        form.driver !== '' &&
+        form.destination !== '' &&
+        form.motive !== '' &&
+        isKmValid &&
+        form.combustible !== ''
+    );
 
-
-    useEffect(() => {
-        if (isModalOpen === false) {
-            setInformacion(ESTADO_INICIAL);
-
-            setRequests(prevRequests => ({
-                ...prevRequests,
-                UltimosMovimientos: [],
-            }));
-
-            setForm(initialFormState)
-        }
-    }, [isModalOpen]);
+    // Texto del botón
+    const buttonText = isSubmitting
+        ? 'PROCESANDO...'
+        : form.estatusCode === 1 && !form.authorizationCode
+            ? 'SOLICITAR AUTORIZACIÓN'
+            : 'REGISTRAR MOVIMIENTO';
 
     const openAuthorizationModal = () => {
         setIsModalOpen(true);
@@ -250,12 +251,6 @@ const RegistroYSalidaUnificado = () => {
         }
     }
 
-    useEffect(() => {
-        loadAllData();
-    }, []);
-
-    const [form, setForm] = useState(initialFormState);
-
     const handleAuthorization = (authCode) => {
         setForm(prevForm => ({
             ...prevForm,
@@ -265,83 +260,6 @@ const RegistroYSalidaUnificado = () => {
         toast.success("Autorización exitosa. Proceda a registrar el movimiento.");
         // Opcionalmente, puedes llamar a CrearAsignacion() aquí para reintentar automáticamente
     };
-
-    useEffect(() => { if (form.unit) { fetchUltimosMovimientos(form.unit); } }, [form.unit]);
-
-    const fetchUltimosMovimientos = async (unitId) => {
-        try {
-            // **IMPORTANTE**: Asegúrate de que `route('ultimos-movimientos-unidad')` es correcto
-            const response = await fetch(route('ultimos-movimientos-unidad'), {
-                method: 'POST',
-                body: JSON.stringify({ unidadID: unitId }),
-                headers: { 'Content-Type': 'application/json' },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
-            }
-
-            const data = await response.json();
-
-            const primerMovimiento = Array.isArray(data) && data.length > 0 ? data[0] : {};
-            const ultimoKm = primerMovimiento.Movimientos_kilometraje || 0;
-
-            // Inicializa la checklist por defecto a 'Si' para todos los ítems
-            const defaultChecklist = requests.ListasVerificacion.map(item => ({
-                id: item.ListaVerificacion_listaID.toString(),
-                observacion: 'Si'
-            }));
-
-            setRequests(prevRequests => ({
-                ...prevRequests,
-                UltimosMovimientos: data,
-            }));
-
-            setInformacion(prevInfo => ({
-                ...prevInfo,
-                UltimoKilometraje: ultimoKm,
-            }));
-
-            // Actualiza KM solo si es SALIDA o si el KM actual es 0 (primera carga)
-            if (form.movementType === 'SALIDA' || form.kilometers === 0) {
-                setForm(prevForm => ({
-                    ...prevForm,
-                    kilometers: ultimoKm,
-                    checklist: defaultChecklist,
-                }));
-            } else {
-                setForm(prevForm => ({
-                    ...prevForm,
-                    checklist: defaultChecklist,
-                }));
-            }
-
-        } catch (err) {
-            console.error('Error al obtener movimientos:', err);
-            toast.error('Error al cargar últimos movimientos de la unidad.');
-        }
-    };
-
-    // Efecto para determinar si se necesita autorización (estatusCode)
-    useEffect(() => {
-        // Determinar si existe al menos un elemento con observación "No"
-        const hasNoObservation = form.checklist.some(item => item.observacion === "No");
-        // 1 (Requiere autorización) si hay "No", 0 (No requiere) si todos son "Sí"
-        const newStatusCode = hasNoObservation ? 1 : 0;
-        // Si el estatus cambia de 1 a 0, se limpia el código de autorización
-        if (newStatusCode === 0 && form.estatusCode === 1) {
-            setForm(prevForm => ({
-                ...prevForm,
-                authorizationCode: '',
-                estatusCode: newStatusCode
-            }));
-        } else {
-            setForm(prevForm => ({
-                ...prevForm,
-                estatusCode: newStatusCode
-            }));
-        }
-    }, [form.checklist, setForm])
 
     const CrearAsignacion = async () => {
         setIsSubmitting(true);
@@ -441,6 +359,148 @@ const RegistroYSalidaUnificado = () => {
         </button>
     );
 
+    const fetchUltimosMovimientos = async (unitId) => {
+        try {
+            // **IMPORTANTE**: Asegúrate de que `route('ultimos-movimientos-unidad')` es correcto
+            const response = await fetch(route('ultimos-movimientos-unidad'), {
+                method: 'POST',
+                body: JSON.stringify({ unidadID: unitId }),
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            const primerMovimiento = Array.isArray(data) && data.length > 0 ? data[0] : {};
+            const ultimoKm = primerMovimiento.Movimientos_kilometraje || 0;
+            // Inicializa la checklist por defecto a 'Si' para todos los ítems
+            const defaultChecklist = requests.ListasVerificacion.map(item => ({
+                id: item.ListaVerificacion_listaID.toString(),
+                observacion: 'Si'
+            }));
+            setRequests(prevRequests => ({
+                ...prevRequests,
+                UltimosMovimientos: data,
+            }));
+            setInformacion(prevInfo => ({
+                ...prevInfo,
+                UltimoKilometraje: ultimoKm,
+            }));
+            // Actualiza KM solo si es SALIDA o si el KM actual es 0 (primera carga)
+            if (form.movementType === 'SALIDA' || form.kilometers === 0) {
+                setForm(prevForm => ({
+                    ...prevForm,
+                    kilometers: ultimoKm,
+                    checklist: defaultChecklist,
+                }));
+            } else {
+                setForm(prevForm => ({
+                    ...prevForm,
+                    checklist: defaultChecklist,
+                }));
+            }
+        } catch (err) {
+            console.error('Error al obtener movimientos:', err);
+            toast.error('Error al cargar últimos movimientos de la unidad.');
+        }
+    };
+
+    // Efecto para obtener QuienconQuienControl al cambiar el tipo de movimiento
+    const getAllData = async () => {
+        try {
+            // **IMPORTANTE**: Asegúrate de que `route("QuienconQuienControl")` es correcto
+            const quien = await fetch(route("QuienconQuienControl", { id: form.movementType })).then(res => res.json());
+
+            setRequests(prevRequests => ({
+                ...prevRequests,
+                QuienconQuienControl: quien,
+            }));
+        } catch (error) {
+            console.error("Error al obtener QuienconQuienControl:", error);
+            toast.error('Error al cargar datos de control.');
+        }
+    };
+
+    const ConditionToggle = ({ label, name, currentValue, onToggle, isCritical = false }) => (
+        <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+            <span className="text-sm font-medium text-gray-700">
+                {label}
+                {isCritical && <span className="text-red-500 text-xs ml-1">(Crítico)</span>}
+            </span>
+            <div className="flex gap-2">
+                <button
+                    onClick={() => onToggle(name, 'No')}
+                    className={`px-4 py-1 text-sm font-semibold rounded-lg transition-colors duration-200 ${currentValue === 'No'
+                        ? 'bg-red-500 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                >
+                    No
+                </button>
+                <button
+                    onClick={() => onToggle(name, 'Si')}
+                    className={`px-4 py-1 text-sm font-semibold rounded-lg transition-colors duration-200 ${currentValue === 'Si'
+                        ? 'bg-green-500 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                >
+                    Sí
+                </button>
+            </div>
+        </div>
+    );
+
+    const ResumenItem = ({ label, value }) => (
+        <div className="flex justify-between items-center py-1 border-b border-gray-200">
+            <span className="text-sm font-medium text-gray-600">{label}</span>
+            <span className="text-sm font-semibold text-gray-800">{value}</span>
+        </div>
+    );
+
+    useEffect(() => {
+        loadAllData();
+    }, []);
+
+    useEffect(() => {
+        if (isModalOpen === false) {
+            setInformacion(ESTADO_INICIAL);
+
+            setRequests(prevRequests => ({
+                ...prevRequests,
+                UltimosMovimientos: [],
+            }));
+
+            setForm(initialFormState)
+        }
+    }, [isModalOpen]);
+
+    useEffect(() => {
+        if (form.unit) fetchUltimosMovimientos(form.unit);
+    }, [form.unit]);
+
+    // Efecto para determinar si se necesita autorización (estatusCode)
+    useEffect(() => {
+        // Determinar si existe al menos un elemento con observación "No"
+        const hasNoObservation = form.checklist.some(item => item.observacion === "No");
+        // 1 (Requiere autorización) si hay "No", 0 (No requiere) si todos son "Sí"
+        const newStatusCode = hasNoObservation ? 1 : 0;
+        // Si el estatus cambia de 1 a 0, se limpia el código de autorización
+        if (newStatusCode === 0 && form.estatusCode === 1) {
+            setForm(prevForm => ({
+                ...prevForm,
+                authorizationCode: '',
+                estatusCode: newStatusCode
+            }));
+        } else {
+            setForm(prevForm => ({
+                ...prevForm,
+                estatusCode: newStatusCode
+            }));
+        }
+    }, [form.checklist, setForm])
+
     // Efecto para buscar datos de QuienConQuienControl cuando cambia la unidad
     useEffect(() => {
         const selectedUnitId = Number(form.unit);
@@ -448,7 +508,6 @@ const RegistroYSalidaUnificado = () => {
         // Buscar la unidad y el chofer
         const Unidad = requests.Unidades.find(u => u.Unidades_unidadID === selectedUnitId);
         const Chofer = requests.Choferes.find(C => C.Personas_usuarioID === Number(form.driver));
-
         let nombreUnidad = '';
         let nombreOperador = '';
 
@@ -494,86 +553,9 @@ const RegistroYSalidaUnificado = () => {
 
     }, [form.unit, requests.Unidades, requests.Choferes, requests.QuienconQuienControl, userObject.Personas_usuarioID]);
 
-    // Efecto para obtener QuienconQuienControl al cambiar el tipo de movimiento
-    const getAllData = async () => {
-        try {
-            // **IMPORTANTE**: Asegúrate de que `route("QuienconQuienControl")` es correcto
-            const quien = await fetch(route("QuienconQuienControl", { id: form.movementType })).then(res => res.json());
-
-            setRequests(prevRequests => ({
-                ...prevRequests,
-                QuienconQuienControl: quien,
-            }));
-        } catch (error) {
-            console.error("Error al obtener QuienconQuienControl:", error);
-            toast.error('Error al cargar datos de control.');
-        }
-    };
-
     useEffect(() => {
         getAllData();
     }, [form.movementType]);
-
-
-    const ConditionToggle = ({ label, name, currentValue, onToggle, isCritical = false }) => (
-        <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-            <span className="text-sm font-medium text-gray-700">
-                {label}
-                {isCritical && <span className="text-red-500 text-xs ml-1">(Crítico)</span>}
-            </span>
-            <div className="flex gap-2">
-                <button
-                    onClick={() => onToggle(name, 'No')}
-                    className={`px-4 py-1 text-sm font-semibold rounded-lg transition-colors duration-200 ${currentValue === 'No'
-                        ? 'bg-red-500 text-white shadow-md'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                >
-                    No
-                </button>
-                <button
-                    onClick={() => onToggle(name, 'Si')}
-                    className={`px-4 py-1 text-sm font-semibold rounded-lg transition-colors duration-200 ${currentValue === 'Si'
-                        ? 'bg-green-500 text-white shadow-md'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                >
-                    Sí
-                </button>
-            </div>
-        </div>
-    );
-
-    const ResumenItem = ({ label, value }) => (
-        <div className="flex justify-between items-center py-1 border-b border-gray-200">
-            <span className="text-sm font-medium text-gray-600">{label}</span>
-            <span className="text-sm font-semibold text-gray-800">{value}</span>
-        </div>
-    );
-
-    // Condición de habilitación del botón: KM es válido solo si es mayor al último en ENTRADA
-    const isKmValid = form.movementType === 'SALIDA' ? true : form.kilometers > informacion.UltimoKilometraje;
-
-    // Condición de validación básica del formulario
-    const isFormValid = (
-        form.unit !== '' &&
-        form.driver !== '' &&
-        form.destination !== '' &&
-        form.motive !== '' &&
-        isKmValid &&
-        form.combustible !== ''
-    );
-
-    // Texto del botón
-    const buttonText = isSubmitting
-        ? 'PROCESANDO...'
-        : form.estatusCode === 1 && !form.authorizationCode
-            ? 'SOLICITAR AUTORIZACIÓN'
-            : 'REGISTRAR MOVIMIENTO';
-            
-            useEffect(() => {
-    console.log('Formulario actual:', form);
-            }, [form])
 
     return (
         <div className="flex flex-col gap-4 pb-4">
@@ -634,7 +616,7 @@ const RegistroYSalidaUnificado = () => {
                                 placeholder="Seleccionar motivo..."
                                 valueKey="Motivos_motivoID"
                                 labelKey="Motivos_nombre"
-                                // disabled={true} // Deshabilitado, se carga de QuienconQuienControl
+                            // disabled={true} // Deshabilitado, se carga de QuienconQuienControl
                             />
 
                             {/* SELECT Unidad */}

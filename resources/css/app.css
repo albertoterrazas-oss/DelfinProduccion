@@ -28,7 +28,7 @@
     justify-content: space-between;
     align-items: center;
     box-shadow: rgba(66, 66, 66, 0.2) 0px 2px 8px 0px;
-    z-index: 99;
+    z-index: 49;
 }
 
 .body-container {
