@@ -3,6 +3,7 @@ import { Dialog, DialogPanel, DialogTitle, Transition } from '@headlessui/react'
 import { toast } from 'sonner';
 import Datatable from "@/Components/Datatable";
 import LoadingDiv from "@/Components/LoadingDiv";
+import ComponenteVerificacion from "./ListaVerificacionImagenes";
 
 import request from "@/utils";
 
@@ -76,9 +77,9 @@ function ListaVerificacionFormDialog({ isOpen, closeModal, onSubmit, listToEdit,
     }, [isOpen, listToEdit]);
 
 
-   
 
-     const handleChange = (e) => {
+
+    const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         let finalValue = value;
 
@@ -155,7 +156,7 @@ function ListaVerificacionFormDialog({ isOpen, closeModal, onSubmit, listToEdit,
                             </label>
 
 
-                            <label className="block">
+                            {/* <label className="block">
                                 <span className="text-sm font-medium text-gray-700">Tipo: <span className="text-red-500">*</span></span>
                                 <input
                                     type="text"
@@ -164,6 +165,60 @@ function ListaVerificacionFormDialog({ isOpen, closeModal, onSubmit, listToEdit,
                                     onChange={handleChange}
                                     className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.ListaVerificacion_tipo ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
                                 />
+                                {errors.ListaVerificacion_tipo && <p className="text-red-500 text-xs mt-1">{errors.ListaVerificacion_tipo}</p>}
+                            </label> */}
+
+
+                            {/* Obligatorio */}
+
+
+                            {/* <label className="block">
+                                <span className="text-sm font-medium text-gray-700">Tipo: <span className="text-red-500">*</span></span>
+                                <select
+                                    name="ListaVerificacion_tipo"
+                                    value={listData.ListaVerificacion_tipo || ''}
+                                    onChange={handleChange}
+                                    className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.ListaVerificacion_tipo ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+                                >
+                                    <option value="" disabled>Selecciona un departamento</option>
+                                    {departments.map((dept) => (
+                                        <option
+                                            key={dept.Departamentos_id}
+                                            value={dept.Departamentos_id}
+                                        >
+                                            {dept.Departamentos_nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.ListaVerificacion_tipo && <p className="text-red-500 text-xs mt-1">{errors.ListaVerificacion_tipo}</p>}
+                            </label> */}
+
+                            <label className="block">
+                                <span className="text-sm font-medium text-gray-700">Tipo: <span className="text-red-500">*</span></span>
+                                <select
+                                    name="ListaVerificacion_tipo"
+                                    value={listData.ListaVerificacion_tipo || ''}
+                                    onChange={handleChange}
+                                    className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.ListaVerificacion_tipo ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+                                >
+                                    <option value="" disabled>Selecciona un tipo</option>
+
+                                    {/* Array estático para las opciones: Obligatorio y Recomendado */}
+                                    {/* Nota: He usado las claves "id" y "nombre" para que el mapeo sea similar al anterior. */}
+                                    {/* El valor del "value" debería coincidir con lo que esperas guardar en listData.ListaVerificacion_tipo */}
+                                    {[
+                                        { id: 'Obligatorio', nombre: 'Obligatorio' },
+                                        { id: 'Recomendado', nombre: 'Recomendado' }
+                                    ].map((tipo) => (
+                                        <option
+                                            key={tipo.id}
+                                            value={tipo.id} // Aquí guarda 'Obligatorio' o 'Recomendado'
+                                        >
+                                            {tipo.nombre}
+                                        </option>
+                                    ))}
+
+                                </select>
                                 {errors.ListaVerificacion_tipo && <p className="text-red-500 text-xs mt-1">{errors.ListaVerificacion_tipo}</p>}
                             </label>
 
@@ -392,6 +447,10 @@ export default function ListaVerificacion() {
                 errors={errors}
                 setErrors={setErrors}
             />
+
+            {/* <ComponenteVerificacion /> */}
+
+
 
         </div>
     );

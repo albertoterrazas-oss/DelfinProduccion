@@ -73,6 +73,9 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
         'update'  // Registra el método update (PUT/PATCH)
     ]);
 
+
+    
+
     Route::resource('departamentos', DepartamentoController::class)->only([
         'index',  // Registra el método index (GET)
         'store',  // Registra el método store (POST)
@@ -101,6 +104,7 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
 
     Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menus');
 
+    Route::get('CondicionesUnidad', [ListaVerificacionController::class, 'CondicionesUnidad'])->name('CondicionesUnidad');
 
     Route::get('menus-tree', [MenuController::class, 'getTree'])->name('menus-tree');
     Route::get('QuienconQuienUnidades', [UnidadesController::class, 'QuienconQuienUnidades'])->name('QuienconQuienUnidades');

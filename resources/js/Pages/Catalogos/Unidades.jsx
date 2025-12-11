@@ -115,78 +115,242 @@ function UnitFormDialog({ isOpen, closeModal, onSubmit, unitToEdit, action, erro
 
     const dialogTitle = action === 'create' ? 'Crear Nueva Unidad' : 'Editar Unidad';
 
+    // return (
+    //     <Dialog open={isOpen} onClose={closeModal} className="relative z-50">
+    //         {/* Overlay de fondo */}
+    //         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+
+    //         {/* Contenedor del Modal */}
+    //         <div className="fixed inset-0 flex items-center justify-center p-4">
+    //             <DialogPanel className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-2xl relative">
+
+    //                 {/* Indicador de carga */}
+    //                 {loading && <LoadingDiv />}
+
+    //                 <DialogTitle className="text-2xl font-bold mb-4 text-gray-900 border-b pb-2">
+    //                     {dialogTitle}
+    //                 </DialogTitle>
+
+    //                 <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
+
+    //                     {/* Agrupación de campos principales (ya en una sola columna) */}
+    //                     <div className="space-y-2">
+    //                         {/* Input Número Económico */}
+    //                         <label className="block">
+    //                             <span className="text-sm font-medium text-gray-700">No. Económico: <span className="text-red-500">*</span></span>
+    //                             <input
+    //                                 type="text"
+    //                                 name="Unidades_numeroEconomico"
+    //                                 value={unitData.Unidades_numeroEconomico}
+    //                                 onChange={handleChange}
+    //                                 className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Unidades_numeroEconomico ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+    //                             />
+    //                             {errors.Unidades_numeroEconomico && <p className="text-red-500 text-xs mt-1">{errors.Unidades_numeroEconomico}</p>}
+    //                         </label>
+    //                         {/* Input Número de Serie */}
+    //                         <label className="block">
+    //                             <span className="text-sm font-medium text-gray-700">No. de Serie: <span className="text-red-500">*</span></span>
+    //                             <input
+    //                                 type="text"
+    //                                 name="Unidades_numeroSerie"
+    //                                 value={unitData.Unidades_numeroSerie}
+    //                                 onChange={handleChange}
+    //                                 className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Unidades_numeroSerie ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+    //                             />
+    //                             {errors.Unidades_numeroSerie && <p className="text-red-500 text-xs mt-1">{errors.Unidades_numeroSerie}</p>}
+    //                         </label>
+    //                         {/* Input Modelo */}
+    //                         <label className="block">
+    //                             <span className="text-sm font-medium text-gray-700">Modelo: <span className="text-red-500">*</span></span>
+    //                             <input
+    //                                 type="text"
+    //                                 name="Unidades_modelo"
+    //                                 value={unitData.Unidades_modelo}
+    //                                 onChange={handleChange}
+    //                                 className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Unidades_modelo ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+    //                             />
+    //                             {errors.Unidades_modelo && <p className="text-red-500 text-xs mt-1">{errors.Unidades_modelo}</p>}
+    //                         </label>
+    //                         {/* Input Año */}
+    //                         <label className="block">
+    //                             <span className="text-sm font-medium text-gray-700">Año: <span className="text-red-500">*</span></span>
+    //                             <input
+    //                                 type="number"
+    //                                 name="Unidades_ano"
+    //                                 value={unitData.Unidades_ano}
+    //                                 onChange={handleChange}
+    //                                 maxLength={4}
+    //                                 className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Unidades_ano ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+    //                             />
+    //                             {errors.Unidades_ano && <p className="text-red-500 text-xs mt-1">{errors.Unidades_ano}</p>}
+    //                         </label>
+    //                     </div>
+
+    //                     {/* Input Placa (continuación de la columna) */}
+    //                     <label className="block">
+    //                         <span className="text-sm font-medium text-gray-700">Placa:</span>
+    //                         <input
+    //                             type="text"
+    //                             name="Unidades_placa"
+    //                             value={unitData.Unidades_placa}
+    //                             onChange={handleChange}
+    //                             className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+    //                         />
+    //                     </label>
+
+    //                     {/* Input Kilometraje (continuación de la columna) */}
+    //                     <label className="block">
+    //                         <span className="text-sm font-medium text-gray-700">Kilometraje:</span>
+    //                         <input
+    //                             type="number"
+    //                             name="Unidades_kilometraje"
+    //                             value={unitData.Unidades_kilometraje}
+    //                             onChange={handleChange}
+    //                             className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+    //                         />
+    //                     </label>
+
+    //                     <label className="block">
+    //                         <span className="text-sm font-medium text-gray-700">Mantenimiento:</span>
+    //                         <input
+    //                             type="text"
+    //                             name="Unidades_mantenimiento"
+    //                             value={unitData.Unidades_mantenimiento}
+    //                             onChange={handleChange}
+    //                             className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+    //                         />
+    //                     </label>
+    //                     <label className="block">
+    //                         <span className="text-sm font-medium text-gray-700">Capacidad tanque (LTS):</span>
+    //                         <input
+    //                             type="text"
+    //                             name="Unidades_capGasolina"
+    //                             value={unitData.Unidades_capGasolina}
+    //                             onChange={handleChange}
+    //                             className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+    //                         />
+    //                     </label>
+
+
+
+    //                     {/* Checkbox Estatus (centrado) */}
+    //                     <div className="flex justify-center w-full">
+    //                         <label className="flex items-center space-x-2">
+    //                             <input
+    //                                 type="checkbox"
+    //                                 name="Unidades_estatus"
+    //                                 checked={unitData.Unidades_estatus == 1} // Usamos == para manejar 1 o '1'
+    //                                 onChange={handleChange}
+    //                                 className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+    //                             />
+    //                             <span className="text-sm font-medium text-gray-700">Estatus</span>
+    //                         </label>
+    //                     </div>
+
+
+    //                     {/* Botones (se eliminó col-span-2) */}
+    //                     <div className="flex justify-end gap-3 pt-4 border-t mt-4">
+    //                         <button
+    //                             type="button"
+    //                             onClick={closeModal}
+    //                             disabled={loading}
+    //                             className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
+    //                         >
+    //                             Cancelar
+    //                         </button>
+    //                         <button
+    //                             type="submit"
+    //                             disabled={loading}
+    //                             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
+    //                         >
+    //                             {loading ? (action === 'create' ? 'Registrando...' : 'Actualizando...') : (action === 'create' ? 'Guardar Unidad' : 'Actualizar Unidad')}
+    //                         </button>
+    //                     </div>
+    //                 </form>
+    //             </DialogPanel>
+    //         </div>
+    //     </Dialog>
+    // )
+
     return (
-        <Dialog open={isOpen} onClose={closeModal} className="relative z-50">
-            {/* Overlay de fondo */}
-            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+    <Dialog open={isOpen} onClose={closeModal} className="relative z-50">
+        {/* Overlay de fondo */}
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
 
-            {/* Contenedor del Modal */}
-            <div className="fixed inset-0 flex items-center justify-center p-4">
-                <DialogPanel className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-2xl relative">
+        {/* Contenedor del Modal */}
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+            {/* El tamaño del panel se ajusta para acomodar 2 columnas en pantallas medianas y grandes */}
+            <DialogPanel className="w-full max-w-lg sm:max-w-2xl md:max-w-3xl rounded-xl bg-white p-6 shadow-2xl relative">
 
-                    {/* Indicador de carga */}
-                    {loading && <LoadingDiv />}
+                {/* Indicador de carga */}
+                {loading && <LoadingDiv />}
 
-                    <DialogTitle className="text-2xl font-bold mb-4 text-gray-900 border-b pb-2">
-                        {dialogTitle}
-                    </DialogTitle>
+                <DialogTitle className="text-2xl font-bold mb-4 text-gray-900 border-b pb-2">
+                    {dialogTitle}
+                </DialogTitle>
 
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
+                {/* Formulario responsivo: 1 columna por defecto, 2 columnas a partir de 'md' */}
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-x-8">
 
-                        {/* Agrupación de campos principales (ya en una sola columna) */}
-                        <div className="space-y-2">
-                            {/* Input Número Económico */}
-                            <label className="block">
-                                <span className="text-sm font-medium text-gray-700">No. Económico: <span className="text-red-500">*</span></span>
-                                <input
-                                    type="text"
-                                    name="Unidades_numeroEconomico"
-                                    value={unitData.Unidades_numeroEconomico}
-                                    onChange={handleChange}
-                                    className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Unidades_numeroEconomico ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
-                                />
-                                {errors.Unidades_numeroEconomico && <p className="text-red-500 text-xs mt-1">{errors.Unidades_numeroEconomico}</p>}
-                            </label>
-                            {/* Input Número de Serie */}
-                            <label className="block">
-                                <span className="text-sm font-medium text-gray-700">No. de Serie: <span className="text-red-500">*</span></span>
-                                <input
-                                    type="text"
-                                    name="Unidades_numeroSerie"
-                                    value={unitData.Unidades_numeroSerie}
-                                    onChange={handleChange}
-                                    className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Unidades_numeroSerie ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
-                                />
-                                {errors.Unidades_numeroSerie && <p className="text-red-500 text-xs mt-1">{errors.Unidades_numeroSerie}</p>}
-                            </label>
-                            {/* Input Modelo */}
-                            <label className="block">
-                                <span className="text-sm font-medium text-gray-700">Modelo: <span className="text-red-500">*</span></span>
-                                <input
-                                    type="text"
-                                    name="Unidades_modelo"
-                                    value={unitData.Unidades_modelo}
-                                    onChange={handleChange}
-                                    className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Unidades_modelo ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
-                                />
-                                {errors.Unidades_modelo && <p className="text-red-500 text-xs mt-1">{errors.Unidades_modelo}</p>}
-                            </label>
-                            {/* Input Año */}
-                            <label className="block">
-                                <span className="text-sm font-medium text-gray-700">Año: <span className="text-red-500">*</span></span>
-                                <input
-                                    type="number"
-                                    name="Unidades_ano"
-                                    value={unitData.Unidades_ano}
-                                    onChange={handleChange}
-                                    maxLength={4}
-                                    className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Unidades_ano ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
-                                />
-                                {errors.Unidades_ano && <p className="text-red-500 text-xs mt-1">{errors.Unidades_ano}</p>}
-                            </label>
-                        </div>
+                    {/* COLUMNA 1 */}
+                    <div className="space-y-4">
+                        {/* Input Número Económico */}
+                        <label className="block">
+                            <span className="text-sm font-medium text-gray-700">No. Económico: <span className="text-red-500">*</span></span>
+                            <input
+                                type="text"
+                                name="Unidades_numeroEconomico"
+                                value={unitData.Unidades_numeroEconomico}
+                                onChange={handleChange}
+                                className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Unidades_numeroEconomico ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+                            />
+                            {errors.Unidades_numeroEconomico && <p className="text-red-500 text-xs mt-1">{errors.Unidades_numeroEconomico}</p>}
+                        </label>
 
-                        {/* Input Placa (continuación de la columna) */}
+                        {/* Input Número de Serie */}
+                        <label className="block">
+                            <span className="text-sm font-medium text-gray-700">No. de Serie: <span className="text-red-500">*</span></span>
+                            <input
+                                type="text"
+                                name="Unidades_numeroSerie"
+                                value={unitData.Unidades_numeroSerie}
+                                onChange={handleChange}
+                                className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Unidades_numeroSerie ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+                            />
+                            {errors.Unidades_numeroSerie && <p className="text-red-500 text-xs mt-1">{errors.Unidades_numeroSerie}</p>}
+                        </label>
+
+                        {/* Input Modelo */}
+                        <label className="block">
+                            <span className="text-sm font-medium text-gray-700">Modelo: <span className="text-red-500">*</span></span>
+                            <input
+                                type="text"
+                                name="Unidades_modelo"
+                                value={unitData.Unidades_modelo}
+                                onChange={handleChange}
+                                className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Unidades_modelo ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+                            />
+                            {errors.Unidades_modelo && <p className="text-red-500 text-xs mt-1">{errors.Unidades_modelo}</p>}
+                        </label>
+
+                        {/* Input Año */}
+                        <label className="block">
+                            <span className="text-sm font-medium text-gray-700">Año: <span className="text-red-500">*</span></span>
+                            <input
+                                type="number"
+                                name="Unidades_ano"
+                                value={unitData.Unidades_ano}
+                                onChange={handleChange}
+                                maxLength={4}
+                                className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Unidades_ano ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
+                            />
+                            {errors.Unidades_ano && <p className="text-red-500 text-xs mt-1">{errors.Unidades_ano}</p>}
+                        </label>
+                    </div>
+
+                    {/* COLUMNA 2 */}
+                    <div className="space-y-4">
+                        {/* Input Placa */}
                         <label className="block">
                             <span className="text-sm font-medium text-gray-700">Placa:</span>
                             <input
@@ -198,7 +362,7 @@ function UnitFormDialog({ isOpen, closeModal, onSubmit, unitToEdit, action, erro
                             />
                         </label>
 
-                        {/* Input Kilometraje (continuación de la columna) */}
+                        {/* Input Kilometraje */}
                         <label className="block">
                             <span className="text-sm font-medium text-gray-700">Kilometraje:</span>
                             <input
@@ -210,6 +374,7 @@ function UnitFormDialog({ isOpen, closeModal, onSubmit, unitToEdit, action, erro
                             />
                         </label>
 
+                        {/* Input Mantenimiento */}
                         <label className="block">
                             <span className="text-sm font-medium text-gray-700">Mantenimiento:</span>
                             <input
@@ -220,8 +385,10 @@ function UnitFormDialog({ isOpen, closeModal, onSubmit, unitToEdit, action, erro
                                 className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
                             />
                         </label>
+
+                        {/* Input Capacidad tanque */}
                         <label className="block">
-                            <span className="text-sm font-medium text-gray-700">Capacidad tanque:</span>
+                            <span className="text-sm font-medium text-gray-700">Capacidad tanque (LTS):</span>
                             <input
                                 type="text"
                                 name="Unidades_capGasolina"
@@ -231,10 +398,8 @@ function UnitFormDialog({ isOpen, closeModal, onSubmit, unitToEdit, action, erro
                             />
                         </label>
 
-
-
-                        {/* Checkbox Estatus (centrado) */}
-                        <div className="flex justify-center w-full">
+                        {/* Checkbox Estatus (ya no necesita justificación para centrar dentro de la columna) */}
+                        <div className="flex items-center pt-2">
                             <label className="flex items-center space-x-2">
                                 <input
                                     type="checkbox"
@@ -246,31 +411,33 @@ function UnitFormDialog({ isOpen, closeModal, onSubmit, unitToEdit, action, erro
                                 <span className="text-sm font-medium text-gray-700">Estatus</span>
                             </label>
                         </div>
+                    </div>
 
+                    {/* Botones: Ocupan 2 columnas en 'md' y superior */}
+                    <div className="md:col-span-2 flex justify-end gap-3 pt-4 border-t mt-4">
+                        <button
+                            type="button"
+                            onClick={closeModal}
+                            disabled={loading}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
+                        >
+                            {loading ? (action === 'create' ? 'Registrando...' : 'Actualizando...') : (action === 'create' ? 'Guardar Unidad' : 'Actualizar Unidad')}
+                        </button>
+                    </div>
+                </form>
+            </DialogPanel>
+        </div>
+    </Dialog>
+)
 
-                        {/* Botones (se eliminó col-span-2) */}
-                        <div className="flex justify-end gap-3 pt-4 border-t mt-4">
-                            <button
-                                type="button"
-                                onClick={closeModal}
-                                disabled={loading}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
-                            >
-                                {loading ? (action === 'create' ? 'Registrando...' : 'Actualizando...') : (action === 'create' ? 'Guardar Unidad' : 'Actualizar Unidad')}
-                            </button>
-                        </div>
-                    </form>
-                </DialogPanel>
-            </div>
-        </Dialog>
-    )
+    
 }
 
 // ----------------------------------------------------------------------
@@ -414,7 +581,7 @@ export default function Unidades() {
                         { header: 'Año', accessor: 'Unidades_ano' },
                         { header: 'Placa', accessor: 'Unidades_placa' },
                         { header: 'Mantenimiento', accessor: 'Unidades_mantenimiento' },
-                        { header: 'Capacidad tanque', accessor: 'Unidades_capGasolina' },
+                        { header: 'Capacidad tanque (LTS)', accessor: 'Unidades_capGasolina' },
 
                         {
                             header: "Acciones", accessor: "Acciones", cell: (eprops) => (<>
