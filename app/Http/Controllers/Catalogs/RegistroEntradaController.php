@@ -74,7 +74,7 @@ class RegistroEntradaController extends Controller
                 'Movimientos_asignacionID'   => $asignacion->CUA_asignacionID,
                 'Movimientos_kilometraje'    => $request->kilometers,
                 'Movimientos_combustible'    => $cantidad_combustible,
-                'Movimientos_observaciones'  => $request->observation,
+                'Movimientos_observaciones' => (empty($request->observation)) ? null : $request->observation,
                 'Movimientos_usuarioID'      => $request->user,
                 'Movimientos_estatus'        => $request->estatusCode,
             ];
@@ -143,15 +143,10 @@ class RegistroEntradaController extends Controller
                 }
             }
 
-
-            // --- 5. Finalización de Asignación si es "ENTRADA" ---
-            if ($request->movementType == "ENTRADA") {
-                // Finaliza la asignación actual (que es la que se encontró al inicio)
+            if ($request->movementType == "ENTRADA" && empty($incidenciasGuardadas)) {
                 $asignacion->update([
                     'CUA_estatus' => 0 // 0 = INACTIVO/FINALIZADO
                 ]);
-
-                // Crea un nuevo registro para la unidad en estatus 'Disponible/En Patio'
                 $datosAsignacion = [
                     'CUA_unidadID'          => $asignacion->CUA_unidadID,
                     'CUA_choferID'          => null,
@@ -161,11 +156,9 @@ class RegistroEntradaController extends Controller
                     'CUA_estatus'           => 1, // 1 = ACTIVO/EN PATIO/DISPONIBLE
                     'CUA_fechaAsignacion'   => Carbon::now()->format('Y-m-d H:i:s')
                 ];
-
                 ChoferUnidadAsignar::create($datosAsignacion);
             }
 
-            // --- 6. Respuesta Final Exitosa ---
             return response()->json([
                 'message' => 'Movimiento creado exitosamente.',
                 'asignacion_finalizada' => $asignacion,
@@ -267,7 +260,12 @@ class RegistroEntradaController extends Controller
         $request->validate([
             'unit' => 'required|integer',
             'code' => 'required|string',
+            'type' => 'required',
+
+            // movementType
         ]);
+
+        // dd($request->all());
 
         try {
             // 2. Recuperar el ÚLTIMO código de autorización para la unidad
@@ -290,8 +288,6 @@ class RegistroEntradaController extends Controller
                 ], 401);
             }
 
-            // --- CÓDIGO CORRECTO: PROCEDER CON LA AUTORIZACIÓN ---
-
             // 5. Marcar el código de autorización como usado/autorizado
             $latestCodeEntry->codigoAutorizacion_estatus = 0; // e.g., 'Autorizado'
             $latestCodeEntry->codigoAutorizacion_idUsuarioAutoriza = auth()->check() ? auth()->id() : null; // Usar el usuario autenticado
@@ -312,6 +308,26 @@ class RegistroEntradaController extends Controller
                     ->where('Movimientos_estatus', 1) // Opcional: solo actualizar si el estatus es 'pendiente' (e.g., 1)
                     ->update(['Movimientos_estatus' => 0]);
             }
+
+            if ($request->type === "ENTRADA") {
+
+                $QuienconQuien->update([
+                    'CUA_estatus' => 0 // 0 = INACTIVO/FINALIZADO
+                ]);
+
+                $datosAsignacion = [
+                    'CUA_unidadID'          => $request->unit,
+                    'CUA_choferID'          => null,
+                    'CUA_ayudanteID'        => null,
+                    'CUA_motivoID'          => null,
+                    'CUA_destino'           => null,
+                    'CUA_estatus'           => 1, // 1 = ACTIVO/EN PATIO/DISPONIBLE
+                    'CUA_fechaAsignacion'   => Carbon::now()->format('Y-m-d H:i:s')
+                ];
+
+                ChoferUnidadAsignar::create($datosAsignacion);
+            }
+
 
             // 8. Respuesta de éxito
             return response()->json([

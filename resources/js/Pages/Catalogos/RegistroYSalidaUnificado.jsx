@@ -26,7 +26,7 @@ const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
             // **IMPORTANTE**: Asegúrate de que `route('verifycode')` apunta al endpoint correcto
             const response = await fetch(route('verifycode'), {
                 method: 'POST',
-                body: JSON.stringify({ unit: data.unit, code: code }),
+                body: JSON.stringify({ unit: data.unit, code: code,type:data.movementType }),
                 headers: { 'Content-Type': 'application/json' },
             });
 
@@ -559,6 +559,8 @@ const RegistroYSalidaUnificado = () => {
             openAuthorizationModal();
             toast.info("Código de autorización enviado. Ingrésalo en la ventana emergente.");
         }
+
+        loadAllData()
     };
 
     const handleChecklistToggle = (listId, statusValue) => {
