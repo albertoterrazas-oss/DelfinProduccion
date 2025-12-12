@@ -57,6 +57,13 @@ const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
         document.getElementById('auth-code-input').focus();
     };
 
+    const handleInputChange = (e) => {
+        const value = e.target.value.replace(/\D/g, '').substring(0, CODE_LENGTH);
+        setCode(value);
+        setError('');
+    };
+
+
     return (
         <DialogComp open={isOpen} onClose={onClose} maxWidth="sm">
             <>
