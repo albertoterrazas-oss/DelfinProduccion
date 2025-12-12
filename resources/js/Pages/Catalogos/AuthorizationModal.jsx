@@ -1,5 +1,6 @@
 import DialogComp from '@/Components/DialogComp';
 import React, { useState } from 'react'
+import { toast } from 'sonner';
 
 const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
     const [code, setCode] = useState('');
@@ -9,10 +10,47 @@ const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
 
     if (!isOpen) return null;
 
-    const handleConfirm = async () => {
-    };
+    // const handleConfirm = async () => {
+    // };
 
-    const handleInputChange = (e) => {
+    // const handleInputChange = (e) => {
+    // };
+
+    const handleConfirm = async () => {
+        try {
+            if (code.length !== CODE_LENGTH) {
+                setError('El código debe tener 6 dígitos.');
+                return;
+            }
+
+            toast.info("Verificando código de autorización...");
+
+            // **IMPORTANTE**: Asegúrate de que `route('verifycode')` apunta al endpoint correcto
+            const response = await fetch(route('verifycode'), {
+                method: 'POST',
+                body: JSON.stringify({ unit: data.unit, code: code, type: data.movementType }),
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                toast.error(`Código incorrecto o error del servidor: ${errorText}`);
+                setError('Código incorrecto o expirado.');
+                throw new Error("Respuesta de verifycode no ok");
+            }
+
+            // Si es exitoso
+            setCode('');
+            setError('');
+            onAuthorize(code); // Llama a onAuthorize con el código validado
+            toast.success("Autorización completada y verificada.");
+
+        } catch (err) {
+            console.error('Error en el proceso de verificación de código:', err);
+            if (!error) {
+                toast.error('Fallo de comunicación con el servidor.');
+            }
+        }
     };
 
     const focusInput = () => {
