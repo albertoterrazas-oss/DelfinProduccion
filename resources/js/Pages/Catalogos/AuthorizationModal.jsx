@@ -10,12 +10,6 @@ const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
 
     if (!isOpen) return null;
 
-    // const handleConfirm = async () => {
-    // };
-
-    // const handleInputChange = (e) => {
-    // };
-
     const handleConfirm = async () => {
         try {
             if (code.length !== CODE_LENGTH) {
@@ -51,6 +45,12 @@ const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
                 toast.error('Fallo de comunicación con el servidor.');
             }
         }
+    };
+
+    const handleInputChange = (e) => {
+        const value = e.target.value.replace(/\D/g, '').substring(0, CODE_LENGTH);
+        setCode(value);
+        setError('');
     };
 
     const focusInput = () => {

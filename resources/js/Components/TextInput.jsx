@@ -8,19 +8,19 @@ const TextInput = forwardRef(function TextInput({
     allowDecimals = true,
     allowNegative = false,
     value = '',
-    onChange, // ← AÑADE ESTO
-    onFocus: onFocusProp, // Renombra para evitar conflictos
-    onBlur: onBlurProp, // Renombra para evitar conflictos
-    min, // ← AÑADE ESTO
-    max, // ← AÑADE ESTO
-    ...props 
+    onChange,
+    onFocus: onFocusProp,
+    onBlur: onBlurProp,
+    min,
+    max,
+    ...props
 }, ref) {
     const [isFocused, setIsFocused] = useState(false);
     const input = ref ? ref : useRef();
 
     const handleChange = (e) => {
         if (type !== 'number') {
-            if (onChange) onChange(e); // Verifica que onChange existe
+            if (onChange) onChange(e);
             return;
         }
 
@@ -42,10 +42,7 @@ const TextInput = forwardRef(function TextInput({
             return;
         }
 
-        let regex = allowNegative
-            ? /^-?\d*\.?\d*$/
-            : /^\d*\.?\d*$/;
-
+        let regex = allowNegative ? /^-?\d*\.?\d*$/ : /^\d*\.?\d*$/;
         if (!allowDecimals) {
             regex = allowNegative ? /^-?\d*$/ : /^\d*$/;
         }
@@ -74,9 +71,19 @@ const TextInput = forwardRef(function TextInput({
             if (max !== undefined && numValue > max) {
                 return;
             }
-        }
 
-        if (onChange) onChange(e);
+            const syntheticEvent = {
+                ...e,
+                target: {
+                    ...e.target,
+                    name: e.target.name,
+                    value: allowDecimals ? parseFloat(inputValue) : parseInt(inputValue, 10)
+                }
+            };
+            if (onChange) onChange(syntheticEvent);
+        } else {
+            if (onChange) onChange(e);
+        }
     };
 
     const handleFocus = (e) => {
@@ -87,7 +94,6 @@ const TextInput = forwardRef(function TextInput({
                 e.target.select();
             }
         }
-
         if (onFocusProp) {
             onFocusProp(e);
         }
@@ -104,16 +110,19 @@ const TextInput = forwardRef(function TextInput({
                     ...e,
                     target: {
                         ...e.target,
-                        value: '0'
+                        name: e.target.name,
+                        value: 0
                     }
                 };
                 if (onChange) onChange(syntheticEvent);
             } else if (inputValue.endsWith('.') && inputValue.length > 1) {
+                const cleanValue = inputValue.slice(0, -1);
                 const syntheticEvent = {
                     ...e,
                     target: {
                         ...e.target,
-                        value: inputValue.slice(0, -1)
+                        name: e.target.name,
+                        value: allowDecimals ? parseFloat(cleanValue) : parseInt(cleanValue, 10)
                     }
                 };
                 if (onChange) onChange(syntheticEvent);
@@ -175,9 +184,9 @@ const TextInput = forwardRef(function TextInput({
         }
     };
 
-    const displayValue = (type === 'number' && !isFocused && (value === '' || value === null || value === undefined))
+    const displayValue = type === 'number' && !isFocused && (value === '' || value === null || value === undefined)
         ? '0'
-        : value;
+        : String(value);
 
     useEffect(() => {
         if (isFocused) {
