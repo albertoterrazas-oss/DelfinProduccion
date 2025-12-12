@@ -231,17 +231,87 @@ class UnidadesController extends Controller
     }
 
 
+    // public function ReporteMovimientos(Request $request)
+    // {
+    //     // 1. Iniciar la consulta y seleccionar los campos necesarios
+    //     $query = DB::table('dbo.Movimientos')
+    //         ->select(
+    //             'Movimientos.Movimientos_fecha',
+    //             'Movimientos.Movimientos_tipoMovimiento',
+    //             'Movimientos.Movimientos_kilometraje',
+    //             'Movimientos.Movimientos_combustible',
+
+    //             'Movimientos.Movimientos_usuarioID',
+    //             DB::raw("CONCAT(Personas.Personas_nombres, ' ', Personas.Personas_apPaterno) AS nombre_chofer"),
+    //             'Unidades.Unidades_placa',
+    //             'Unidades.Unidades_modelo',
+    //             'Unidades.Unidades_numeroEconomico',
+    //             'Motivos.Motivos_nombre',
+    //             'Destinos.Destinos_Nombre'
+    //         )
+    //         ->join('dbo.ChoferUnidadAsignada', 'Movimientos.Movimientos_asignacionID', '=', 'ChoferUnidadAsignada.CUA_asignacionID')
+    //         ->join('dbo.Personas', 'ChoferUnidadAsignada.CUA_choferID', '=', 'Personas.Personas_usuarioID')
+    //         ->join('dbo.Unidades', 'ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
+    //         ->join('dbo.Motivos', 'ChoferUnidadAsignada.CUA_motivoID', '=', 'Motivos.Motivos_motivoID')
+    //         ->join('dbo.Destinos', 'ChoferUnidadAsignada.CUA_destino', '=', 'Destinos.Destinos_Id')
+    //         ->orderBy('Movimientos.Movimientos_fecha', 'DESC');
+
+    //     // 2. Filtrar por Rango de Fechas (Solo si ambas fechas están presentes y NO son nulas)
+    //     // Esto corrige el problema de enviar [null, null] al whereBetween.
+    //     if ($request->filled('fechaInicio') && $request->filled('fechaFin')) {
+    //         $fechaInicio = $request->input('fechaInicio');
+    //         $fechaFin = $request->input('fechaFin');
+
+    //         $query->whereBetween('Movimientos.Movimientos_fecha', [$fechaInicio, $fechaFin]);
+    //     }
+
+    //     // 3. Filtrar por Tipo de Movimiento (Opcional, solo si el campo está lleno)
+    //     if ($request->filled('tipoMovimiento')) {
+    //         $query->where('Movimientos.Movimientos_tipoMovimiento', $request->input('tipoMovimiento'));
+    //     }
+
+    //     // 4. Filtrar por Usuario (Opcional, solo si el campo está lleno)
+    //     if ($request->filled('usuarioID')) {
+    //         $query->where('Movimientos.Movimientos_usuarioID', $request->input('usuarioID'));
+    //     }
+
+
+    //     if ($request->filled('unidad')) {
+    //         $query->where('Unidades.Unidades_unidadID', $request->input('unidad'));
+    //     }
+
+
+    //     // 5. Ejecutar la consulta
+    //     $movimientosFiltrados = $query->get();
+
+    //     // 6. Calcular totales
+    //     // Se puede hacer esto de forma eficiente usando colecciones después de obtener los datos.
+    //     $totalSalidas = $movimientosFiltrados->where('Movimientos_tipoMovimiento', 'SALIDA')->count();
+    //     $totalEntradas = $movimientosFiltrados->where('Movimientos_tipoMovimiento', 'ENTRADA')->count();
+
+    //     // 7. Preparar la respuesta
+    //     $data = [
+    //         'movimientos' => $movimientosFiltrados,
+    //         'totalMovimientos' => $movimientosFiltrados->count(),
+    //         'totalSalidas' => $totalSalidas,
+    //         'totalEntradas' => $totalEntradas,
+    //     ];
+
+    //     return response()->json($data);
+    // }
+
     public function ReporteMovimientos(Request $request)
     {
-        // 1. Iniciar la consulta y seleccionar los campos necesarios
+        // 1. INICIAR LA CONSULTA Y SELECCIONAR LOS CAMPOS NECESARIOS
         $query = DB::table('dbo.Movimientos')
             ->select(
                 'Movimientos.Movimientos_fecha',
                 'Movimientos.Movimientos_tipoMovimiento',
                 'Movimientos.Movimientos_kilometraje',
                 'Movimientos.Movimientos_combustible',
-
                 'Movimientos.Movimientos_usuarioID',
+                // AGREGAMOS EL ID DE ASIGNACIÓN QUE ES CRÍTICO PARA EMPAREJAR MOVIMIENTOS
+                'Movimientos.Movimientos_asignacionID',
                 DB::raw("CONCAT(Personas.Personas_nombres, ' ', Personas.Personas_apPaterno) AS nombre_chofer"),
                 'Unidades.Unidades_placa',
                 'Unidades.Unidades_modelo',
@@ -256,37 +326,123 @@ class UnidadesController extends Controller
             ->join('dbo.Destinos', 'ChoferUnidadAsignada.CUA_destino', '=', 'Destinos.Destinos_Id')
             ->orderBy('Movimientos.Movimientos_fecha', 'DESC');
 
-        // 2. Filtrar por Rango de Fechas (Solo si ambas fechas están presentes y NO son nulas)
-        // Esto corrige el problema de enviar [null, null] al whereBetween.
+        // 2. FILTRAR POR RANGO DE FECHAS
         if ($request->filled('fechaInicio') && $request->filled('fechaFin')) {
             $fechaInicio = $request->input('fechaInicio');
             $fechaFin = $request->input('fechaFin');
-
             $query->whereBetween('Movimientos.Movimientos_fecha', [$fechaInicio, $fechaFin]);
         }
 
-        // 3. Filtrar por Tipo de Movimiento (Opcional, solo si el campo está lleno)
+        // 3. FILTRAR POR TIPO DE MOVIMIENTO (OPCIONAL)
         if ($request->filled('tipoMovimiento')) {
             $query->where('Movimientos.Movimientos_tipoMovimiento', $request->input('tipoMovimiento'));
         }
 
-        // 4. Filtrar por Usuario (Opcional, solo si el campo está lleno)
+        // 4. FILTRAR POR USUARIO (OPCIONAL)
         if ($request->filled('usuarioID')) {
             $query->where('Movimientos.Movimientos_usuarioID', $request->input('usuarioID'));
         }
 
-        // 5. Ejecutar la consulta
+        // 4.1. FILTRAR POR UNIDAD (OPCIONAL)
+        if ($request->filled('unidad')) {
+            $query->where('Unidades.Unidades_unidadID', $request->input('unidad'));
+        }
+
+        // 5. EJECUTAR LA CONSULTA
+        // IMPORTANTE: USAMOS LA FUNCIÓN 'OLDEST()' PARA REVERTIR EL ORDEN DESCENDENTE, 
+        // YA QUE EL CÁLCULO DE RENDIMIENTO REQUIERE PROCESAR LA SALIDA ANTES DE LA ENTRADA.
         $movimientosFiltrados = $query->get();
 
-        // 6. Calcular totales
-        // Se puede hacer esto de forma eficiente usando colecciones después de obtener los datos.
+        // 6. CALCULAR TOTALES Y RENDIMIENTO POR VIAJE COMPLETO
+
         $totalSalidas = $movimientosFiltrados->where('Movimientos_tipoMovimiento', 'SALIDA')->count();
         $totalEntradas = $movimientosFiltrados->where('Movimientos_tipoMovimiento', 'ENTRADA')->count();
 
-        // 7. Preparar la respuesta
+        $viajesCompletos = [];
+        $salidasPendientes = []; // USAMOS ESTO PARA RASTREAR LAS SALIDAS SIN ENTRADA CORRESPONDIENTE
+        $movimientosPendientes = [];
+
+        // AGRUPAR MOVIMIENTOS POR ASIGNACIÓN (CUA_ASIGNACIONID).
+        // ESTO ES CLAVE PARA ASEGURAR QUE SOLO EMPAREJAMOS LA SALIDA Y ENTRADA DEL MISMO VIAJE.
+        $movimientosAgrupados = $movimientosFiltrados->groupBy('Movimientos_asignacionID');
+
+        foreach ($movimientosAgrupados as $asignacionID => $grupo) {
+
+            // ORDENAR POR FECHA ASCENDENTE PARA ENCONTRAR EL PAR SALIDA-ENTRADA EN ORDEN CRONOLÓGICO
+            $grupoOrdenado = $grupo->sortBy('Movimientos_fecha')->values();
+
+            $salida = null;
+            foreach ($grupoOrdenado as $movimiento) {
+
+                // CONVERTIR KILOMETRAJE Y COMBUSTIBLE A NÚMEROS PARA EL CÁLCULO
+                $kilometraje = (float) $movimiento->Movimientos_kilometraje;
+                $combustible = (float) $movimiento->Movimientos_combustible;
+
+                if ($movimiento->Movimientos_tipoMovimiento == 'SALIDA') {
+                    // SI YA HABÍA UNA SALIDA PENDIENTE, LA ASIGNAMOS COMO PENDIENTE ANTES DE SOBREESCRIBIRLA
+                    if ($salida) {
+                        $movimientosPendientes[] = $salida;
+                    }
+                    $salida = $movimiento; // ALMACENAR LA NUEVA SALIDA
+                } elseif ($movimiento->Movimientos_tipoMovimiento == 'ENTRADA' && $salida) {
+
+                    $entrada = $movimiento;
+
+                    // CÁLCULO
+                    $kmRecorridos = $kilometraje - (float) $salida->Movimientos_kilometraje;
+
+                    // SUPOSICIÓN DE CÁLCULO DE COMBUSTIBLE CONSUMIDO: 
+                    // ES LA DIFERENCIA ENTRE EL NIVEL DE COMBUSTIBLE REGISTRADO EN LA SALIDA Y EL REGISTRADO EN LA ENTRADA.
+                    // SI EL COMBUSTIBLE ES EL CARGADO, LA LÓGICA NECESITA SER AJUSTADA.
+                    $combustibleConsumido = (float) $salida->Movimientos_combustible - $combustible;
+
+                    $rendimiento = 0;
+
+                    // EVITAR DIVISIÓN POR CERO O CÁLCULOS INVÁLIDOS (KM O COMBUSTIBLE NEGATIVOS O CERO)
+                    if ($kmRecorridos > 0 && $combustibleConsumido > 0) {
+                        $rendimiento = $kmRecorridos / $combustibleConsumido;
+                    }
+
+                    // AGREGAR EL VIAJE COMPLETO
+                    $viajesCompletos[] = [
+                        'asignacion_id' => $asignacionID,
+                        'nombre_chofer' => $salida->nombre_chofer,
+                        'Unidades_numeroEconomico' => $salida->Unidades_numeroEconomico,
+                        'destino' => $salida->Destinos_Nombre,
+                        'motivo' => $salida->Motivos_nombre,
+                        'fecha_salida' => $salida->Movimientos_fecha,
+                        'fecha_entrada' => $entrada->Movimientos_fecha,
+                        'km_recorridos' => round($kmRecorridos, 2),
+                        'combustible_salida' => (float) $salida->Movimientos_combustible,
+                        'combustible_entrada' => $combustible,
+                        'combustible_consumido' => round($combustibleConsumido, 4),
+                        'rendimiento_kml' => round($rendimiento, 4), // RENDIMIENTO FINAL
+                    ];
+
+                    // REINICIAR LA SALIDA PARA EL SIGUIENTE PAR
+                    $salida = null;
+                }
+            }
+
+            // SI AL FINAL DEL GRUPO QUEDA UNA SALIDA SIN EMPAREJAR, ES UN MOVIMIENTO PENDIENTE
+            if ($salida) {
+                $movimientosPendientes[] = $salida;
+            }
+        }
+
+        // CALCULAR EL PROMEDIO GLOBAL DE RENDIMIENTO DE LOS VIAJES COMPLETOS
+        $sumaRendimientos = collect($viajesCompletos)->sum('rendimiento_kml');
+        $conteoViajes = count($viajesCompletos);
+        $rendimientoPromedioGlobal = $conteoViajes > 0 ? $sumaRendimientos / $conteoViajes : 0;
+
+        // 7. PREPARAR LA RESPUESTA
         $data = [
-            'movimientos' => $movimientosFiltrados,
+            'movimientos_base' => $movimientosFiltrados, // MOVIMIENTOS ORIGINALES COMPLETOS
+            'viajes_completos_rendimiento' => $viajesCompletos, // VIAJES CON CÁLCULOS DE RENDIMIENTO
+            'movimientos_pendientes' => $movimientosPendientes, // SALIDAS SIN ENTRADA (OPCIONAL)
+            'rendimiento_promedio_global_kml' => round($rendimientoPromedioGlobal, 4),
             'totalMovimientos' => $movimientosFiltrados->count(),
+            'totalViajesCompletos' => $conteoViajes,
             'totalSalidas' => $totalSalidas,
             'totalEntradas' => $totalEntradas,
         ];

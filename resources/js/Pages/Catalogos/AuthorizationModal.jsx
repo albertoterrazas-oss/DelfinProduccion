@@ -1,5 +1,6 @@
 import DialogComp from '@/Components/DialogComp';
 import React, { useState } from 'react'
+import { toast } from 'sonner';
 
 const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
     const [code, setCode] = useState('');
@@ -21,7 +22,7 @@ const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
             // **IMPORTANTE**: Asegúrate de que `route('verifycode')` apunta al endpoint correcto
             const response = await fetch(route('verifycode'), {
                 method: 'POST',
-                body: JSON.stringify({ unit: data.unit, code: code }),
+                body: JSON.stringify({ unit: data.unit, code: code, type: data.movementType }),
                 headers: { 'Content-Type': 'application/json' },
             });
 
