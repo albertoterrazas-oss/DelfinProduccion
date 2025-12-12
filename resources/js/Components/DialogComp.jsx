@@ -1,5 +1,5 @@
 import React from 'react'
-import Loading from '../LoadingDiv'
+import Loading from './LoadingDiv'
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react'
 
 const DialogComp = ({
@@ -8,8 +8,18 @@ const DialogComp = ({
     title = null,
     loadingContent = false,
     loadingAction = false,
-    children
+    children,
+    maxWidth = '2xl',
 }) => {
+
+    const maxWidthClass = {
+        sm: 'sm:max-w-sm',
+        md: 'sm:max-w-md',
+        lg: 'sm:max-w-lg',
+        xl: 'sm:max-w-xl',
+        '2xl': 'sm:max-w-2xl',
+    }[maxWidth];
+
     return (
         <Transition show={open}>
             <Dialog onClose={onClose} className="relative z-50">
@@ -33,7 +43,7 @@ const DialogComp = ({
                     leaveTo="opacity-0 scale-95 translate-y-2"
                 >
                     <div className="fixed inset-0 flex items-center justify-center p-4">
-                        <DialogPanel className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-2xl relative">
+                        <DialogPanel className={`w-full rounded-xl bg-white p-6 shadow-2xl relative ${maxWidthClass}`}>
                             {loadingContent && <Loading />}
                             {title &&
                                 <DialogTitle className="text-2xl font-bold mb-4 text-gray-900 border-b pb-2">
