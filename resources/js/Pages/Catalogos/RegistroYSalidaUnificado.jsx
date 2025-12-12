@@ -2,148 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Datatable from "@/Components/Datatable"; // Asegúrate de la ruta correcta
 import SelectInput from "@/components/SelectInput"; // Asegúrate de la ruta correcta
 import { toast } from 'sonner';
-import TextInput from "@/components/TextInput"; // Asegúrate de la ruta correcta
+import TextInput from '@/Components/TextInput';
 import ComponenteVerificacion from "./ListaVerificacionImagenes";
 import { Dialog, DialogPanel, DialogTitle, Transition } from '@headlessui/react';
+import AuthorizationModal from './AuthorizationModal';
 
-const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
-    const [code, setCode] = useState('');
-    const [error, setError] = useState('');
-    const CODE_LENGTH = 6;
-    const digitBoxes = Array(CODE_LENGTH).fill(0);
-
-    if (!isOpen) return null;
-
-    const handleConfirm = async () => {
-        try {
-            if (code.length !== CODE_LENGTH) {
-                setError('El código debe tener 6 dígitos.');
-                return;
-            }
-
-            toast.info("Verificando código de autorización...");
-
-            // **IMPORTANTE**: Asegúrate de que `route('verifycode')` apunta al endpoint correcto
-            const response = await fetch(route('verifycode'), {
-                method: 'POST',
-                body: JSON.stringify({ unit: data.unit, code: code,type:data.movementType }),
-                headers: { 'Content-Type': 'application/json' },
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                toast.error(`Código incorrecto o error del servidor: ${errorText}`);
-                setError('Código incorrecto o expirado.');
-                throw new Error("Respuesta de verifycode no ok");
-            }
-
-            // Si es exitoso
-            setCode('');
-            setError('');
-            onAuthorize(code); // Llama a onAuthorize con el código validado
-            toast.success("Autorización completada y verificada.");
-
-        } catch (err) {
-            console.error('Error en el proceso de verificación de código:', err);
-            if (!error) {
-                toast.error('Fallo de comunicación con el servidor.');
-            }
-        }
-    };
-
-    const handleInputChange = (e) => {
-        const value = e.target.value.replace(/\D/g, '').substring(0, CODE_LENGTH);
-        setCode(value);
-        setError('');
-    };
-
-    const focusInput = () => {
-        document.getElementById('auth-code-input').focus();
-    };
-
-    return (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative">
-
-                {/* BOTÓN DE CIERRE (X) */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 p-1 rounded-full hover:bg-gray-100"
-                    aria-label="Cerrar modal"
-                >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-                {/* FIN BOTÓN DE CIERRE */}
-
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Código de Autorización</h2>
-                <p className="text-sm text-gray-600 mb-4">
-                    Introduce el código de 6 dígitos para continuar.
-                </p>
-
-                <div className="mb-6 flex flex-col items-center">
-
-                    <div
-                        className="flex justify-center space-x-2 mb-4 cursor-text"
-                        onClick={focusInput}
-                    >
-                        {digitBoxes.map((_, index) => {
-                            const digit = code[index] || '';
-                            const isActive = index === code.length;
-
-                            return (
-                                <div
-                                    key={index}
-                                    className={`w-10 h-12 flex items-center justify-center text-xl font-mono border-2 rounded-lg 
-                                    ${isActive
-                                            ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50'
-                                            : 'border-gray-300 bg-gray-100'}
-                                        transition-all duration-150`}
-                                >
-                                    {digit}
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* Input invisible real que captura el valor */}
-                    <input
-                        id="auth-code-input"
-                        type="tel"
-                        maxLength={CODE_LENGTH}
-                        value={code}
-                        onChange={handleInputChange}
-                        onBlur={() => {
-                            if (code.length !== CODE_LENGTH && code.length > 0) {
-                                setError('Faltan dígitos.');
-                            } else if (code.length === CODE_LENGTH) {
-                                setError('');
-                            }
-                        }}
-                        className="absolute opacity-0 w-0 h-0 p-0 m-0 overflow-hidden"
-                        autoFocus
-                    />
-
-                    {error && <p className="mt-2 text-sm text-red-600 text-center">{error}</p>}
-                </div>
-
-                <button
-                    onClick={handleConfirm}
-                    disabled={code.length !== CODE_LENGTH || !!error}
-                    className={`w-full py-3 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 
-                        ${code.length === CODE_LENGTH && !error ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
-                >
-                    Confirmar Código
-                </button>
-            </div>
-        </div>
-    );
-};
-
-
-
-// const ListaVerificacionModal = ({ isOpen, onClose, onAuthorize, data }) => {
+// const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
 //     const [code, setCode] = useState('');
 //     const [error, setError] = useState('');
 //     const CODE_LENGTH = 6;
@@ -163,7 +27,7 @@ const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
 //             // **IMPORTANTE**: Asegúrate de que `route('verifycode')` apunta al endpoint correcto
 //             const response = await fetch(route('verifycode'), {
 //                 method: 'POST',
-//                 body: JSON.stringify({ unit: data.unit, code: code }),
+//                 body: JSON.stringify({ unit: data.unit, code: code,type:data.movementType }),
 //                 headers: { 'Content-Type': 'application/json' },
 //             });
 
@@ -279,6 +143,99 @@ const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
 // };
 
 
+
+// const ListaVerificacionModal = ({ isOpen, onClose, onAuthorize, data }) => {
+// const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
+//     const [code, setCode] = useState('');
+//     const [error, setError] = useState('');
+//     const CODE_LENGTH = 6;
+//     const digitBoxes = Array(CODE_LENGTH).fill(0);
+
+//     if (!isOpen) return null;
+
+//     const handleConfirm = async () => {
+//     };
+
+//     const handleInputChange = (e) => {
+//     };
+
+//     const focusInput = () => {
+//         document.getElementById('auth-code-input').focus();
+//     };
+
+//     return (
+//         <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
+//             <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative">
+//                 {/* BOTÓN DE CIERRE (X) */}
+//                 <button
+//                     onClick={onClose}
+//                     className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 p-1 rounded-full hover:bg-gray-100"
+//                     aria-label="Cerrar modal"
+//                 >
+//                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+//                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+//                     </svg>
+//                 </button>
+//                 {/* FIN BOTÓN DE CIERRE */}
+//                 <h2 className="text-xl font-bold text-gray-900 mb-4">Código de Autorización</h2>
+//                 <p className="text-sm text-gray-600 mb-4">
+//                     Introduce el código de 6 dígitos para continuar.
+//                 </p>
+//                 <div className="mb-6 flex flex-col items-center">
+//                     <div
+//                         className="flex justify-center space-x-2 mb-4 cursor-text"
+//                         onClick={focusInput}
+//                     >
+//                         {digitBoxes.map((_, index) => {
+//                             const digit = code[index] || '';
+//                             const isActive = index === code.length;
+
+//                             return (
+//                                 <div
+//                                     key={index}
+//                                     className={`w-10 h-12 flex items-center justify-center text-xl font-mono border-2 rounded-lg 
+//                                     ${isActive
+//                                             ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50'
+//                                             : 'border-gray-300 bg-gray-100'}
+//                                         transition-all duration-150`}
+//                                 >
+//                                     {digit}
+//                                 </div>
+//                             );
+//                         })}
+//                     </div>
+//                     {/* Input invisible real que captura el valor */}
+//                     <input
+//                         id="auth-code-input"
+//                         type="tel"
+//                         maxLength={CODE_LENGTH}
+//                         value={code}
+//                         onChange={handleInputChange}
+//                         onBlur={() => {
+//                             if (code.length !== CODE_LENGTH && code.length > 0) {
+//                                 setError('Faltan dígitos.');
+//                             } else if (code.length === CODE_LENGTH) {
+//                                 setError('');
+//                             }
+//                         }}
+//                         className="absolute opacity-0 w-0 h-0 p-0 m-0 overflow-hidden"
+//                         autoFocus
+//                     />
+//                     {error && <p className="mt-2 text-sm text-red-600 text-center">{error}</p>}
+//                 </div>
+//                 <button
+//                     onClick={handleConfirm}
+//                     disabled={code.length !== CODE_LENGTH || !!error}
+//                     className={`w-full py-3 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 
+//                         ${code.length === CODE_LENGTH && !error ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
+//                 >
+//                     Confirmar Código
+//                 </button>
+//             </div>
+//         </div>
+//     );
+// };
+
 const FUEL_OPTIONS = [
     { nombre: '1/8', escala_valor: 1, litros: 5 },
     { nombre: '1/4', escala_valor: 2, litros: 10 },
@@ -291,19 +248,7 @@ const FUEL_OPTIONS = [
 ];
 
 const RegistroYSalidaUnificado = () => {
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [requests, setRequests] = useState({
-        Motivos: [],
-        Unidades: [],
-        Choferes: [],
-        Ayudantes: [],
-        Destinos: [],
-        ListasVerificacion: [],
-        UltimosMovimientos: [],
-        QuienconQuienControl: []
-    });
-
+    const userObject = JSON.parse(localStorage.getItem('user') || '{}');
     const ESTADO_INICIAL = {
         NombreUnidad: '',
         UltimoKilometraje: '',
@@ -311,7 +256,6 @@ const RegistroYSalidaUnificado = () => {
         NombreOperador: '',
         Estado: '',
     };
-    const userObject = JSON.parse(localStorage.getItem('user') || '{}');
     const initialFormState = {
         movementType: 'ENTRADA',
         unit: '',
@@ -323,28 +267,50 @@ const RegistroYSalidaUnificado = () => {
         combustible: '',
         checklist: [],
         authorizationCode: '',
-        user: userObject.Personas_usuarioID, // ID del usuario actual
+        user: userObject.Personas_usuarioID,
         estatusCode: 0
     };
-
-
-    const [informacion, setInformacion] = useState(ESTADO_INICIAL);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [selectedIncidencias, setSelectedIncidencias] = useState([]);
+    const [requests, setRequests] = useState({
+        Motivos: [],
+        Unidades: [],
+        Choferes: [],
+        Ayudantes: [],
+        Destinos: [],
+        ListasVerificacion: [],
+        UltimosMovimientos: [],
+        QuienconQuienControl: []
+    });
+    const [informacion, setInformacion] = useState(ESTADO_INICIAL);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [form, setForm] = useState(initialFormState)
+    // Condición de habilitación del botón: KM es válido solo si es mayor al último en ENTRADA
+    const isKmValid = form.movementType === 'SALIDA' ? true : form.kilometers > informacion.UltimoKilometraje;    // Condición de validación básica del formulario
+    const isFormValid = (
+        form.unit !== '' &&
+        form.driver !== '' &&
+        form.destination !== '' &&
+        form.motive !== '' &&
+        isKmValid &&
+        form.combustible !== ''
+    );
 
-    useEffect(() => {
-        if (isModalOpen === false) {
-            setInformacion(ESTADO_INICIAL);
+    // Texto del botón
+    const buttonText = isSubmitting
+        ? 'PROCESANDO...'
+        : form.estatusCode === 1 && !form.authorizationCode
+            ? 'SOLICITAR AUTORIZACIÓN'
+            : 'REGISTRAR MOVIMIENTO';
 
-            setRequests(prevRequests => ({
-                ...prevRequests,
-                UltimosMovimientos: [],
-            }));
+    const closeModal = () => {
+        setIsOpen(false);
+    };
 
-            setForm(initialFormState)
-        }
-    }, [isModalOpen]);
+    const openModal = () => {
+        setIsOpen(true);
+    };
 
     const openAuthorizationModal = () => {
         setIsModalOpen(true);
@@ -390,12 +356,6 @@ const RegistroYSalidaUnificado = () => {
         }
     }
 
-    useEffect(() => {
-        loadAllData();
-    }, []);
-
-    const [form, setForm] = useState(initialFormState);
-
     const handleAuthorization = (authCode) => {
         setForm(prevForm => ({
             ...prevForm,
@@ -406,120 +366,9 @@ const RegistroYSalidaUnificado = () => {
         // Opcionalmente, puedes llamar a CrearAsignacion() aquí para reintentar automáticamente
     };
 
-    useEffect(() => { if (form.unit) { fetchUltimosMovimientos(form.unit); } }, [form.unit]);
-
-    const fetchUltimosMovimientos = async (unitId) => {
-        try {
-            // **IMPORTANTE**: Asegúrate de que `route('ultimos-movimientos-unidad')` es correcto
-            const response = await fetch(route('ultimos-movimientos-unidad'), {
-                method: 'POST',
-                body: JSON.stringify({ unidadID: unitId }),
-                headers: { 'Content-Type': 'application/json' },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
-            }
-
-            const data = await response.json();
-
-            const primerMovimiento = Array.isArray(data) && data.length > 0 ? data[0] : {};
-            const ultimoKm = primerMovimiento.Movimientos_kilometraje || 0;
-
-            // Inicializa la checklist por defecto a 'Si' para todos los ítems
-            const defaultChecklist = requests.ListasVerificacion.map(item => ({
-                id: item.ListaVerificacion_listaID.toString(),
-                observacion: 'Si'
-            }));
-
-            setRequests(prevRequests => ({
-                ...prevRequests,
-                UltimosMovimientos: data,
-            }));
-
-            setInformacion(prevInfo => ({
-                ...prevInfo,
-                UltimoKilometraje: ultimoKm,
-            }));
-
-            // Actualiza KM solo si es SALIDA o si el KM actual es 0 (primera carga)
-            if (form.movementType === 'SALIDA' || form.kilometers === 0) {
-                setForm(prevForm => ({
-                    ...prevForm,
-                    kilometers: ultimoKm,
-                    checklist: defaultChecklist,
-                }));
-            } else {
-                setForm(prevForm => ({
-                    ...prevForm,
-                    checklist: defaultChecklist,
-                }));
-            }
-
-        } catch (err) {
-            console.error('Error al obtener movimientos:', err);
-            toast.error('Error al cargar últimos movimientos de la unidad.');
-        }
-    };
-
-    // Efecto para determinar si se necesita autorización (estatusCode)
-    useEffect(() => {
-        // Determinar si existe al menos un elemento con observación "No"
-        const hasNoObservation = form.checklist.some(item => item.observacion === "No");
-        // 1 (Requiere autorización) si hay "No", 0 (No requiere) si todos son "Sí"
-        const newStatusCode = hasNoObservation ? 1 : 0;
-        // Si el estatus cambia de 1 a 0, se limpia el código de autorización
-        if (newStatusCode === 0 && form.estatusCode === 1) {
-            setForm(prevForm => ({
-                ...prevForm,
-                authorizationCode: '',
-                estatusCode: newStatusCode
-            }));
-        } else {
-            setForm(prevForm => ({
-                ...prevForm,
-                estatusCode: newStatusCode
-            }));
-        }
-    }, [form.checklist, setForm])
-
     const CrearAsignacion = async () => {
         setIsSubmitting(true);
-
-        // $checlistycondiciones = 
-        // selectedIncidencias
-        //         setForm(prevForm => ({
-        //             ...prevForm,
-        //             // kilometers: ultimoKm,
-        //             checklist: defaultChecklist +selectedIncidencias,
-        //         }));
-        // setForm(prevForm => ({
-        //     // 1. Conserva todas las demás propiedades del formulario.
-        //     ...prevForm,
-
-        //     // 2. Actualiza 'checklist':
-        //     checklist: [
-        //         // 2a. Incluye todos los objetos que ya estaban en el checklist.
-        //         ...prevForm.checklist,
-
-        //         // 2b. Incluye todos los nuevos objetos de selectedIncidencias.
-        //         ...selectedIncidencias,
-        //     ],
-        // }));
-
-        // const listachecks = form.checklist.concat(selectedIncidencias);
-        // const refaccionesNecesarias = listachecks.some(item => item.observacion === "No");
-        // y le concatenamos 'selectedIncidencias' (los nuevos datos).
         const listachecks = form.checklist.concat(selectedIncidencias);
-
-        // 2. **ACTUALIZA** el estado de React con la nueva lista calculada.
-        // setForm(prevForm => ({
-        //     ...prevForm,
-        //     checklist: listachecks, // Usamos la lista combinada que ya calculamos
-        // }));
-
-        // 3. **UTILIZA** la lista combinada para la lógica de refacciones.
-        // No uses 'form.checklist' porque sigue siendo el valor antiguo.
         const refaccionesNecesarias = listachecks.some(item => item.observacion === "No");
 
         try {
@@ -606,73 +455,60 @@ const RegistroYSalidaUnificado = () => {
         }));
     };
 
+    const fetchUltimosMovimientos = async (unitId) => {
+        try {
+            // **IMPORTANTE**: Asegúrate de que `route('ultimos-movimientos-unidad')` es correcto
+            const response = await fetch(route('ultimos-movimientos-unidad'), {
+                method: 'POST',
+                body: JSON.stringify({ unidadID: unitId }),
+                headers: { 'Content-Type': 'application/json' },
+            });
 
-    const ToggleButton = ({ label, isActive, onClick }) => (
-        <button
-            onClick={onClick}
-            className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-200 ${isActive
-                ? 'bg-[#3b82f6] text-white shadow-lg'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-        >
-            {label}
-        </button>
-    );
-
-    // Efecto para buscar datos de QuienConQuienControl cuando cambia la unidad
-    useEffect(() => {
-        const selectedUnitId = Number(form.unit);
-
-        // Buscar la unidad y el chofer
-        const Unidad = requests.Unidades.find(u => u.Unidades_unidadID === selectedUnitId);
-        const Chofer = requests.Choferes.find(C => C.Personas_usuarioID === Number(form.driver));
-
-        let nombreUnidad = '';
-        let nombreOperador = '';
-
-        if (Unidad) {
-            nombreUnidad = Unidad.Unidades_numeroEconomico;
-        }
-
-        if (Chofer) {
-            nombreOperador = Chofer.nombre_completo || '';
-        }
-
-        // Buscar información en QuienconQuienControl
-        const QuienConQuien = requests.QuienconQuienControl.find(u => Number(u.CUA_unidadID) === selectedUnitId);
-
-        if (QuienConQuien) {
-            setForm(prevForm => ({
-                ...prevForm,
-                motive: Number(QuienConQuien.CUA_motivoID),
-                destination: Number(QuienConQuien.CUA_destino),
-                driver: Number(QuienConQuien.CUA_choferID),
-                // kilometers se carga en fetchUltimosMovimientos
-            }));
-
-            if (QuienConQuien.EstatusCodigo === "1") {
-                openAuthorizationModal(); // Descomentar si el estatus 1 debe abrir el modal automáticamente
+            if (!response.ok) {
+                throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
             }
 
-        } else {
-            // Limpiar campos relacionados si la unidad no está en CQC
-            setForm(prevForm => ({
-                ...prevForm,
-                motive: '',
-                destination: '',
-                driver: '',
+            const data = await response.json();
+
+            const primerMovimiento = Array.isArray(data) && data.length > 0 ? data[0] : {};
+            const ultimoKm = primerMovimiento.Movimientos_kilometraje || 0;
+
+            // Inicializa la checklist por defecto a 'Si' para todos los ítems
+            const defaultChecklist = requests.ListasVerificacion.map(item => ({
+                id: item.ListaVerificacion_listaID.toString(),
+                observacion: 'Si'
             }));
+
+            setRequests(prevRequests => ({
+                ...prevRequests,
+                UltimosMovimientos: data,
+            }));
+
+            setInformacion(prevInfo => ({
+                ...prevInfo,
+                UltimoKilometraje: ultimoKm,
+            }));
+
+            // Actualiza KM solo si es SALIDA o si el KM actual es 0 (primera carga)
+            if (form.movementType === 'SALIDA' || form.kilometers === 0) {
+                setForm(prevForm => ({
+                    ...prevForm,
+                    kilometers: ultimoKm,
+                    checklist: defaultChecklist,
+                }));
+            } else {
+                setForm(prevForm => ({
+                    ...prevForm,
+                    checklist: defaultChecklist,
+                }));
+            }
+
+        } catch (err) {
+            console.error('Error al obtener movimientos:', err);
+            toast.error('Error al cargar últimos movimientos de la unidad.');
         }
+    };
 
-        setInformacion(prevInfo => ({
-            ...prevInfo,
-            NombreUnidad: nombreUnidad,
-            NombreOperador: nombreOperador,
-        }));
-
-    }, [form.unit, requests.Unidades, requests.Choferes, requests.QuienconQuienControl, userObject.Personas_usuarioID]);
-
-    // Efecto para obtener QuienconQuienControl al cambiar el tipo de movimiento
     const getAllData = async () => {
         try {
             const quien = await fetch(route("QuienconQuienControl", { id: form.movementType })).then(res => res.json());
@@ -686,10 +522,47 @@ const RegistroYSalidaUnificado = () => {
         }
     };
 
-    useEffect(() => {
-        getAllData();
-    }, [form.movementType]);
+    const handleIncidenciasChange = (incidencias) => {
+        // 2. Almacenamos el estado actualizado que viene del hijo
+        setSelectedIncidencias(incidencias);
 
+        // **FILTRO CLAVE: Solo mantenemos las incidencias donde 'observacion' es estrictamente "No"**
+        const incidenciasSoloNo = incidencias.filter(
+            (incidencia) => incidencia.observacion === "No"
+        );
+
+        setForm(prevForm => {
+            const checklistSinHijos = prevForm.checklist.filter(item => item.hijo !== true);
+            const checklistMap = new Map(
+                checklistSinHijos.map(item => [item.id, item])
+            );
+
+            incidenciasSoloNo.forEach(newIncidencia => {
+                if (!checklistMap.has(newIncidencia.id)) {
+                    checklistMap.set(newIncidencia.id, newIncidencia);
+                }
+            });
+
+            const nuevoChecklistUnico = Array.from(checklistMap.values());
+            return {
+                ...prevForm, // Conserva las demás propiedades del formulario
+                checklist: nuevoChecklistUnico, // Reemplaza el 'checklist' con el nuevo array único
+            };
+        });
+
+    };
+
+    const ToggleButton = ({ label, isActive, onClick }) => (
+        <button
+            onClick={onClick}
+            className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-200 ${isActive
+                ? 'bg-[#3b82f6] text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+        >
+            {label}
+        </button>
+    );
 
     const ConditionToggle = ({ label, name, currentValue, onToggle, isCritical = false }) => (
         <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
@@ -727,68 +600,100 @@ const RegistroYSalidaUnificado = () => {
         </div>
     );
 
-    // Condición de habilitación del botón: KM es válido solo si es mayor al último en ENTRADA
-    const isKmValid = form.movementType === 'SALIDA' ? true : form.kilometers > informacion.UltimoKilometraje;
+    useEffect(() => {
+        loadAllData();
+    }, []);
 
-    // Condición de validación básica del formulario
-    const isFormValid = (
-        form.unit !== '' &&
-        form.driver !== '' &&
-        form.destination !== '' &&
-        form.motive !== '' &&
-        isKmValid &&
-        form.combustible !== ''
-    );
+    useEffect(() => {
+        if (isModalOpen === false) {
+            setInformacion(ESTADO_INICIAL);
 
-    // Texto del botón
-    const buttonText = isSubmitting
-        ? 'PROCESANDO...'
-        : form.estatusCode === 1 && !form.authorizationCode
-            ? 'SOLICITAR AUTORIZACIÓN'
-            : 'REGISTRAR MOVIMIENTO';
+            setRequests(prevRequests => ({
+                ...prevRequests,
+                UltimosMovimientos: [],
+            }));
 
+            setForm(initialFormState)
+        }
+    }, [isModalOpen]);
 
-    const closeModal = () => {
-        setIsOpen(false);
-    };
+    useEffect(() => {
+        if (form.unit) fetchUltimosMovimientos(form.unit);
+    }, [form.unit]);
 
-    const openModal = () => {
-        setIsOpen(true);
-    };
+    // Efecto para determinar si se necesita autorización (estatusCode)
+    useEffect(() => {
+        // Determinar si existe al menos un elemento con observación "No"
+        const hasNoObservation = form.checklist.some(item => item.observacion === "No");
+        // 1 (Requiere autorización) si hay "No", 0 (No requiere) si todos son "Sí"
+        const newStatusCode = hasNoObservation ? 1 : 0;
+        // Si el estatus cambia de 1 a 0, se limpia el código de autorización
+        if (newStatusCode === 0 && form.estatusCode === 1) {
+            setForm(prevForm => ({
+                ...prevForm,
+                authorizationCode: '',
+                estatusCode: newStatusCode
+            }));
+        } else {
+            setForm(prevForm => ({
+                ...prevForm,
+                estatusCode: newStatusCode
+            }));
+        }
+    }, [form.checklist, setForm])
 
-    // Función que recibe las incidencias marcadas del componente hijo (ListaVerificacionImagenes)
-    const handleIncidenciasChange = (incidencias) => {
-        // 2. Almacenamos el estado actualizado que viene del hijo
-        setSelectedIncidencias(incidencias);
+    // Efecto para buscar datos de QuienConQuienControl cuando cambia la unidad
+    useEffect(() => {
+        const selectedUnitId = Number(form.unit);
+        // Buscar la unidad y el chofer
+        const Unidad = requests.Unidades.find(u => u.Unidades_unidadID === selectedUnitId);
+        const Chofer = requests.Choferes.find(C => C.Personas_usuarioID === Number(form.driver));
+        let nombreUnidad = '';
+        let nombreOperador = '';
+        if (Unidad) {
+            nombreUnidad = Unidad.Unidades_numeroEconomico;
+        }
+        if (Chofer) {
+            nombreOperador = Chofer.nombre_completo || '';
+        }
+        // Buscar información en QuienconQuienControl
+        const QuienConQuien = requests.QuienconQuienControl.find(u => Number(u.CUA_unidadID) === selectedUnitId);
 
-        // **FILTRO CLAVE: Solo mantenemos las incidencias donde 'observacion' es estrictamente "No"**
-        const incidenciasSoloNo = incidencias.filter(
-            (incidencia) => incidencia.observacion === "No"
-        );
+        if (QuienConQuien) {
+            setForm(prevForm => ({
+                ...prevForm,
+                motive: Number(QuienConQuien.CUA_motivoID),
+                destination: Number(QuienConQuien.CUA_destino),
+                driver: Number(QuienConQuien.CUA_choferID),
+                // kilometers se carga en fetchUltimosMovimientos
+            }));
+            if (QuienConQuien.EstatusCodigo === "1") {
+                openAuthorizationModal(); // Descomentar si el estatus 1 debe abrir el modal automáticamente
+            }
+        } else {
+            // Limpiar campos relacionados si la unidad no está en CQC
+            setForm(prevForm => ({
+                ...prevForm,
+                motive: '',
+                destination: '',
+                driver: '',
+            }));
+        }
+        setInformacion(prevInfo => ({
+            ...prevInfo,
+            NombreUnidad: nombreUnidad,
+            NombreOperador: nombreOperador,
+        }));
+    }, [form.unit, requests.Unidades, requests.Choferes, requests.QuienconQuienControl, userObject.Personas_usuarioID]);
 
-        setForm(prevForm => {
-            const checklistSinHijos = prevForm.checklist.filter(item => item.hijo !== true);
-            const checklistMap = new Map(
-                checklistSinHijos.map(item => [item.id, item])
-            );
+    useEffect(() => {
+        getAllData();
+    }, [form.movementType]);
 
-            incidenciasSoloNo.forEach(newIncidencia => {
-                if (!checklistMap.has(newIncidencia.id)) {
-                    checklistMap.set(newIncidencia.id, newIncidencia);
-                }
-            });
-
-            const nuevoChecklistUnico = Array.from(checklistMap.values());
-            return {
-                ...prevForm, // Conserva las demás propiedades del formulario
-                checklist: nuevoChecklistUnico, // Reemplaza el 'checklist' con el nuevo array único
-            };
-        });
-
-    };
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-
+        <div className="flex flex-col h-[100dvh] gap-4 pb-4">
+            {/* <button onClick={() =>setIsModalOpen(true)}>smn</button> */}
+            {/* RENDERIZAR EL MODAL DE AUTORIZACIÓN */}
             <AuthorizationModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -803,11 +708,9 @@ const RegistroYSalidaUnificado = () => {
             >
                 {/* Overlay (Fondo oscuro) */}
                 <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-
                 {/* Contenedor del Dialog (Centrado) */}
                 <div className="fixed inset-0 flex w-full items-center justify-center p-4">
                     <DialogPanel className="w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl relative" style={{ height: '90vh' }}>
-
                         <DialogTitle className="text-lg font-bold border-b pb-2 mb-4">
                             Lista de Verificación de Incidencias del Vehículo
                         </DialogTitle>
@@ -835,12 +738,9 @@ const RegistroYSalidaUnificado = () => {
                 </div>
             </Dialog>
 
-
             {/* CONTENIDO PRINCIPAL - Opacidad reducida si el modal está abierto */}
             <div className={`${isModalOpen ? 'opacity-50 pointer-events-none' : ''}`}>
-
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-6"> Registro Único de Movimientos</h1>
-
+                <h1 className="text-3xl font-extrabold text-gray-900 mb-6">Registro Único de Movimientos</h1>
                 {/* Encabezado General */}
                 <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-md mb-8">
                     <div className="text-lg font-bold text-gray-800">Unidad: <span className="text-blue-600">
@@ -994,7 +894,6 @@ const RegistroYSalidaUnificado = () => {
                         </div>
 
                         {/* Checklist y Condiciones */}
-
                         <div className="flex justify-between items-center mb-4 border-b pb-2">
                             {/* Encabezado a la Izquierda */}
                             <h2 className="text-lg font-bold text-gray-800">
@@ -1011,9 +910,7 @@ const RegistroYSalidaUnificado = () => {
                                 Condiciones de la unidad
                             </button>
                         </div>
-                        {/* <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Checklist y Condiciones</h2> */}
                         <div className="grid grid-cols-1 gap-x-8 gap-y-2 mb-6 p-3 border border-gray-200 rounded-lg max-h-60 overflow-y-auto">
-
                             {requests.ListasVerificacion.map((item) => {
                                 const listId = item.ListaVerificacion_listaID.toString();
 
