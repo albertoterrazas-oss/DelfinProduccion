@@ -13,7 +13,7 @@ const TextInput = forwardRef(function TextInput({
     onBlur: onBlurProp, // Renombra para evitar conflictos
     min, // ← AÑADE ESTO
     max, // ← AÑADE ESTO
-    ...props 
+    ...props
 }, ref) {
     const [isFocused, setIsFocused] = useState(false);
     const input = ref ? ref : useRef();
@@ -76,7 +76,16 @@ const TextInput = forwardRef(function TextInput({
             }
         }
 
-        if (onChange) onChange(e);
+        const syntheticEvent = {
+            ...e,
+            target: {
+                ...e.target,
+                name: e.target.name,
+                value: allowDecimals ? parseFloat(inputValue) : parseInt(inputValue, 10)
+            }
+        };
+
+        if (onChange) onChange(syntheticEvent);
     };
 
     const handleFocus = (e) => {
@@ -104,16 +113,19 @@ const TextInput = forwardRef(function TextInput({
                     ...e,
                     target: {
                         ...e.target,
-                        value: '0'
+                        name: e.target.name,
+                        value: 0
                     }
                 };
                 if (onChange) onChange(syntheticEvent);
             } else if (inputValue.endsWith('.') && inputValue.length > 1) {
+                const cleanValue = inputValue.slice(0, -1);
                 const syntheticEvent = {
                     ...e,
                     target: {
                         ...e.target,
-                        value: inputValue.slice(0, -1)
+                        name: e.target.name,
+                        value: allowDecimals ? parseFloat(cleanValue) : parseInt(cleanValue, 10) // ✅ Número
                     }
                 };
                 if (onChange) onChange(syntheticEvent);
