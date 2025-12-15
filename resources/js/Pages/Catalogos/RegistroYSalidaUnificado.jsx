@@ -3,141 +3,238 @@ import Datatable from "@/Components/Datatable"; // Asegúrate de la ruta correct
 import SelectInput from "@/components/SelectInput"; // Asegúrate de la ruta correcta
 import { toast } from 'sonner';
 import TextInput from '@/Components/TextInput';
+import ComponenteVerificacion from "./ListaVerificacionImagenes";
+import { Dialog, DialogPanel, DialogTitle, Transition } from '@headlessui/react';
+import AuthorizationModal from './AuthorizationModal';
 
-const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
-    const [code, setCode] = useState('');
-    const [error, setError] = useState('');
-    const CODE_LENGTH = 6;
-    const digitBoxes = Array(CODE_LENGTH).fill(0);
+// const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
+//     const [code, setCode] = useState('');
+//     const [error, setError] = useState('');
+//     const CODE_LENGTH = 6;
+//     const digitBoxes = Array(CODE_LENGTH).fill(0);
 
-    if (!isOpen) return null;
+//     if (!isOpen) return null;
 
-    const handleConfirm = async () => {
-        try {
-            if (code.length !== CODE_LENGTH) {
-                setError('El código debe tener 6 dígitos.');
-                return;
-            }
+//     const handleConfirm = async () => {
+//         try {
+//             if (code.length !== CODE_LENGTH) {
+//                 setError('El código debe tener 6 dígitos.');
+//                 return;
+//             }
 
-            toast.info("Verificando código de autorización...");
+//             toast.info("Verificando código de autorización...");
 
-            // **IMPORTANTE**: Asegúrate de que `route('verifycode')` apunta al endpoint correcto
-            const response = await fetch(route('verifycode'), {
-                method: 'POST',
-                body: JSON.stringify({ unit: data.unit, code: code }),
-                headers: { 'Content-Type': 'application/json' },
-            });
+//             // **IMPORTANTE**: Asegúrate de que `route('verifycode')` apunta al endpoint correcto
+//             const response = await fetch(route('verifycode'), {
+//                 method: 'POST',
+//                 body: JSON.stringify({ unit: data.unit, code: code,type:data.movementType }),
+//                 headers: { 'Content-Type': 'application/json' },
+//             });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                toast.error(`Código incorrecto o error del servidor: ${errorText}`);
-                setError('Código incorrecto o expirado.');
-                throw new Error("Respuesta de verifycode no ok");
-            }
+//             if (!response.ok) {
+//                 const errorText = await response.text();
+//                 toast.error(`Código incorrecto o error del servidor: ${errorText}`);
+//                 setError('Código incorrecto o expirado.');
+//                 throw new Error("Respuesta de verifycode no ok");
+//             }
 
-            // Si es exitoso
-            setCode('');
-            setError('');
-            onAuthorize(code); // Llama a onAuthorize con el código validado
-            toast.success("Autorización completada y verificada.");
+//             // Si es exitoso
+//             setCode('');
+//             setError('');
+//             onAuthorize(code); // Llama a onAuthorize con el código validado
+//             toast.success("Autorización completada y verificada.");
 
-        } catch (err) {
-            console.error('Error en el proceso de verificación de código:', err);
-            if (!error) {
-                toast.error('Fallo de comunicación con el servidor.');
-            }
-        }
-    };
+//         } catch (err) {
+//             console.error('Error en el proceso de verificación de código:', err);
+//             if (!error) {
+//                 toast.error('Fallo de comunicación con el servidor.');
+//             }
+//         }
+//     };
 
-    const handleInputChange = (e) => {
-        const value = e.target.value.replace(/\D/g, '').substring(0, CODE_LENGTH);
-        setCode(value);
-        setError('');
-    };
+//     const handleInputChange = (e) => {
+//         const value = e.target.value.replace(/\D/g, '').substring(0, CODE_LENGTH);
+//         setCode(value);
+//         setError('');
+//     };
 
-    const focusInput = () => {
-        document.getElementById('auth-code-input').focus();
-    };
+//     const focusInput = () => {
+//         document.getElementById('auth-code-input').focus();
+//     };
 
-    return (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative">
+//     return (
+//         <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
+//             <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative">
 
-                {/* BOTÓN DE CIERRE (X) */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 p-1 rounded-full hover:bg-gray-100"
-                    aria-label="Cerrar modal"
-                >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-                {/* FIN BOTÓN DE CIERRE */}
+//                 {/* BOTÓN DE CIERRE (X) */}
+//                 <button
+//                     onClick={onClose}
+//                     className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 p-1 rounded-full hover:bg-gray-100"
+//                     aria-label="Cerrar modal"
+//                 >
+//                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+//                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+//                     </svg>
+//                 </button>
+//                 {/* FIN BOTÓN DE CIERRE */}
 
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Código de Autorización</h2>
-                <p className="text-sm text-gray-600 mb-4">
-                    Introduce el código de 6 dígitos para continuar.
-                </p>
+//                 <h2 className="text-xl font-bold text-gray-900 mb-4">Código de Autorización</h2>
+//                 <p className="text-sm text-gray-600 mb-4">
+//                     Introduce el código de 6 dígitos para continuar.
+//                 </p>
 
-                <div className="mb-6 flex flex-col items-center">
+//                 <div className="mb-6 flex flex-col items-center">
 
-                    <div
-                        className="flex justify-center space-x-2 mb-4 cursor-text"
-                        onClick={focusInput}
-                    >
-                        {digitBoxes.map((_, index) => {
-                            const digit = code[index] || '';
-                            const isActive = index === code.length;
+//                     <div
+//                         className="flex justify-center space-x-2 mb-4 cursor-text"
+//                         onClick={focusInput}
+//                     >
+//                         {digitBoxes.map((_, index) => {
+//                             const digit = code[index] || '';
+//                             const isActive = index === code.length;
 
-                            return (
-                                <div
-                                    key={index}
-                                    className={`w-10 h-12 flex items-center justify-center text-xl font-mono border-2 rounded-lg 
-                                    ${isActive
-                                            ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50'
-                                            : 'border-gray-300 bg-gray-100'}
-                                        transition-all duration-150`}
-                                >
-                                    {digit}
-                                </div>
-                            );
-                        })}
-                    </div>
+//                             return (
+//                                 <div
+//                                     key={index}
+//                                     className={`w-10 h-12 flex items-center justify-center text-xl font-mono border-2 rounded-lg 
+//                                     ${isActive
+//                                             ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50'
+//                                             : 'border-gray-300 bg-gray-100'}
+//                                         transition-all duration-150`}
+//                                 >
+//                                     {digit}
+//                                 </div>
+//                             );
+//                         })}
+//                     </div>
 
-                    {/* Input invisible real que captura el valor */}
-                    <input
-                        id="auth-code-input"
-                        type="tel"
-                        maxLength={CODE_LENGTH}
-                        value={code}
-                        onChange={handleInputChange}
-                        onBlur={() => {
-                            if (code.length !== CODE_LENGTH && code.length > 0) {
-                                setError('Faltan dígitos.');
-                            } else if (code.length === CODE_LENGTH) {
-                                setError('');
-                            }
-                        }}
-                        className="absolute opacity-0 w-0 h-0 p-0 m-0 overflow-hidden"
-                        autoFocus
-                    />
+//                     {/* Input invisible real que captura el valor */}
+//                     <input
+//                         id="auth-code-input"
+//                         type="tel"
+//                         maxLength={CODE_LENGTH}
+//                         value={code}
+//                         onChange={handleInputChange}
+//                         onBlur={() => {
+//                             if (code.length !== CODE_LENGTH && code.length > 0) {
+//                                 setError('Faltan dígitos.');
+//                             } else if (code.length === CODE_LENGTH) {
+//                                 setError('');
+//                             }
+//                         }}
+//                         className="absolute opacity-0 w-0 h-0 p-0 m-0 overflow-hidden"
+//                         autoFocus
+//                     />
 
-                    {error && <p className="mt-2 text-sm text-red-600 text-center">{error}</p>}
-                </div>
+//                     {error && <p className="mt-2 text-sm text-red-600 text-center">{error}</p>}
+//                 </div>
 
-                <button
-                    onClick={handleConfirm}
-                    disabled={code.length !== CODE_LENGTH || !!error}
-                    className={`w-full py-3 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 
-                        ${code.length === CODE_LENGTH && !error ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
-                >
-                    Confirmar Código
-                </button>
-            </div>
-        </div>
-    );
-};
+//                 <button
+//                     onClick={handleConfirm}
+//                     disabled={code.length !== CODE_LENGTH || !!error}
+//                     className={`w-full py-3 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 
+//                         ${code.length === CODE_LENGTH && !error ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
+//                 >
+//                     Confirmar Código
+//                 </button>
+//             </div>
+//         </div>
+//     );
+// };
+
+
+
+// const ListaVerificacionModal = ({ isOpen, onClose, onAuthorize, data }) => {
+// const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
+//     const [code, setCode] = useState('');
+//     const [error, setError] = useState('');
+//     const CODE_LENGTH = 6;
+//     const digitBoxes = Array(CODE_LENGTH).fill(0);
+
+//     if (!isOpen) return null;
+
+//     const handleConfirm = async () => {
+//     };
+
+//     const handleInputChange = (e) => {
+//     };
+
+//     const focusInput = () => {
+//         document.getElementById('auth-code-input').focus();
+//     };
+
+//     return (
+//         <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
+//             <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative">
+//                 {/* BOTÓN DE CIERRE (X) */}
+//                 <button
+//                     onClick={onClose}
+//                     className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 p-1 rounded-full hover:bg-gray-100"
+//                     aria-label="Cerrar modal"
+//                 >
+//                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+//                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+//                     </svg>
+//                 </button>
+//                 {/* FIN BOTÓN DE CIERRE */}
+//                 <h2 className="text-xl font-bold text-gray-900 mb-4">Código de Autorización</h2>
+//                 <p className="text-sm text-gray-600 mb-4">
+//                     Introduce el código de 6 dígitos para continuar.
+//                 </p>
+//                 <div className="mb-6 flex flex-col items-center">
+//                     <div
+//                         className="flex justify-center space-x-2 mb-4 cursor-text"
+//                         onClick={focusInput}
+//                     >
+//                         {digitBoxes.map((_, index) => {
+//                             const digit = code[index] || '';
+//                             const isActive = index === code.length;
+
+//                             return (
+//                                 <div
+//                                     key={index}
+//                                     className={`w-10 h-12 flex items-center justify-center text-xl font-mono border-2 rounded-lg 
+//                                     ${isActive
+//                                             ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50'
+//                                             : 'border-gray-300 bg-gray-100'}
+//                                         transition-all duration-150`}
+//                                 >
+//                                     {digit}
+//                                 </div>
+//                             );
+//                         })}
+//                     </div>
+//                     {/* Input invisible real que captura el valor */}
+//                     <input
+//                         id="auth-code-input"
+//                         type="tel"
+//                         maxLength={CODE_LENGTH}
+//                         value={code}
+//                         onChange={handleInputChange}
+//                         onBlur={() => {
+//                             if (code.length !== CODE_LENGTH && code.length > 0) {
+//                                 setError('Faltan dígitos.');
+//                             } else if (code.length === CODE_LENGTH) {
+//                                 setError('');
+//                             }
+//                         }}
+//                         className="absolute opacity-0 w-0 h-0 p-0 m-0 overflow-hidden"
+//                         autoFocus
+//                     />
+//                     {error && <p className="mt-2 text-sm text-red-600 text-center">{error}</p>}
+//                 </div>
+//                 <button
+//                     onClick={handleConfirm}
+//                     disabled={code.length !== CODE_LENGTH || !!error}
+//                     className={`w-full py-3 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 
+//                         ${code.length === CODE_LENGTH && !error ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
+//                 >
+//                     Confirmar Código
+//                 </button>
+//             </div>
+//         </div>
+//     );
+// };
 
 const FUEL_OPTIONS = [
     { nombre: '1/8', escala_valor: 1, litros: 5 },
@@ -151,19 +248,7 @@ const FUEL_OPTIONS = [
 ];
 
 const RegistroYSalidaUnificado = () => {
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [requests, setRequests] = useState({
-        Motivos: [],
-        Unidades: [],
-        Choferes: [],
-        Ayudantes: [],
-        Destinos: [],
-        ListasVerificacion: [],
-        UltimosMovimientos: [],
-        QuienconQuienControl: []
-    });
-
+    const userObject = JSON.parse(localStorage.getItem('user') || '{}');
     const ESTADO_INICIAL = {
         NombreUnidad: '',
         UltimoKilometraje: '',
@@ -171,7 +256,6 @@ const RegistroYSalidaUnificado = () => {
         NombreOperador: '',
         Estado: '',
     };
-    const userObject = JSON.parse(localStorage.getItem('user') || '{}');
     const initialFormState = {
         movementType: 'ENTRADA',
         unit: '',
@@ -183,28 +267,50 @@ const RegistroYSalidaUnificado = () => {
         combustible: '',
         checklist: [],
         authorizationCode: '',
-        user: userObject.Personas_usuarioID, // ID del usuario actual
+        user: userObject.Personas_usuarioID,
         estatusCode: 0
     };
-
-
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedIncidencias, setSelectedIncidencias] = useState([]);
+    const [requests, setRequests] = useState({
+        Motivos: [],
+        Unidades: [],
+        Choferes: [],
+        Ayudantes: [],
+        Destinos: [],
+        ListasVerificacion: [],
+        UltimosMovimientos: [],
+        QuienconQuienControl: []
+    });
     const [informacion, setInformacion] = useState(ESTADO_INICIAL);
-
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [form, setForm] = useState(initialFormState)
+    // Condición de habilitación del botón: KM es válido solo si es mayor al último en ENTRADA
+    const isKmValid = form.movementType === 'SALIDA' ? true : form.kilometers > informacion.UltimoKilometraje;    // Condición de validación básica del formulario
+    const isFormValid = (
+        form.unit !== '' &&
+        form.driver !== '' &&
+        form.destination !== '' &&
+        form.motive !== '' &&
+        isKmValid &&
+        form.combustible !== ''
+    );
 
+    // Texto del botón
+    const buttonText = isSubmitting
+        ? 'PROCESANDO...'
+        : form.estatusCode === 1 && !form.authorizationCode
+            ? 'SOLICITAR AUTORIZACIÓN'
+            : 'REGISTRAR MOVIMIENTO';
 
-    useEffect(() => {
-        if (isModalOpen === false) {
-            setInformacion(ESTADO_INICIAL);
+    const closeModal = () => {
+        setIsOpen(false);
+    };
 
-            setRequests(prevRequests => ({
-                ...prevRequests,
-                UltimosMovimientos: [],
-            }));
-
-            setForm(initialFormState)
-        }
-    }, [isModalOpen]);
+    const openModal = () => {
+        setIsOpen(true);
+    };
 
     const openAuthorizationModal = () => {
         setIsModalOpen(true);
@@ -231,7 +337,7 @@ const RegistroYSalidaUnificado = () => {
                 fetchData("UnidadesQuiencQuien"),
                 fetchData("users.index"),
                 fetchData("DestinosQuiencQuien"),
-                fetchData("listaverificacion.index"),
+                fetchData("CondicionesUnidad"),
             ]);
 
             setRequests(prevRequests => ({
@@ -250,15 +356,6 @@ const RegistroYSalidaUnificado = () => {
         }
     }
 
-    useEffect(() => {
-        loadAllData();
-    }, []);
-
-
-
-
-    const [form, setForm] = useState(initialFormState);
-
     const handleAuthorization = (authCode) => {
         setForm(prevForm => ({
             ...prevForm,
@@ -269,8 +366,94 @@ const RegistroYSalidaUnificado = () => {
         // Opcionalmente, puedes llamar a CrearAsignacion() aquí para reintentar automáticamente
     };
 
+    const CrearAsignacion = async () => {
+        setIsSubmitting(true);
+        const listachecks = form.checklist.concat(selectedIncidencias);
+        const refaccionesNecesarias = listachecks.some(item => item.observacion === "No");
 
-    useEffect(() => { if (form.unit) { fetchUltimosMovimientos(form.unit); } }, [form.unit]);
+        try {
+            // Lógica final de envío de asignación
+            const response = await fetch(route('asignaciones.store'), {
+                method: 'POST',
+                body: JSON.stringify(form),
+                headers: { 'Content-Type': 'application/json' },
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                toast.error(`Error al registrar el movimiento: ${errorText}. Vuelve a intentar el proceso.`);
+                throw new Error("Respuesta no ok");
+            }
+            if (!refaccionesNecesarias) {
+                toast.success("Se ha creado un movimiento con éxito");
+                setForm({ ...initialFormState, authorizationCode: form.authorizationCode });
+                getAllData();
+                setRequests(prevRequests => ({
+                    ...prevRequests,
+                    UltimosMovimientos: [],
+                }));
+            }
+        } catch (err) {
+            console.error('Error al crear el movimiento:', err);
+            // El error ya fue notificado con toast.error previamente
+        } finally {
+            setIsSubmitting(false);
+        }
+        if (refaccionesNecesarias) {
+            // try {
+            // toast.info("Solicitando código de autorización...");
+            setForm(prevForm => ({
+                ...prevForm,
+                kilometers: ''
+            }));
+            openAuthorizationModal();
+            toast.info("Código de autorización enviado. Ingrésalo en la ventana emergente.");
+        }
+
+        loadAllData()
+    };
+
+    const handleChecklistToggle = (listId, statusValue) => {
+        setForm(prevForm => {
+            const currentChecklist = prevForm.checklist;
+            const listIdString = listId.toString();
+            const existingIndex = currentChecklist.findIndex(item => item.id === listIdString);
+            let newChecklist;
+
+            if (existingIndex > -1) {
+                newChecklist = currentChecklist.map((item, index) =>
+                    index === existingIndex
+                        ? { ...item, observacion: statusValue }
+                        : item
+                );
+            } else {
+                const newItem = {
+                    id: listIdString,
+                    observacion: statusValue
+                };
+                newChecklist = [...currentChecklist, newItem];
+            }
+
+            return {
+                ...prevForm,
+                checklist: newChecklist,
+            };
+        });
+    };
+
+    const setMovementType = (type) => {
+        // Resetea gran parte del formulario al cambiar el tipo de movimiento
+        setForm(prev => ({
+            ...initialFormState,
+            movementType: type,
+            user: userObject.Personas_usuarioID,
+            authorizationCode: '' // Limpiar código de autorización al cambiar tipo
+        }));
+        setRequests(prevRequests => ({
+            ...prevRequests,
+            UltimosMovimientos: [],
+            QuienconQuienControl: [] // Esto se recarga en el useEffect
+        }));
+    };
 
     const fetchUltimosMovimientos = async (unitId) => {
         try {
@@ -326,233 +509,47 @@ const RegistroYSalidaUnificado = () => {
         }
     };
 
-
-    // Efecto para determinar si se necesita autorización (estatusCode)
-    useEffect(() => {
-        // Determinar si existe al menos un elemento con observación "No"
-        const hasNoObservation = form.checklist.some(item => item.observacion === "No");
-
-        // 1 (Requiere autorización) si hay "No", 0 (No requiere) si todos son "Sí"
-        const newStatusCode = hasNoObservation ? 1 : 0;
-
-        // Si el estatus cambia de 1 a 0, se limpia el código de autorización
-        if (newStatusCode === 0 && form.estatusCode === 1) {
-            setForm(prevForm => ({
-                ...prevForm,
-                authorizationCode: '',
-                estatusCode: newStatusCode
-            }));
-        } else {
-            setForm(prevForm => ({
-                ...prevForm,
-                estatusCode: newStatusCode
-            }));
-        }
-
-    }, [form.checklist, setForm])
-
-
-    // const CrearAsignacion = async () => {
-    //     setIsSubmitting(true);
-
-    //     const refaccionesNecesarias = form.estatusCode === 1; // Basado en el checklist
-
-    //     // 1. Si se necesita autorización Y aún no se ha provisto el código
-    //     if (refaccionesNecesarias && !form.authorizationCode) {
-
-    //         toast.info("Se detectaron fallas. Solicitando código de autorización...");
-    //         openAuthorizationModal();
-
-    //         setIsSubmitting(false); // Esperar la autorización en el modal
-    //         return;
-    //     }
-
-    //     // 2. Si pasa la verificación (no se necesita código o ya se autorizó)
-    //     try {
-    //         // **IMPORTANTE**: Asegúrate de que `route('asignaciones.store')` es correcto
-    //         const response = await fetch(route('asignaciones.store'), {
-    //             method: 'POST',
-    //             body: JSON.stringify(form),
-    //             headers: { 'Content-Type': 'application/json' },
-    //         });
-
-    //         if (!response.ok) {
-    //             const errorText = await response.text();
-    //             toast.error(`Error al registrar el movimiento: ${errorText}. Vuelve a intentar el proceso.`);
-    //             throw new Error("Respuesta no ok");
-    //         }
-
-    //         // Éxito en la creación
-    //         toast.success("Se ha creado un movimiento con éxito");
-
-    //         // Restablecer el formulario (manteniendo el ID de usuario)
-    //         setForm({ ...initialFormState, user: userObject.Personas_usuarioID });
-
-    //         // Recargar datos
-    //         getAllData();
-    //         setRequests(prevRequests => ({
-    //             ...prevRequests,
-    //             UltimosMovimientos: [], // Limpiar historial
-    //         }));
-
-    //     } catch (err) {
-    //         console.error('Error al crear el movimiento:', err);
-    //     } finally {
-    //         setIsSubmitting(false);
-    //     }
-    // };
-
-    const CrearAsignacion = async () => {
-
-        setIsSubmitting(true);
-
-
-
-        const refaccionesNecesarias = form.checklist.some(item => item.observacion === "No");
-
-
-
+    const getAllData = async () => {
         try {
+            const quien = await fetch(route("QuienconQuienControl", { id: form.movementType })).then(res => res.json());
+            setRequests(prevRequests => ({
+                ...prevRequests,
+                QuienconQuienControl: quien,
+            }));
+        } catch (error) {
+            console.error("Error al obtener QuienconQuienControl:", error);
+            toast.error('Error al cargar datos de control.');
+        }
+    };
 
-            // Lógica final de envío de asignación
+    const handleIncidenciasChange = (incidencias) => {
+        // 2. Almacenamos el estado actualizado que viene del hijo
+        setSelectedIncidencias(incidencias);
 
-            const response = await fetch(route('asignaciones.store'), {
+        // **FILTRO CLAVE: Solo mantenemos las incidencias donde 'observacion' es estrictamente "No"**
+        const incidenciasSoloNo = incidencias.filter(
+            (incidencia) => incidencia.observacion === "No"
+        );
 
-                method: 'POST',
+        setForm(prevForm => {
+            const checklistSinHijos = prevForm.checklist.filter(item => item.hijo !== true);
+            const checklistMap = new Map(
+                checklistSinHijos.map(item => [item.id, item])
+            );
 
-                body: JSON.stringify(form),
-
-                headers: { 'Content-Type': 'application/json' },
-
+            incidenciasSoloNo.forEach(newIncidencia => {
+                if (!checklistMap.has(newIncidencia.id)) {
+                    checklistMap.set(newIncidencia.id, newIncidencia);
+                }
             });
 
-
-
-            if (!response.ok) {
-
-                const errorText = await response.text();
-
-                toast.error(`Error al registrar el movimiento: ${errorText}. Vuelve a intentar el proceso.`);
-
-                throw new Error("Respuesta no ok");
-
-            }
-
-
-
-            if (refaccionesNecesarias) {
-
-
-
-            } else {
-
-                toast.success("Se ha creado un movimiento con éxito");
-
-                setForm({ ...initialFormState, authorizationCode: form.authorizationCode });
-
-                getAllData();
-
-                setRequests(prevRequests => ({
-
-                    ...prevRequests,
-
-                    UltimosMovimientos: [],
-
-                }));
-
-
-
-            }
-
-
-
-        } catch (err) {
-
-            console.error('Error al crear el movimiento:', err);
-
-            // El error ya fue notificado con toast.error previamente
-
-        } finally {
-
-            setIsSubmitting(false);
-
-        }
-
-
-
-
-
-        if (refaccionesNecesarias) {
-
-            // try {
-
-            toast.info("Solicitando código de autorización...");
-
-
-
-
-
-            setForm(prevForm => ({
-
-                ...prevForm,
-
-                kilometers: ''
-
-            }));
-
-
-
-            openAuthorizationModal();
-
-            toast.info("Código de autorización enviado. Ingrésalo en la ventana emergente.");
-
-        }
-
-    };
-
-
-
-    const handleChecklistToggle = (listId, statusValue) => {
-        setForm(prevForm => {
-            const currentChecklist = prevForm.checklist;
-            const listIdString = listId.toString();
-            const existingIndex = currentChecklist.findIndex(item => item.id === listIdString);
-            let newChecklist;
-
-            if (existingIndex > -1) {
-                newChecklist = currentChecklist.map((item, index) =>
-                    index === existingIndex
-                        ? { ...item, observacion: statusValue }
-                        : item
-                );
-            } else {
-                const newItem = {
-                    id: listIdString,
-                    observacion: statusValue
-                };
-                newChecklist = [...currentChecklist, newItem];
-            }
-
+            const nuevoChecklistUnico = Array.from(checklistMap.values());
             return {
-                ...prevForm,
-                checklist: newChecklist,
+                ...prevForm, // Conserva las demás propiedades del formulario
+                checklist: nuevoChecklistUnico, // Reemplaza el 'checklist' con el nuevo array único
             };
         });
-    };
 
-    const setMovementType = (type) => {
-        // Resetea gran parte del formulario al cambiar el tipo de movimiento
-        setForm(prev => ({
-            ...initialFormState,
-            movementType: type,
-            user: userObject.Personas_usuarioID,
-            authorizationCode: '' // Limpiar código de autorización al cambiar tipo
-        }));
-        setRequests(prevRequests => ({
-            ...prevRequests,
-            UltimosMovimientos: [],
-            QuienconQuienControl: [] // Esto se recarga en el useEffect
-        }));
     };
 
     const ToggleButton = ({ label, isActive, onClick }) => (
@@ -566,80 +563,6 @@ const RegistroYSalidaUnificado = () => {
             {label}
         </button>
     );
-
-    // Efecto para buscar datos de QuienConQuienControl cuando cambia la unidad
-    useEffect(() => {
-        const selectedUnitId = Number(form.unit);
-
-        // Buscar la unidad y el chofer
-        const Unidad = requests.Unidades.find(u => u.Unidades_unidadID === selectedUnitId);
-        const Chofer = requests.Choferes.find(C => C.Personas_usuarioID === Number(form.driver));
-
-        let nombreUnidad = '';
-        let nombreOperador = '';
-
-        if (Unidad) {
-            nombreUnidad = Unidad.Unidades_numeroEconomico;
-        }
-
-        if (Chofer) {
-            nombreOperador = Chofer.nombre_completo || '';
-        }
-
-        // Buscar información en QuienconQuienControl
-        const QuienConQuien = requests.QuienconQuienControl.find(u => Number(u.CUA_unidadID) === selectedUnitId);
-
-        if (QuienConQuien) {
-            setForm(prevForm => ({
-                ...prevForm,
-                motive: QuienConQuien.CUA_motivoID,
-                destination: QuienConQuien.CUA_destino,
-                driver: QuienConQuien.CUA_choferID,
-                // kilometers se carga en fetchUltimosMovimientos
-            }));
-
-            if (QuienConQuien.EstatusCodigo === "1") {
-                openAuthorizationModal(); // Descomentar si el estatus 1 debe abrir el modal automáticamente
-            }
-
-        } else {
-            // Limpiar campos relacionados si la unidad no está en CQC
-            setForm(prevForm => ({
-                ...prevForm,
-                motive: '',
-                destination: '',
-                driver: '',
-            }));
-        }
-
-        setInformacion(prevInfo => ({
-            ...prevInfo,
-            NombreUnidad: nombreUnidad,
-            NombreOperador: nombreOperador,
-        }));
-
-    }, [form.unit, requests.Unidades, requests.Choferes, requests.QuienconQuienControl, userObject.Personas_usuarioID]);
-
-    // Efecto para obtener QuienconQuienControl al cambiar el tipo de movimiento
-    const getAllData = async () => {
-        try {
-            // **IMPORTANTE**: Asegúrate de que `route("QuienconQuienControl")` es correcto
-            const quien = await fetch(route("QuienconQuienControl", { id: form.movementType })).then(res => res.json());
-
-            setRequests(prevRequests => ({
-                ...prevRequests,
-                QuienconQuienControl: quien,
-            }));
-        } catch (error) {
-            console.error("Error al obtener QuienconQuienControl:", error);
-            toast.error('Error al cargar datos de control.');
-        }
-    };
-
-    useEffect(() => {
-        getAllData();
-    }, [form.movementType]);
-
 
     const ConditionToggle = ({ label, name, currentValue, onToggle, isCritical = false }) => (
         <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
@@ -677,29 +600,99 @@ const RegistroYSalidaUnificado = () => {
         </div>
     );
 
-    // Condición de habilitación del botón: KM es válido solo si es mayor al último en ENTRADA
-    const isKmValid = form.movementType === 'SALIDA' ? true : form.kilometers > informacion.UltimoKilometraje;
+    useEffect(() => {
+        loadAllData();
+    }, []);
 
-    // Condición de validación básica del formulario
-    const isFormValid = (
-        form.unit !== '' &&
-        form.driver !== '' &&
-        form.destination !== '' &&
-        form.motive !== '' &&
-        isKmValid &&
-        form.combustible !== ''
-    );
+    useEffect(() => {
+        if (isModalOpen === false) {
+            setInformacion(ESTADO_INICIAL);
 
-    // Texto del botón
-    const buttonText = isSubmitting
-        ? 'PROCESANDO...'
-        : form.estatusCode === 1 && !form.authorizationCode
-            ? 'SOLICITAR AUTORIZACIÓN'
-            : 'REGISTRAR MOVIMIENTO';
+            setRequests(prevRequests => ({
+                ...prevRequests,
+                UltimosMovimientos: [],
+            }));
+
+            setForm(initialFormState)
+        }
+    }, [isModalOpen]);
+
+    useEffect(() => {
+        if (form.unit) fetchUltimosMovimientos(form.unit);
+    }, [form.unit]);
+
+    // Efecto para determinar si se necesita autorización (estatusCode)
+    useEffect(() => {
+        // Determinar si existe al menos un elemento con observación "No"
+        const hasNoObservation = form.checklist.some(item => item.observacion === "No");
+        // 1 (Requiere autorización) si hay "No", 0 (No requiere) si todos son "Sí"
+        const newStatusCode = hasNoObservation ? 1 : 0;
+        // Si el estatus cambia de 1 a 0, se limpia el código de autorización
+        if (newStatusCode === 0 && form.estatusCode === 1) {
+            setForm(prevForm => ({
+                ...prevForm,
+                authorizationCode: '',
+                estatusCode: newStatusCode
+            }));
+        } else {
+            setForm(prevForm => ({
+                ...prevForm,
+                estatusCode: newStatusCode
+            }));
+        }
+    }, [form.checklist, setForm])
+
+    // Efecto para buscar datos de QuienConQuienControl cuando cambia la unidad
+    useEffect(() => {
+        const selectedUnitId = Number(form.unit);
+        // Buscar la unidad y el chofer
+        const Unidad = requests.Unidades.find(u => u.Unidades_unidadID === selectedUnitId);
+        const Chofer = requests.Choferes.find(C => C.Personas_usuarioID === Number(form.driver));
+        let nombreUnidad = '';
+        let nombreOperador = '';
+        if (Unidad) {
+            nombreUnidad = Unidad.Unidades_numeroEconomico;
+        }
+        if (Chofer) {
+            nombreOperador = Chofer.nombre_completo || '';
+        }
+        // Buscar información en QuienconQuienControl
+        const QuienConQuien = requests.QuienconQuienControl.find(u => Number(u.CUA_unidadID) === selectedUnitId);
+
+        if (QuienConQuien) {
+            setForm(prevForm => ({
+                ...prevForm,
+                motive: Number(QuienConQuien.CUA_motivoID),
+                destination: Number(QuienConQuien.CUA_destino),
+                driver: Number(QuienConQuien.CUA_choferID),
+                // kilometers se carga en fetchUltimosMovimientos
+            }));
+            if (QuienConQuien.EstatusCodigo === "1") {
+                openAuthorizationModal(); // Descomentar si el estatus 1 debe abrir el modal automáticamente
+            }
+        } else {
+            // Limpiar campos relacionados si la unidad no está en CQC
+            setForm(prevForm => ({
+                ...prevForm,
+                motive: '',
+                destination: '',
+                driver: '',
+            }));
+        }
+        setInformacion(prevInfo => ({
+            ...prevInfo,
+            NombreUnidad: nombreUnidad,
+            NombreOperador: nombreOperador,
+        }));
+    }, [form.unit, requests.Unidades, requests.Choferes, requests.QuienconQuienControl, userObject.Personas_usuarioID]);
+
+    useEffect(() => {
+        getAllData();
+    }, [form.movementType]);
 
     return (
-        <div className="flex flex-col gap-4 pb-4">
-
+        <div className="flex flex-col h-[100dvh] gap-4 pb-4">
+            {/* <button onClick={() =>setIsModalOpen(true)}>smn</button> */}
             {/* RENDERIZAR EL MODAL DE AUTORIZACIÓN */}
             <AuthorizationModal
                 isOpen={isModalOpen}
@@ -708,11 +701,46 @@ const RegistroYSalidaUnificado = () => {
                 data={form}
             />
 
+            <Dialog
+                open={isOpen}
+                onClose={closeModal}
+                className="relative z-50"
+            >
+                {/* Overlay (Fondo oscuro) */}
+                <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+                {/* Contenedor del Dialog (Centrado) */}
+                <div className="fixed inset-0 flex w-full items-center justify-center p-4">
+                    <DialogPanel className="w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl relative" style={{ height: '90vh' }}>
+                        <DialogTitle className="text-lg font-bold border-b pb-2 mb-4">
+                            Lista de Verificación de Incidencias del Vehículo
+                        </DialogTitle>
+
+                        {/* Botón de cerrar dentro del modal */}
+                        <button
+                            onClick={closeModal}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                            aria-label="Cerrar modal"
+                        >
+                            ❌
+                        </button>
+
+                        {/* 💡 Integración del Subcomponente */}
+                        <div style={{ height: 'calc(100% - 60px)' }}>
+                            <ComponenteVerificacion
+                                initialIncidencias={selectedIncidencias}
+                                onIncidenciasChange={handleIncidenciasChange}
+                                onClose={closeModal}
+                            />
+
+                        </div>
+
+                    </DialogPanel>
+                </div>
+            </Dialog>
+
             {/* CONTENIDO PRINCIPAL - Opacidad reducida si el modal está abierto */}
             <div className={`${isModalOpen ? 'opacity-50 pointer-events-none' : ''}`}>
-
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-6">📝 Registro Único de Movimientos</h1>
-
+                <h1 className="text-3xl font-extrabold text-gray-900 mb-6">Registro Único de Movimientos</h1>
                 {/* Encabezado General */}
                 <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-md mb-8">
                     <div className="text-lg font-bold text-gray-800">Unidad: <span className="text-blue-600">
@@ -749,8 +777,8 @@ const RegistroYSalidaUnificado = () => {
                             <SelectInput
                                 label="Motivo"
                                 value={form.motive}
-                                onChange={(event) => {
-                                    setForm({ ...form, motive: event.target.value });
+                                onChange={(value) => {
+                                    setForm({ ...form, motive: value });
                                 }}
                                 options={requests.Motivos}
                                 placeholder="Seleccionar motivo..."
@@ -760,24 +788,37 @@ const RegistroYSalidaUnificado = () => {
                             />
 
                             {/* SELECT Unidad */}
-                            <SelectInput
-                                label="Unidad (Número Económico)"
-                                value={form.unit}
-                                onChange={(event) => {
-                                    setForm({ ...form, unit: event.target.value });
-                                    setForm(prevForm => ({ ...prevForm, authorizationCode: '' })); // Limpiar autorización al cambiar unidad
-                                }}
-                                options={requests.QuienconQuienControl}
-                                placeholder="Seleccionar unidad..."
-                                valueKey="CUA_unidadID"
-                                labelKey="Unidades_numeroEconomico"
-                            />
+                            <div>
+                                <SelectInput
+                                    label="Unidad (Número Económico)"
+                                    value={form.unit}
+                                    onChange={(value) => {
+                                        setForm({ ...form, unit: value });
+                                        setForm(prevForm => ({ ...prevForm, authorizationCode: '' })); // Limpiar autorización al cambiar unidad
+                                    }}
+                                    options={requests.QuienconQuienControl}
+                                    placeholder="Seleccionar unidad..."
+                                    valueKey="CUA_unidadID"
+                                    labelKey="Unidades_numeroEconomico"
+
+                                    // LÓGICA CORREGIDA: Se deshabilita si el array está vacío o no cargado.
+                                    // Se asume que esta era la intención original.
+                                    disabled={!requests.QuienconQuienControl?.length}
+                                />
+
+                                {/* Mensaje de error/información si NO hay unidades */}
+                                {requests.QuienconQuienControl && requests.QuienconQuienControl.length === 0 && (
+                                    <p className="text-xs text-red-500">
+                                        No hay unidades disponibles para seleccionar.
+                                    </p>
+                                )}
+                            </div>
 
                             {/* SELECT Chofer / Ayudante */}
                             <SelectInput
                                 label="Chofer / Ayudante"
                                 value={form.driver}
-                                onChange={(event) => { setForm({ ...form, driver: event.target.value }); }}
+                                onChange={(value) => { setForm({ ...form, driver: value }); }}
                                 options={requests.Choferes}
                                 placeholder="Seleccionar Chofer / ayudante"
                                 valueKey="Personas_usuarioID"
@@ -789,7 +830,7 @@ const RegistroYSalidaUnificado = () => {
                             <SelectInput
                                 label="Destino"
                                 value={form.destination}
-                                onChange={(event) => { setForm({ ...form, destination: event.target.value }); }}
+                                onChange={(value) => { setForm({ ...form, destination: value }); }}
                                 options={requests.Destinos}
                                 placeholder="Seleccionar destino..."
                                 valueKey="Destinos_Id"
@@ -801,7 +842,7 @@ const RegistroYSalidaUnificado = () => {
                             <SelectInput
                                 label="Combustible"
                                 value={form.combustible}
-                                onChange={(event) => { setForm({ ...form, combustible: event.target.value }); }}
+                                onChange={(value) => { setForm({ ...form, combustible: value }); }}
                                 options={FUEL_OPTIONS}
                                 placeholder="Seleccionar combustible"
                                 valueKey="escala_valor"
@@ -814,7 +855,7 @@ const RegistroYSalidaUnificado = () => {
                                     Kilometraje Actual
                                 </label>
 
-                                <input
+                                <TextInput
                                     type="number"
                                     name="kilometers"
                                     value={form.kilometers}
@@ -853,9 +894,23 @@ const RegistroYSalidaUnificado = () => {
                         </div>
 
                         {/* Checklist y Condiciones */}
-                        <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Checklist y Condiciones</h2>
-                        <div className="grid grid-cols-1 gap-x-8 gap-y-2 mb-6 p-3 border border-gray-200 rounded-lg max-h-60 overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4 border-b pb-2">
+                            {/* Encabezado a la Izquierda */}
+                            <h2 className="text-lg font-bold text-gray-800">
+                                Checklist
+                            </h2>
 
+                            <button
+                                className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-200 
+                                    bg-[#3b82f6] text-white shadow-lg
+                                   `}
+
+                                onClick={openModal}
+                            >
+                                Condiciones de la unidad
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 gap-x-8 gap-y-2 mb-6 p-3 border border-gray-200 rounded-lg max-h-60 overflow-y-auto">
                             {requests.ListasVerificacion.map((item) => {
                                 const listId = item.ListaVerificacion_listaID.toString();
 
@@ -896,66 +951,48 @@ const RegistroYSalidaUnificado = () => {
                     {/* === COLUMNA DERECHA: RESUMEN Y EVIDENCIAS === */}
                     <div className="bg-white p-6 rounded-xl shadow-lg">
                         <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Resumen y Evidencias</h2>
-
                         {/* Resumen de Datos (enlazados al estado actual) */}
                         <div className="flex flex-col gap-2 mb-6 p-3 border border-gray-200 rounded-lg">
                             <h3 className="text-md font-semibold text-gray-700">Datos Clave</h3>
                             <ResumenItem label="Tipo de Movimiento" value={form.movementType} />
                             <ResumenItem label="Unidad" value={informacion.NombreUnidad || '—'} />
                             <ResumenItem label="Chofer" value={informacion.NombreOperador || '—'} />
-
                             <hr className="my-1 border-gray-100" />
-
                             <ResumenItem
                                 label="Motivo"
                                 value={(requests.Motivos.find(m => m.Motivos_motivoID === form.motive)?.Motivos_nombre) || '—'}
                             />
-
                             <ResumenItem
                                 label="Destino"
                                 value={(requests.Destinos.find(d => d.Destinos_Id === form.destination)?.Destinos_Nombre) || '—'}
                             />
-
                             <hr className="my-1 border-gray-100" />
-
                             <ResumenItem label="Kilometraje Registrado" value={`${form.kilometers} km`} />
                             <ResumenItem
                                 label="Nivel Combustible"
                                 value={FUEL_OPTIONS.find(f => f.escala_valor == form.combustible)?.nombre || '—'}
                             />
-
                             <hr className="my-1 border-gray-100" />
-
                             <div className="flex justify-between items-center py-1">
                                 <span className="text-sm font-medium text-gray-600">Fallas Detectadas</span>
                                 <span className={`text-sm font-bold ${form.estatusCode === 1 ? 'text-red-600' : 'text-green-600'}`}>
                                     {form.estatusCode === 1 ? 'Sí (Requiere Autorización)' : 'No'}
                                 </span>
                             </div>
-
                         </div>
 
                         {/* DATATABLE de Últimos Movimientos */}
                         <h3 className="text-md font-semibold text-gray-700 mb-2">Historial Reciente de Unidad</h3>
                         <div className="overflow-x-auto">
                             <Datatable
-
                                 data={requests.UltimosMovimientos}
-
                                 virtual={true}
-
                                 searcher={false}
-
                                 columns={[
-
                                     { header: 'Tipo', width: '25%', accessor: 'Movimientos_tipoMovimiento' },
-
                                     { header: 'Fecha', width: '25%', accessor: 'Movimientos_fecha' },
-
                                     { header: 'KM', width: '25%', accessor: 'Movimientos_kilometraje' },
-
                                     { header: 'Chofer', width: '25%', accessor: 'nombre_chofer' },
-
                                 ]}
 
                             />

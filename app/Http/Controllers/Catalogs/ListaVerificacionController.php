@@ -19,7 +19,9 @@ class ListaVerificacionController extends Controller
         'ListaVerificacion_nombre'       => 'required|string|max:255',
         'ListaVerificacion_tipo'         => 'required',
         'ListaVerificacion_observaciones' => 'required|string', // Cambiado a 'string'
-        // 'ListaVerificacion_usuarioID'    => 'required|integer', // Asumiendo que es un ID de usuario entero
+        'ListaVerificacion_usuarioID'    => 'required|integer', // Asumiendo que es un ID de usuario entero
+        'ListaVerificacion_imgVehiculo'    => 'required|integer', // Asumiendo que es un ID de usuario entero
+
     ];
 
     /**
@@ -36,22 +38,21 @@ class ListaVerificacionController extends Controller
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     * Almacena un recurso de CatalogosListaVerificacion recién creado en la base de datos.
-     */
+     public function CondicionesUnidad(): JsonResponse
+    {
+        try {
+            $listas = ListaVerificacion::with('usuario')->where('ListaVerificacion_imgVehiculo',false)->get();
+            return response()->json($listas);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al obtener las listas de verificación.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
     public function store(Request $request): JsonResponse
     {
         try {
-            $user = $request->user();
-
             $validatedData = $request->validate($this->validationRules);
-
-            $validatedData['ListaVerificacion_usuarioID'] = $user->Personas_usuarioID;
-
-            // 2. Crear el nuevo registro (Mass Assignment seguro debido a $fillable)
             $lista = ListaVerificacion::create($validatedData);
-
             // 3. Devolver el recurso creado
             return response()->json($lista, 201);
         } catch (ValidationException $e) {

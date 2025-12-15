@@ -221,31 +221,21 @@ export default function QuienConQuienTransporte() {
                             handleRowUpdating={updateWhoRow}
                             editingMode={{ mode: "cell", allowUpdating: true }}
                             columns={
-
-
                                 [
                                     {
                                         header: "Estatus",
                                         accessor: "Unidades_estatus",
                                         width: '5%',
                                         cell: ({ item: { CUA_choferID, CUA_motivoID, CUA_destino, UltimoMovimiento } }) => {
-                                            // (La función hasData debe estar definida fuera de este array)
-
                                             const allDataPresent = hasData(CUA_choferID) && hasData(CUA_motivoID) && hasData(CUA_destino);
-
                                             let color = "bg-red-300"; // ROJO: Por defecto o si faltan datos
-
                                             if (allDataPresent) {
                                                 if (UltimoMovimiento === "SALIDA") {
                                                     color = "bg-green-300"; // VERDE: Todo completo y SALIDA
                                                 } else if (UltimoMovimiento === "ENTRADA") {
                                                     color = "bg-yellow-300"; // AMARILLO: Todo completo y ENTRADA
                                                 }
-                                                // Si allDataPresent es true y UltimoMovimiento no es ni SALIDA ni ENTRADA,
-                                                // queda en el valor por defecto, que aquí debería ser manejado (ej. ROJO o un color neutro).
-                                                // Siguiendo tu lógica anterior, lo mantendría en ROJO si es incompleto o un estado no reconocido.
                                             }
-
                                             return (
                                                 <span className={`inline-flex items-center justify-center rounded-full ${color} w-4 h-4`} />
                                             );
@@ -259,7 +249,6 @@ export default function QuienConQuienTransporte() {
                                         width: '10%',
                                         editable: false
                                     },
-                                    // ... otras columnas (Choferes, Motivos, Destinos) ...
                                     {
                                         header: 'Choferes',
                                         accessor: 'CUA_choferID',

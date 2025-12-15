@@ -4,6 +4,7 @@
 
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RolesController;
+use App\Http\Controllers\Catalogs\CodigosController;
 use App\Http\Controllers\Catalogs\CorreosController;
 use App\Http\Controllers\Catalogs\DepartamentoController;
 use App\Http\Controllers\Catalogs\DestinosController;
@@ -72,6 +73,9 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
         'update'  // Registra el método update (PUT/PATCH)
     ]);
 
+
+    
+
     Route::resource('departamentos', DepartamentoController::class)->only([
         'index',  // Registra el método index (GET)
         'store',  // Registra el método store (POST)
@@ -86,10 +90,21 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
     ]);
 
 
+     Route::resource('codigos', CodigosController::class)->only([
+        'index',  // Registra el método index (GET)
+        'store',  // Registra el método store (POST)
+        'update'  // Registra el método update (PUT/PATCH)
+    ]);
+
+    // Route::get('menus-tree', [MenuController::class, 'getTree'])->name('menus-tree');
+
+
+
     // Route::get('user/menus', [UserController::class, 'menus'])->name('user.menus');
 
     Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menus');
 
+    Route::get('CondicionesUnidad', [ListaVerificacionController::class, 'CondicionesUnidad'])->name('CondicionesUnidad');
 
     Route::get('menus-tree', [MenuController::class, 'getTree'])->name('menus-tree');
     Route::get('QuienconQuienUnidades', [UnidadesController::class, 'QuienconQuienUnidades'])->name('QuienconQuienUnidades');

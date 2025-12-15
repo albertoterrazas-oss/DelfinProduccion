@@ -22,4 +22,9 @@ class CodigoAutorizacion extends Model
         'codigoAutorizacion_fecha',
         'codigoAutorizacion_estatus',
     ];
+
+     public function unidades()
+    {
+        return $this->belongsTo(Unidades::class,'codigoAutorizacion_idUnidad', 'Unidades_unidadID');
+    }
 }
