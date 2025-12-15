@@ -149,6 +149,27 @@ function ConfiguracionSMTPForm({ config, reloadConfig, isLoading }) {
         }
     };
 
+    const sendTestMail = async () => {
+        try {
+            const payload = {
+                correoEnvioNotificaciones_correoNotificacion: formData.smtp_correo,
+                correoEnvioNotificaciones_passwordCorreo: formData.smtp_password,
+                correoEnvioNotificaciones_host: formData.smtp_host,
+                correoEnvioNotificaciones_puerto: formData.smtp_port,
+                correoEnvioNotificaciones_seguridadSSL: formData.smtp_security,
+            };
+
+            // Usamos 'request'. Asumimos que lanza una excepción en caso de error (4xx/5xx)
+            await request(route("ConfiguracionCorreoStore"), "POST", payload);
+            toast.success("Correo enviado exitosamente.");
+        } catch (error) {
+            console.error("Error al guardar la configuración SMTP:", error);
+            toast.error(`Hubo un error al enviar el correo: ${error.message || 'Error de red o servidor.'}`);
+        } finally {
+
+        }
+    }
+
     return (
         <div className="bg-white p-6 rounded-xl shadow-lg border-2 border-blue-100 mb-6">
             {/* <h3 className="text-xl font-bold mb-4 text-blue-700">✉️ Configuración del Servidor de Correo (SMTP)</h3> */}
@@ -232,6 +253,13 @@ function ConfiguracionSMTPForm({ config, reloadConfig, isLoading }) {
                 </div>
 
                 <div className="md:col-span-2 lg:col-span-5 flex justify-end pt-2">
+                    <button
+                        disabled={isSaving || isLoading}
+                        className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+                        onClick={sendTestMail}
+                    >
+                        Enviar correo de prueba
+                    </button>
                     <button
                         type="submit"
                         disabled={isSaving || isLoading}
