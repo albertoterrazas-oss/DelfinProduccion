@@ -69,7 +69,7 @@ class RegistroEntradaController extends Controller
 
             // --- 3. Crear el Movimiento Principal ---
             $datosMovimiento = [
-                'Movimientos_fecha'          => Carbon::now()->format('Y-m-d H:i:s'),
+                'Movimientos_fecha'          => Carbon::now(),
                 'Movimientos_tipoMovimiento' => $request->movementType,
                 'Movimientos_asignacionID'   => $asignacion->CUA_asignacionID,
                 'Movimientos_kilometraje'    => $request->kilometers,
@@ -118,7 +118,7 @@ class RegistroEntradaController extends Controller
                     'codigoAutorizacion_idUsuarioSolicita'   => $request->user,
                     'codigoAutorizacion_motivo'              => $request->observation,
                     'codigoAutorizacion_fechaAut'            => null,
-                    'codigoAutorizacion_fecha'               => Carbon::now()->format('Y-m-d H:i:s'),
+                    'codigoAutorizacion_fecha'               => Carbon::now(),
                     'codigoAutorizacion_estatus'             => 1, // Pendiente
                 ];
 
@@ -154,7 +154,7 @@ class RegistroEntradaController extends Controller
                     'CUA_motivoID'          => null,
                     'CUA_destino'           => null,
                     'CUA_estatus'           => 1, // 1 = ACTIVO/EN PATIO/DISPONIBLE
-                    'CUA_fechaAsignacion'   => Carbon::now()->format('Y-m-d H:i:s')
+                    'CUA_fechaAsignacion'   => Carbon::now()
                 ];
                 ChoferUnidadAsignar::create($datosAsignacion);
             }
