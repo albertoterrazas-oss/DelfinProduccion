@@ -691,8 +691,8 @@ const RegistroYSalidaUnificado = () => {
     }, [form.movementType]);
 
     return (
-        <div className="flex flex-col h-[100dvh] gap-4 pb-4">
-            {/* <button onClick={() =>setIsModalOpen(true)}>smn</button> */}
+        // <div className="flex flex-col gap-4">
+        <>
             {/* RENDERIZAR EL MODAL DE AUTORIZACIÓN */}
             <AuthorizationModal
                 isOpen={isModalOpen}
@@ -740,6 +740,7 @@ const RegistroYSalidaUnificado = () => {
 
             {/* CONTENIDO PRINCIPAL - Opacidad reducida si el modal está abierto */}
             <div className={`${isModalOpen ? 'opacity-50 pointer-events-none' : ''}`}>
+                <button onClick={() =>setIsModalOpen(true)}>smn</button>
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-6">Registro Único de Movimientos</h1>
                 {/* Encabezado General */}
                 <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-md mb-8">
@@ -753,8 +754,7 @@ const RegistroYSalidaUnificado = () => {
                 </div>
 
                 {/* Contenedor Principal de las 2 Columnas */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
+                <div className="flex sm:flex-col gap-8">
                     <div className="bg-white p-6 rounded-xl shadow-lg">
                         <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Datos del Movimiento</h2>
 
@@ -947,7 +947,6 @@ const RegistroYSalidaUnificado = () => {
                         </button>
                     </div>
 
-
                     {/* === COLUMNA DERECHA: RESUMEN Y EVIDENCIAS === */}
                     <div className="bg-white p-6 rounded-xl shadow-lg">
                         <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Resumen y Evidencias</h2>
@@ -983,25 +982,26 @@ const RegistroYSalidaUnificado = () => {
 
                         {/* DATATABLE de Últimos Movimientos */}
                         <h3 className="text-md font-semibold text-gray-700 mb-2">Historial Reciente de Unidad</h3>
-                        <div className="overflow-x-auto">
-                            <Datatable
-                                data={requests.UltimosMovimientos}
-                                virtual={true}
-                                searcher={false}
-                                columns={[
-                                    { header: 'Tipo', width: '25%', accessor: 'Movimientos_tipoMovimiento' },
-                                    { header: 'Fecha', width: '25%', accessor: 'Movimientos_fecha' },
-                                    { header: 'KM', width: '25%', accessor: 'Movimientos_kilometraje' },
-                                    { header: 'Chofer', width: '25%', accessor: 'nombre_chofer' },
-                                ]}
+                        {/* <div className="overflow-x-auto"> */}
+                        <Datatable
+                            data={requests.UltimosMovimientos}
+                            virtual={true}
+                            searcher={false}
+                            columns={[
+                                { header: 'Tipo', width: '25%', accessor: 'Movimientos_tipoMovimiento' },
+                                { header: 'Fecha', width: '25%', accessor: 'Movimientos_fecha' },
+                                { header: 'KM', width: '25%', accessor: 'Movimientos_kilometraje' },
+                                { header: 'Chofer', width: '25%', accessor: 'nombre_chofer' },
+                            ]}
 
-                            />
-                        </div>
+                        />
+                        {/* </div> */}
 
                     </div>
                 </div>
             </div>
-        </div>
+        </>
+        // {/* </div> */ }
     );
 };
 

@@ -76,7 +76,7 @@ export default function Home({ auth }) {
 
                 {/** B. Área Desplazable de Rutas (Páginas) **/}
                 {/* flex-grow asegura que ocupe todo el espacio vertical restante después del Header */}
-                <div className="scrollable-content styled-scroll px-4">
+                <div className="scrollable-content px-4">
                     <Routes>
                         {
                             routes.map((route, index) => (

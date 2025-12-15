@@ -31,17 +31,20 @@ const TextInput = forwardRef(function TextInput({
             return;
         }
 
+        // Permitir punto inicial (se convertirá a "0.")
         if (inputValue === '.' && allowDecimals) {
             e.target.value = '0.';
             if (onChange) onChange(e);
             return;
         }
 
+        // Permitir guion para negativos
         if (inputValue === '-' && allowNegative) {
             if (onChange) onChange(e);
             return;
         }
 
+        // Regex que permite el punto
         let regex = allowNegative ? /^-?\d*\.?\d*$/ : /^\d*\.?\d*$/;
         if (!allowDecimals) {
             regex = allowNegative ? /^-?\d*$/ : /^\d*$/;
@@ -51,13 +54,22 @@ const TextInput = forwardRef(function TextInput({
             return;
         }
 
+        // Eliminar ceros a la izquierda excepto con punto
         if (inputValue.length > 1 && inputValue[0] === '0' && inputValue[1] !== '.') {
             inputValue = inputValue.replace(/^0+/, '');
             e.target.value = inputValue;
         }
 
+        // Manejar "-."
         if (inputValue === '-.' && allowDecimals && allowNegative) {
             e.target.value = '-0.';
+            if (onChange) onChange(e);
+            return;
+        }
+
+        // Si tiene punto pero no decimales después, dejar como string temporalmente
+        if (inputValue.endsWith('.')) {
+            // Dejar como string mientras escribe los decimales
             if (onChange) onChange(e);
             return;
         }
@@ -65,12 +77,12 @@ const TextInput = forwardRef(function TextInput({
         const numValue = parseFloat(inputValue);
 
         if (!isNaN(numValue)) {
-            if (min !== undefined && numValue < min && inputValue !== '' && inputValue !== '-') {
-                return;
-            }
-            if (max !== undefined && numValue > max) {
-                return;
-            }
+            // if (min !== undefined && numValue < min && inputValue !== '' && inputValue !== '-') {
+            //     return;
+            // }
+            // if (max !== undefined && numValue > max) {
+            //     return;
+            // }
 
             const syntheticEvent = {
                 ...e,
