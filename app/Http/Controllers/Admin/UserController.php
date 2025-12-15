@@ -74,7 +74,7 @@ class UserController extends Controller
         $rules = [
             'Personas_nombres'     => 'required|string|max:255',
             'Personas_apPaterno'   => 'required|string|max:255',
-            'Personas_correo'      => 'required|string|email|max:255',
+            // 'Personas_correo'      => 'required|string|email|max:255',
             'usuario_idRol'        => 'required',
         ];
 
@@ -214,7 +214,7 @@ class UserController extends Controller
         $rules = [
             'Personas_nombres'     => 'required|string|max:255',
             'Personas_apPaterno'   => 'required|string|max:255',
-            'Personas_correo'      => 'required|string|email|max:255',
+            // 'Personas_correo'      => 'required|string|email|max:255',
             'usuario_idRol'        => 'required',
         ];
 

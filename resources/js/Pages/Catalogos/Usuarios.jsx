@@ -29,12 +29,21 @@ const route = (name, params = {}) => {
 
 // Función DUMMY de validación (usada en el componente Usuarios)
 const validateInputs = (validations, data) => {
+    console.log({ user: validations.Personas_usuario, pass: validations.Personas_contrasena })
     let formErrors = {};
 
     // Validación de prueba básica:
     if (validations.Personas_nombres && !data.Personas_nombres?.trim()) formErrors.Personas_nombres = 'El nombre es obligatorio.';
-    if (validations.Personas_usuario && !data.Personas_usuario?.trim()) formErrors.Personas_usuario = 'El usuario es obligatorio.';
+    // if (validations.Personas_usuario && !data.Personas_usuario?.trim()) formErrors.Personas_usuario = 'El usuario es obligatorio.';
     if (validations.usuario_idRol && !data.usuario_idRol?.trim()) formErrors.usuario_idRol = 'El rol es obligatorio.';
+
+    const isUserRequired = typeof validations.Personas_usuario === 'function'
+        ? validations.Personas_usuario(data)
+        : validations.Personas_usuario;
+
+    if (isUserRequired && !data.Personas_usuario?.trim()) {
+        formErrors.Personas_usuario = 'El usuario es obligatorio.';
+    }
 
     // Corrección para usar la validación condicional de la contraseña:
     const isPasswordRequired = typeof validations.Personas_contrasena === 'function'
@@ -58,10 +67,6 @@ const validateInputs = (validations, data) => {
         formErrors.Personas_contrasena = 'La contraseña es obligatoria en creación.';
     }
 
-
-
-
-
     if (data.Personas_correo && !/\S+@\S+\.\S+/.test(data.Personas_correo)) {
         formErrors.Personas_correo = 'El correo no es válido.';
     }
@@ -75,7 +80,7 @@ const userValidations = {
     Personas_usuario: (data) => data.userCheck,
     Personas_puesto: true,
     // Contraseña solo es obligatoria si no existe un ID (creación)
-    Personas_contrasena: (data) => !data.Personas_usuarioID || data.userCheck,
+    Personas_contrasena: (data) => /* !data.Personas_usuarioID ||  */data.userCheck,
     Personas_correo: true,
     usuario_idRol: true
 };
