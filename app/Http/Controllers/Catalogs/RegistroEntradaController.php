@@ -353,11 +353,19 @@ class RegistroEntradaController extends Controller
 
     public function configEmail(): void
     {
-        $host = env('MAIL_HOST');
-        $port = (int) env('MAIL_PORT'); // Asegurar que sea entero
-        $username = env('MAIL_USERNAME');
-        $password = env('MAIL_PASSWORD');
-        $encryption = env('MAIL_ENCRYPTION', 'ssl');
+        $correo = ConfiguracionCorreo::latest()->first();
+        // $host = env('MAIL_HOST');
+        // $port = (int) env('MAIL_PORT'); // Asegurar que sea entero
+        // $username = env('MAIL_USERNAME');
+        // $password = env('MAIL_PASSWORD');
+        // $encryption = env('MAIL_ENCRYPTION', 'ssl');
+        $host = $correo->correoEnvioNotificaciones_host;
+        $port = $correo->correoEnvioNotificaciones_puerto; // Asegurar que sea entero
+        $username = $correo->correoEnvioNotificaciones_correoNotificacion;
+        $password = $correo->correoEnvioNotificaciones_passwordCorreo;
+        $encryption = $correo->correoEnvioNotificaciones_seguridadSSL;
+
+        // correonotificacion
 
         // 2. Obtener la plantilla de configuración actual para el mailer 'smtp'.
         $config = config('mail.mailers.smtp');
