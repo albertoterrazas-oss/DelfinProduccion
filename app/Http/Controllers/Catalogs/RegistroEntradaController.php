@@ -9,6 +9,7 @@ use App\Models\Catalogos\Unidades;
 use App\Models\User;
 use App\Models\Catalogos\ChoferUnidadAsignar;
 use App\Models\Catalogos\CodigoAutorizacion;
+use App\Models\Catalogos\ConfiguracionCorreo as CatalogosConfiguracionCorreo;
 use App\Models\Catalogos\CorreoNotificacion;
 use App\Models\Catalogos\IncidenciasMovimiento;
 use App\Models\Catalogos\ListaVerificacion;
@@ -69,7 +70,7 @@ class RegistroEntradaController extends Controller
 
             // --- 3. Crear el Movimiento Principal ---
             $datosMovimiento = [
-                'Movimientos_fecha'          => Carbon::now(),
+                'Movimientos_fecha'          => DB::raw('GETDATE()'),
                 'Movimientos_tipoMovimiento' => $request->movementType,
                 'Movimientos_asignacionID'   => $asignacion->CUA_asignacionID,
                 'Movimientos_kilometraje'    => $request->kilometers,
@@ -78,6 +79,8 @@ class RegistroEntradaController extends Controller
                 'Movimientos_usuarioID'      => $request->user,
                 'Movimientos_estatus'        => $request->estatusCode,
             ];
+
+            // dd($datosMovimiento);
 
             $movimiento = Movimientos::create($datosMovimiento);
 
@@ -118,7 +121,7 @@ class RegistroEntradaController extends Controller
                     'codigoAutorizacion_idUsuarioSolicita'   => $request->user,
                     'codigoAutorizacion_motivo'              => $request->observation,
                     'codigoAutorizacion_fechaAut'            => null,
-                    'codigoAutorizacion_fecha'               => Carbon::now(),
+                    'codigoAutorizacion_fecha'               => DB::raw('GETDATE()'),
                     'codigoAutorizacion_estatus'             => 1, // Pendiente
                 ];
 
@@ -154,7 +157,7 @@ class RegistroEntradaController extends Controller
                     'CUA_motivoID'          => null,
                     'CUA_destino'           => null,
                     'CUA_estatus'           => 1, // 1 = ACTIVO/EN PATIO/DISPONIBLE
-                    'CUA_fechaAsignacion'   => Carbon::now()
+                    'CUA_fechaAsignacion'   => DB::raw('GETDATE()')
                 ];
                 ChoferUnidadAsignar::create($datosAsignacion);
             }
@@ -166,18 +169,18 @@ class RegistroEntradaController extends Controller
                 'codigo_autorizacion' => $codigo_creado,
                 'incidencias_notificadas' => count($incidenciasGuardadas)
             ], 201);
-        } catch (\Exception $e) {
-            // Manejo de error
-            $errorMessage = $e->getMessage();
-
-            if (strpos($errorMessage, 'SQLSTATE[22007]') !== false) {
-                $errorMessage = 'Error de formato de fecha/hora. La base de datos no aceptó el valor para la columna de fecha. Por favor, verifique el formato (debe ser Y-m-d H:i:s).';
-            }
+        } catch (\Throwable $e) {
+            \Log::error('ERROR REAL MOVIMIENTOS', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
 
             return response()->json([
-                'message' => 'Ocurrió un error al intentar guardar el movimiento.',
-                'error' => $errorMessage,
-                'trace' => env('APP_DEBUG') ? $e->getTraceAsString() : 'Detalles de error ocultos.'
+                'message' => 'Error interno',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -353,7 +356,7 @@ class RegistroEntradaController extends Controller
 
     public function configEmail(): void
     {
-        $correo = ConfiguracionCorreo::latest()->first();
+        $correo = CatalogosConfiguracionCorreo::latest()->first();
         // $host = env('MAIL_HOST');
         // $port = (int) env('MAIL_PORT'); // Asegurar que sea entero
         // $username = env('MAIL_USERNAME');
