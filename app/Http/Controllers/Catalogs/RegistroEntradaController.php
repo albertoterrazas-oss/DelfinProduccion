@@ -356,7 +356,7 @@ class RegistroEntradaController extends Controller
 
     public function configEmail(): void
     {
-        $correo = CatalogosConfiguracionCorreo::latest()->first();
+        $correo = CatalogosConfiguracionCorreo::orderBy('correoEnvioNotificaciones_id', 'desc')->first();
         // $host = env('MAIL_HOST');
         // $port = (int) env('MAIL_PORT'); // Asegurar que sea entero
         // $username = env('MAIL_USERNAME');
