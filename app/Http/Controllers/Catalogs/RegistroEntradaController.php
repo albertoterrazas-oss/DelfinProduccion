@@ -207,7 +207,7 @@ class RegistroEntradaController extends Controller
                 'codigoAutorizacion_motivo'          => $request->observation,
                 'codigoAutorizacion_fechaAut'        => null, // Aún no autorizado
                 // Usar 'Y-m-d H:i:s' es el formato estándar de MySQL, que es más seguro
-                'codigoAutorizacion_fecha'           => Carbon::now()->format('Y-m-d H:i:s'),
+                'codigoAutorizacion_fecha'           => DB::raw('GETDATE()'),
                 'codigoAutorizacion_estatus'         => 1, // Por ejemplo, 'Pendiente'
             ];
 
@@ -294,7 +294,7 @@ class RegistroEntradaController extends Controller
             // 5. Marcar el código de autorización como usado/autorizado
             $latestCodeEntry->codigoAutorizacion_estatus = 0; // e.g., 'Autorizado'
             $latestCodeEntry->codigoAutorizacion_idUsuarioAutoriza = auth()->check() ? auth()->id() : null; // Usar el usuario autenticado
-            $latestCodeEntry->codigoAutorizacion_fechaAut = now()->format('Y-m-d H:i:s');
+            $latestCodeEntry->codigoAutorizacion_fechaAut = DB::raw('GETDATE()');
             $latestCodeEntry->save();
 
             // 6. Obtener la ÚLTIMA asignación Chofer-Unidad
@@ -325,7 +325,7 @@ class RegistroEntradaController extends Controller
                     'CUA_motivoID'          => null,
                     'CUA_destino'           => null,
                     'CUA_estatus'           => 1, // 1 = ACTIVO/EN PATIO/DISPONIBLE
-                    'CUA_fechaAsignacion'   => Carbon::now()->format('Y-m-d H:i:s')
+                    'CUA_fechaAsignacion'   => DB::raw('GETDATE()')
                 ];
 
                 ChoferUnidadAsignar::create($datosAsignacion);
@@ -525,14 +525,14 @@ class RegistroEntradaController extends Controller
         if (!$asignacionExistente) {
             $datosAsignacion = array_merge($nuevosDatos, [
                 'CUA_unidadID' => $unidadID,
-                'CUA_fechaAsignacion' => Carbon::now()->format('Ymd H:i:s'),
+                'CUA_fechaAsignacion' => DB::raw('GETDATE()'),
                 'CUA_estatus' => 1,
             ]);
             ChoferUnidadAsignar::create($datosAsignacion);
         } else {
 
             $asignacionExistente->update(array_merge($nuevosDatos, [
-                'CUA_fechaAsignacion' => Carbon::now()->format('Ymd H:i:s'),
+                'CUA_fechaAsignacion' => DB::raw('GETDATE()'),
             ]));
         }
 
