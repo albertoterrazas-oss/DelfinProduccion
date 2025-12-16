@@ -87,6 +87,7 @@ function ConfiguracionSMTPForm({ config, reloadConfig, isLoading }) {
     // Usamos el estado local, inicializado con la prop 'config' que viene del padre
     const [formData, setFormData] = useState(config || initialSMTPConfig);
     const [isSaving, setIsSaving] = useState(false);
+    const [sending, setSending] = useState(false);
     const [errors, setErrors] = useState({});
 
     // Sincroniza el estado local cuando la prop 'config' cambia (ej. después de cargarse inicialmente)
@@ -148,6 +149,19 @@ function ConfiguracionSMTPForm({ config, reloadConfig, isLoading }) {
             setIsSaving(false);
         }
     };
+
+    const sendMailTest = async () => {
+        setSending(true);
+        try {
+            await request(route("sendMailTest"), "POST", {});
+            toast.success("Correo de prueba enviado con éxito.");
+        } catch (error) {
+            console.error("Error al enviar el correo de prueba:", error);
+            toast.error(`Error al enviar el correo de prueba: ${error.message || 'Error de red o servidor.'}`);
+        } finally {
+            setSending(false);
+        }
+    }
 
     return (
         <div className="bg-white p-6 rounded-xl shadow-lg border-2 border-blue-100 mb-6">
@@ -231,7 +245,14 @@ function ConfiguracionSMTPForm({ config, reloadConfig, isLoading }) {
                     {errors.smtp_security && <p className="mt-1 text-xs text-red-500">{errors.smtp_security}</p>}
                 </div>
 
-                <div className="md:col-span-2 lg:col-span-5 flex justify-end pt-2">
+                <div className="md:col-span-2 lg:col-span-5 flex justify-end pt-2 gap-4">
+                    <button
+                        onClick={sendMailTest}
+                        disabled={sending}
+                        className="px-6 py-2 text-sm font-medium text-white bg-green-500 rounded-md shadow-md hover:bg-green-700 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+                    >
+                        {isSaving ? 'Enviando...' : 'Enviar Correo de Prueba'}
+                    </button>
                     <button
                         type="submit"
                         disabled={isSaving || isLoading}

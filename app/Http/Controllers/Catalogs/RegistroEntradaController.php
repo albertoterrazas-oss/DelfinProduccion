@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Catalogs;
 use App\Http\Controllers\Controller;
 use App\Mail\CodigoVerificacion;
 use App\Mail\ConfiguracionCorreo;
+use App\Mail\MailTest;
 use App\Models\Catalogos\Unidades;
 use App\Models\User;
 use App\Models\Catalogos\ChoferUnidadAsignar;
@@ -357,16 +358,17 @@ class RegistroEntradaController extends Controller
     public function configEmail(): void
     {
         $correo = CatalogosConfiguracionCorreo::orderBy('correoEnvioNotificaciones_id', 'desc')->first();
-        // $host = env('MAIL_HOST');
-        // $port = (int) env('MAIL_PORT'); // Asegurar que sea entero
-        // $username = env('MAIL_USERNAME');
-        // $password = env('MAIL_PASSWORD');
-        // $encryption = env('MAIL_ENCRYPTION', 'ssl');
-        $host = $correo->correoEnvioNotificaciones_host;
-        $port = $correo->correoEnvioNotificaciones_puerto; // Asegurar que sea entero
-        $username = $correo->correoEnvioNotificaciones_correoNotificacion;
-        $password = $correo->correoEnvioNotificaciones_passwordCorreo;
-        $encryption = $correo->correoEnvioNotificaciones_seguridadSSL;
+        $host = env('MAIL_HOST');
+        $port = (int) env('MAIL_PORT'); // Asegurar que sea entero
+        $username = env('MAIL_USERNAME');
+        $password = env('MAIL_PASSWORD');
+        $encryption = env('MAIL_ENCRYPTION', 'ssl');
+
+        // $host = $correo->correoEnvioNotificaciones_host;
+        // $port = $correo->correoEnvioNotificaciones_puerto; // Asegurar que sea entero
+        // $username = $correo->correoEnvioNotificaciones_correoNotificacion;
+        // $password = $correo->correoEnvioNotificaciones_passwordCorreo;
+        // $encryption = $correo->correoEnvioNotificaciones_seguridadSSL;
 
         // correonotificacion
 
@@ -595,6 +597,29 @@ class RegistroEntradaController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al intentar obtener los movimientos de la unidad.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendMailTest(Request $request)
+    {
+        try {
+            $this->configEmail();
+
+            $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
+
+            if ($Correos->isNotEmpty()) {
+                foreach ($Correos as $correo) {
+                    $destinatario = $correo->correoNotificaciones_correo;
+                    Mail::to($destinatario)->send(new MailTest());
+                }
+            }
+
+            return response()->json(['message' => 'Correo de prueba enviado exitosamente.'], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al enviar el correo de prueba.',
                 'error' => $e->getMessage()
             ], 500);
         }
