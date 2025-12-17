@@ -253,13 +253,13 @@ function ConfiguracionSMTPForm({ config, reloadConfig, isLoading }) {
                     >
                         {isSaving ? 'Enviando...' : 'Enviar Correo de Prueba'}
                     </button>
-                    <button
+                    {/* <button
                         disabled={isSaving || isLoading}
                         className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition duration-150 ease-in-out"
                         onClick={sendTestMail}
                     >
                         Enviar correo de prueba
-                    </button>
+                    </button> */}
                     <button
                         type="submit"
                         disabled={isSaving || isLoading}
