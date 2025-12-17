@@ -19,6 +19,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class RegistroEntradaController extends Controller
@@ -171,7 +172,7 @@ class RegistroEntradaController extends Controller
                 'incidencias_notificadas' => count($incidenciasGuardadas)
             ], 201);
         } catch (\Throwable $e) {
-            \Log::error('ERROR REAL MOVIMIENTOS', [
+            Log::error('ERROR REAL MOVIMIENTOS', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -365,31 +366,47 @@ class RegistroEntradaController extends Controller
         // $encryption = env('MAIL_ENCRYPTION', 'ssl');
 
         $host = $correo->correoEnvioNotificaciones_host;
-        $port = $correo->correoEnvioNotificaciones_puerto; // Asegurar que sea entero
+        $port = (int) $correo->correoEnvioNotificaciones_puerto; // Asegurar que sea entero
         $username = $correo->correoEnvioNotificaciones_correoNotificacion;
         $password = $correo->correoEnvioNotificaciones_passwordCorreo;
         $encryption = $correo->correoEnvioNotificaciones_seguridadSSL;
 
-        // correonotificacion
+        // // correonotificacion
 
-        // 2. Obtener la plantilla de configuración actual para el mailer 'smtp'.
-        $config = config('mail.mailers.smtp');
+        // // 2. Obtener la plantilla de configuración actual para el mailer 'smtp'.
+        // $config = config('mail.mailers.smtp');
 
-        // 3. Modificar los valores del mailer 'smtp' con los datos del .env.
-        $config['host'] = $host;
-        $config['port'] = $port;
-        $config['username'] = $username;
-        $config['password'] = $password;
-        $config['encryption'] = $encryption;
+        // // 3. Modificar los valores del mailer 'smtp' con los datos del .env.
+        // $config['host'] = $host;
+        // $config['port'] = $port;
+        // $config['username'] = $username;
+        // $config['password'] = $password;
+        // $config['encryption'] = $encryption;
 
-        // 4. Crear el array de configuración del remitente ('from') desde el .env.
-        $from = [
-            'address' => env('MAIL_FROM_ADDRESS'),
-            'name' => env('MAIL_FROM_NAME', 'DELFIN'), // Usamos 'DELFIN' como valor por defecto si no está en el .env
+        // // 4. Crear el array de configuración del remitente ('from') desde el .env.
+        // $from = [
+        //     'address' => env('MAIL_FROM_ADDRESS'),
+        //     'name' => env('MAIL_FROM_NAME', 'DELFIN'), // Usamos 'DELFIN' como valor por defecto si no está en el .env
+        // ];
+
+        // config(['mail.mailers.smtp' => $config]);
+        // config(['mail.from' => $from]);
+
+        $config = [
+            'driver' => 'smtp',
+            'host' => $host,
+            'port' => $port,
+            'username' => $username,
+            'password' => $password,
+            'encryption' => $encryption,
+            'local_domain' => 'localhost',
+            'from' => [
+                'address' => $username,
+                'name' => $username
+            ],
         ];
 
-        config(['mail.mailers.smtp' => $config]);
-        config(['mail.from' => $from]);
+        config(['mail' => $config]);
     }
 
     public function changesswho(Request $request)
@@ -607,14 +624,14 @@ class RegistroEntradaController extends Controller
         try {
             $this->configEmail();
 
-            $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
+            // $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
 
-            if ($Correos->isNotEmpty()) {
-                foreach ($Correos as $correo) {
-                    $destinatario = $correo->correoNotificaciones_correo;
-                    Mail::to($destinatario)->send(new MailTest());
-                }
-            }
+            // if ($Correos->isNotEmpty()) {
+            //     foreach ($Correos as $correo) {
+            //         $destinatario = $correo->correoNotificaciones_correo;
+            //     }
+            // }
+            Mail::to('ujaramillo89@gmail.com')->send(new MailTest());
 
             return response()->json(['message' => 'Correo de prueba enviado exitosamente.'], 200);
         } catch (\Exception $e) {
