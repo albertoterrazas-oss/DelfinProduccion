@@ -624,14 +624,14 @@ class RegistroEntradaController extends Controller
         try {
             $this->configEmail();
 
-            // $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
+            $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
 
-            // if ($Correos->isNotEmpty()) {
-            //     foreach ($Correos as $correo) {
-            //         $destinatario = $correo->correoNotificaciones_correo;
-            //     }
-            // }
-            Mail::to('ujaramillo89@gmail.com')->send(new MailTest());
+            if ($Correos->isNotEmpty()) {
+                foreach ($Correos as $correo) {
+                    $destinatario = $correo->correoNotificaciones_correo;
+                    Mail::to($destinatario)->send(new MailTest());
+                }
+            }
 
             return response()->json(['message' => 'Correo de prueba enviado exitosamente.'], 200);
         } catch (\Exception $e) {
