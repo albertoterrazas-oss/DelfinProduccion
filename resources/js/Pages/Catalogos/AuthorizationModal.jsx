@@ -57,6 +57,9 @@ const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
         document.getElementById('auth-code-input').focus();
     };
 
+   
+
+
     return (
         <DialogComp open={isOpen} onClose={onClose} maxWidth="sm">
             <>

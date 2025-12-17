@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Catalogs;
 use App\Http\Controllers\Controller;
 use App\Mail\CodigoVerificacion;
 use App\Mail\ConfiguracionCorreo;
+use App\Mail\MailTest;
 use App\Models\Catalogos\Unidades;
 use App\Models\User;
 use App\Models\Catalogos\ChoferUnidadAsignar;
 use App\Models\Catalogos\CodigoAutorizacion;
+use App\Models\Catalogos\ConfiguracionCorreo as CatalogosConfiguracionCorreo;
 use App\Models\Catalogos\CorreoNotificacion;
 use App\Models\Catalogos\IncidenciasMovimiento;
 use App\Models\Catalogos\ListaVerificacion;
@@ -17,6 +19,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class RegistroEntradaController extends Controller
@@ -69,7 +72,7 @@ class RegistroEntradaController extends Controller
 
             // --- 3. Crear el Movimiento Principal ---
             $datosMovimiento = [
-                'Movimientos_fecha'          => Carbon::now()->format('Y-m-d H:i:s'),
+                'Movimientos_fecha'          => DB::raw('GETDATE()'),
                 'Movimientos_tipoMovimiento' => $request->movementType,
                 'Movimientos_asignacionID'   => $asignacion->CUA_asignacionID,
                 'Movimientos_kilometraje'    => $request->kilometers,
@@ -78,6 +81,8 @@ class RegistroEntradaController extends Controller
                 'Movimientos_usuarioID'      => $request->user,
                 'Movimientos_estatus'        => $request->estatusCode,
             ];
+
+            // dd($datosMovimiento);
 
             $movimiento = Movimientos::create($datosMovimiento);
 
@@ -118,7 +123,7 @@ class RegistroEntradaController extends Controller
                     'codigoAutorizacion_idUsuarioSolicita'   => $request->user,
                     'codigoAutorizacion_motivo'              => $request->observation,
                     'codigoAutorizacion_fechaAut'            => null,
-                    'codigoAutorizacion_fecha'               => Carbon::now()->format('Y-m-d H:i:s'),
+                    'codigoAutorizacion_fecha'               => DB::raw('GETDATE()'),
                     'codigoAutorizacion_estatus'             => 1, // Pendiente
                 ];
 
@@ -154,7 +159,7 @@ class RegistroEntradaController extends Controller
                     'CUA_motivoID'          => null,
                     'CUA_destino'           => null,
                     'CUA_estatus'           => 1, // 1 = ACTIVO/EN PATIO/DISPONIBLE
-                    'CUA_fechaAsignacion'   => Carbon::now()->format('Y-m-d H:i:s')
+                    'CUA_fechaAsignacion'   => DB::raw('GETDATE()')
                 ];
                 ChoferUnidadAsignar::create($datosAsignacion);
             }
@@ -166,18 +171,18 @@ class RegistroEntradaController extends Controller
                 'codigo_autorizacion' => $codigo_creado,
                 'incidencias_notificadas' => count($incidenciasGuardadas)
             ], 201);
-        } catch (\Exception $e) {
-            // Manejo de error
-            $errorMessage = $e->getMessage();
-
-            if (strpos($errorMessage, 'SQLSTATE[22007]') !== false) {
-                $errorMessage = 'Error de formato de fecha/hora. La base de datos no aceptó el valor para la columna de fecha. Por favor, verifique el formato (debe ser Y-m-d H:i:s).';
-            }
+        } catch (\Throwable $e) {
+            Log::error('ERROR REAL MOVIMIENTOS', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
 
             return response()->json([
-                'message' => 'Ocurrió un error al intentar guardar el movimiento.',
-                'error' => $errorMessage,
-                'trace' => env('APP_DEBUG') ? $e->getTraceAsString() : 'Detalles de error ocultos.'
+                'message' => 'Error interno',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -204,7 +209,7 @@ class RegistroEntradaController extends Controller
                 'codigoAutorizacion_motivo'          => $request->observation,
                 'codigoAutorizacion_fechaAut'        => null, // Aún no autorizado
                 // Usar 'Y-m-d H:i:s' es el formato estándar de MySQL, que es más seguro
-                'codigoAutorizacion_fecha'           => Carbon::now()->format('Y-m-d H:i:s'),
+                'codigoAutorizacion_fecha'           => DB::raw('GETDATE()'),
                 'codigoAutorizacion_estatus'         => 1, // Por ejemplo, 'Pendiente'
             ];
 
@@ -291,7 +296,7 @@ class RegistroEntradaController extends Controller
             // 5. Marcar el código de autorización como usado/autorizado
             $latestCodeEntry->codigoAutorizacion_estatus = 0; // e.g., 'Autorizado'
             $latestCodeEntry->codigoAutorizacion_idUsuarioAutoriza = auth()->check() ? auth()->id() : null; // Usar el usuario autenticado
-            $latestCodeEntry->codigoAutorizacion_fechaAut = now()->format('Y-m-d H:i:s');
+            $latestCodeEntry->codigoAutorizacion_fechaAut = DB::raw('GETDATE()');
             $latestCodeEntry->save();
 
             // 6. Obtener la ÚLTIMA asignación Chofer-Unidad
@@ -322,7 +327,7 @@ class RegistroEntradaController extends Controller
                     'CUA_motivoID'          => null,
                     'CUA_destino'           => null,
                     'CUA_estatus'           => 1, // 1 = ACTIVO/EN PATIO/DISPONIBLE
-                    'CUA_fechaAsignacion'   => Carbon::now()->format('Y-m-d H:i:s')
+                    'CUA_fechaAsignacion'   => DB::raw('GETDATE()')
                 ];
 
                 ChoferUnidadAsignar::create($datosAsignacion);
@@ -353,30 +358,55 @@ class RegistroEntradaController extends Controller
 
     public function configEmail(): void
     {
-        $host = env('MAIL_HOST');
-        $port = (int) env('MAIL_PORT'); // Asegurar que sea entero
-        $username = env('MAIL_USERNAME');
-        $password = env('MAIL_PASSWORD');
-        $encryption = env('MAIL_ENCRYPTION', 'ssl');
+        $correo = CatalogosConfiguracionCorreo::orderBy('correoEnvioNotificaciones_id', 'desc')->first();
+        // $host = env('MAIL_HOST');
+        // $port = (int) env('MAIL_PORT'); // Asegurar que sea entero
+        // $username = env('MAIL_USERNAME');
+        // $password = env('MAIL_PASSWORD');
+        // $encryption = env('MAIL_ENCRYPTION', 'ssl');
 
-        // 2. Obtener la plantilla de configuración actual para el mailer 'smtp'.
-        $config = config('mail.mailers.smtp');
+        $host = $correo->correoEnvioNotificaciones_host;
+        $port = (int) $correo->correoEnvioNotificaciones_puerto; // Asegurar que sea entero
+        $username = $correo->correoEnvioNotificaciones_correoNotificacion;
+        $password = $correo->correoEnvioNotificaciones_passwordCorreo;
+        $encryption = $correo->correoEnvioNotificaciones_seguridadSSL;
 
-        // 3. Modificar los valores del mailer 'smtp' con los datos del .env.
-        $config['host'] = $host;
-        $config['port'] = $port;
-        $config['username'] = $username;
-        $config['password'] = $password;
-        $config['encryption'] = $encryption;
+        // // correonotificacion
 
-        // 4. Crear el array de configuración del remitente ('from') desde el .env.
-        $from = [
-            'address' => env('MAIL_FROM_ADDRESS'),
-            'name' => env('MAIL_FROM_NAME', 'DELFIN'), // Usamos 'DELFIN' como valor por defecto si no está en el .env
+        // // 2. Obtener la plantilla de configuración actual para el mailer 'smtp'.
+        // $config = config('mail.mailers.smtp');
+
+        // // 3. Modificar los valores del mailer 'smtp' con los datos del .env.
+        // $config['host'] = $host;
+        // $config['port'] = $port;
+        // $config['username'] = $username;
+        // $config['password'] = $password;
+        // $config['encryption'] = $encryption;
+
+        // // 4. Crear el array de configuración del remitente ('from') desde el .env.
+        // $from = [
+        //     'address' => env('MAIL_FROM_ADDRESS'),
+        //     'name' => env('MAIL_FROM_NAME', 'DELFIN'), // Usamos 'DELFIN' como valor por defecto si no está en el .env
+        // ];
+
+        // config(['mail.mailers.smtp' => $config]);
+        // config(['mail.from' => $from]);
+
+        $config = [
+            'driver' => 'smtp',
+            'host' => $host,
+            'port' => $port,
+            'username' => $username,
+            'password' => $password,
+            'encryption' => $encryption,
+            'local_domain' => 'localhost',
+            'from' => [
+                'address' => $username,
+                'name' => $username
+            ],
         ];
 
-        config(['mail.mailers.smtp' => $config]);
-        config(['mail.from' => $from]);
+        config(['mail' => $config]);
     }
 
     public function changesswho(Request $request)
@@ -514,14 +544,14 @@ class RegistroEntradaController extends Controller
         if (!$asignacionExistente) {
             $datosAsignacion = array_merge($nuevosDatos, [
                 'CUA_unidadID' => $unidadID,
-                'CUA_fechaAsignacion' => Carbon::now()->format('Ymd H:i:s'),
+                'CUA_fechaAsignacion' => DB::raw('GETDATE()'),
                 'CUA_estatus' => 1,
             ]);
             ChoferUnidadAsignar::create($datosAsignacion);
         } else {
 
             $asignacionExistente->update(array_merge($nuevosDatos, [
-                'CUA_fechaAsignacion' => Carbon::now()->format('Ymd H:i:s'),
+                'CUA_fechaAsignacion' => DB::raw('GETDATE()'),
             ]));
         }
 
@@ -584,6 +614,29 @@ class RegistroEntradaController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al intentar obtener los movimientos de la unidad.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendMailTest(Request $request)
+    {
+        try {
+            $this->configEmail();
+
+            // $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
+
+            // if ($Correos->isNotEmpty()) {
+            //     foreach ($Correos as $correo) {
+            //         $destinatario = $correo->correoNotificaciones_correo;
+            //     }
+            // }
+            Mail::to('ujaramillo89@gmail.com')->send(new MailTest());
+
+            return response()->json(['message' => 'Correo de prueba enviado exitosamente.'], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al enviar el correo de prueba.',
                 'error' => $e->getMessage()
             ], 500);
         }

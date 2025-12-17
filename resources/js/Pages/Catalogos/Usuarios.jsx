@@ -20,7 +20,6 @@ const route = (name, params = {}) => {
         "users.index": "/api/users",
         "roles.index": "/api/roles",
         "puestos.index": "/api/puestos",
-
         "menus-tree": "/api/menus-tree",
         "users.store": "/api/users",
         "users.update": `/api/users/${params}`,
@@ -30,12 +29,21 @@ const route = (name, params = {}) => {
 
 // Función DUMMY de validación (usada en el componente Usuarios)
 const validateInputs = (validations, data) => {
+    console.log({ user: validations.Personas_usuario, pass: validations.Personas_contrasena })
     let formErrors = {};
 
     // Validación de prueba básica:
     if (validations.Personas_nombres && !data.Personas_nombres?.trim()) formErrors.Personas_nombres = 'El nombre es obligatorio.';
-    if (validations.Personas_usuario && !data.Personas_usuario?.trim()) formErrors.Personas_usuario = 'El usuario es obligatorio.';
+    // if (validations.Personas_usuario && !data.Personas_usuario?.trim()) formErrors.Personas_usuario = 'El usuario es obligatorio.';
     if (validations.usuario_idRol && !data.usuario_idRol?.trim()) formErrors.usuario_idRol = 'El rol es obligatorio.';
+
+    const isUserRequired = typeof validations.Personas_usuario === 'function'
+        ? validations.Personas_usuario(data)
+        : validations.Personas_usuario;
+
+    if (isUserRequired && !data.Personas_usuario?.trim()) {
+        formErrors.Personas_usuario = 'El usuario es obligatorio.';
+    }
 
     // Corrección para usar la validación condicional de la contraseña:
     const isPasswordRequired = typeof validations.Personas_contrasena === 'function'
@@ -59,10 +67,6 @@ const validateInputs = (validations, data) => {
         formErrors.Personas_contrasena = 'La contraseña es obligatoria en creación.';
     }
 
-
-    
-
-
     if (data.Personas_correo && !/\S+@\S+\.\S+/.test(data.Personas_correo)) {
         formErrors.Personas_correo = 'El correo no es válido.';
     }
@@ -73,10 +77,10 @@ const validateInputs = (validations, data) => {
 // Validaciones requeridas para el formulario
 const userValidations = {
     Personas_nombres: true,
-    Personas_usuario: true,
-    Personas_puesto:true,
+    Personas_usuario: (data) => data.userCheck,
+    Personas_puesto: true,
     // Contraseña solo es obligatoria si no existe un ID (creación)
-    Personas_contrasena: (data) => !data.Personas_usuarioID,
+    Personas_contrasena: (data) => /* !data.Personas_usuarioID ||  */data.userCheck,
     Personas_correo: true,
     usuario_idRol: true
 };
@@ -98,6 +102,7 @@ const initialPersonData = {
     Personas_contrasena: "",
     Personas_esEmpleado: true,
     usuario_idRol: '',
+    userCheck: false,
     // Personas_puesto:''
 };
 
@@ -294,10 +299,10 @@ function PersonFormDialog({ isOpen, closeModal, onSubmit, personToEdit, action, 
                                     />
                                     {errors.Personas_correo && <p className="text-red-500 text-xs mt-1">{errors.Personas_correo}</p>}
                                 </label>
-                              
+
                                 {/* Input Usuario (Username) */}
                                 <label className="block">
-                                    <span className="text-sm font-medium text-gray-700">Usuario (Username): <span className="text-red-500">*</span></span>
+                                    <span className="text-sm font-medium text-gray-700">Usuario (Username): {personData.userCheck && <span className="text-red-500">*</span>}</span>
                                     <input
                                         type="text"
                                         name="Personas_usuario"
@@ -309,7 +314,7 @@ function PersonFormDialog({ isOpen, closeModal, onSubmit, personToEdit, action, 
                                 </label>
                                 {/* Input Contraseña */}
                                 <label className="block">
-                                    <span className="text-sm font-medium text-gray-700">Contraseña: {action === 'create' && <span className="text-red-500">*</span>}</span>
+                                    <span className="text-sm font-medium text-gray-700">Contraseña: {action === 'create' && personData.userCheck && <span className="text-red-500">*</span>}</span>
                                     <input
                                         type="password"
                                         name="Personas_contrasena"
@@ -330,6 +335,16 @@ function PersonFormDialog({ isOpen, closeModal, onSubmit, personToEdit, action, 
                                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                     />
                                     <span className="ml-2 text-sm font-medium text-gray-700">¿Es Empleado?</span>
+                                </label>
+                                <label className="flex items-center pt-2">
+                                    <input
+                                        type="checkbox"
+                                        name="userCheck"
+                                        checked={personData.userCheck}
+                                        onChange={handleChange}
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="ml-2 text-sm font-medium text-gray-700">Usuario</span>
                                 </label>
                             </div>
 

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\UserxMenu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -70,36 +71,48 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'Personas_nombres' => 'required|string|max:255',
-            'Personas_apPaterno' => 'required|string|max:255',
-            'Personas_correo' => 'required|string|email|max:255',
-            'Personas_contrasena' => 'required|string|min:8',
-            'Personas_usuario' => 'required|string|max:255',
-            'usuario_idRol' => 'required',
-        ]);
+        $rules = [
+            'Personas_nombres'     => 'required|string|max:255',
+            'Personas_apPaterno'   => 'required|string|max:255',
+            // 'Personas_correo'      => 'required|string|email|max:255',
+            'usuario_idRol'        => 'required',
+        ];
+
+        // Validación condicional
+        if ($request->boolean('userCheck')) {
+            $rules['Personas_usuario']   = 'required|string|max:255';
+            $rules['Personas_contrasena'] = 'required|string|min:8';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             // Retorna 400 Bad Request con los errores de validación
             return response()->json($validator->errors(), 400);
         }
 
-        $user = User::create([
-            'Personas_nombres' => $request->Personas_nombres,
-            'Personas_apPaterno' => $request->Personas_apPaterno,
-            'Personas_apMaterno' => $request->Personas_apMaterno,
-            'Personas_telefono' => $request->Personas_telefono,
-            'Personas_direccion' => $request->Personas_direccion,
-            'Personas_fechaNacimiento' => $request->Personas_fechaNacimiento,
-            'Personas_correo' => $request->Personas_correo,
-            'Personas_puesto' => $request->Personas_puesto,
-            'Personas_licencia' => $request->Personas_licencia,
-            'Personas_vigenciaLicencia' => $request->Personas_vigenciaLicencia,
-            'Personas_usuario' => $request->Personas_usuario,
-            'Personas_contrasena' => \Illuminate\Support\Facades\Hash::make($request->Personas_contrasena),
-            'usuario_idRol' => $request->usuario_idRol,
-            'Personas_esEmpleado' => $request->Personas_esEmpleado ?? false, // Default to false if not provided
-        ]);
+        $data = [
+            'Personas_nombres'           => $request->Personas_nombres,
+            'Personas_apPaterno'         => $request->Personas_apPaterno,
+            'Personas_apMaterno'         => $request->Personas_apMaterno,
+            'Personas_telefono'          => $request->Personas_telefono,
+            'Personas_direccion'         => $request->Personas_direccion,
+            'Personas_fechaNacimiento'   => $request->Personas_fechaNacimiento,
+            'Personas_correo'            => $request->Personas_correo,
+            'Personas_puesto'            => $request->Personas_puesto,
+            'Personas_licencia'          => $request->Personas_licencia,
+            'Personas_vigenciaLicencia'  => $request->Personas_vigenciaLicencia,
+            'usuario_idRol'              => $request->usuario_idRol,
+            'Personas_esEmpleado'        => $request->Personas_esEmpleado ?? false,
+        ];
+
+        // Solo si crea usuario
+        if ($request->boolean('userCheck')) {
+            $data['Personas_usuario']   = $request->Personas_usuario;
+            $data['Personas_contrasena'] = Hash::make($request->Personas_contrasena);
+        }
+
+        $user = User::create($data);
 
         // Retorna 201 Created
         return response()->json($user, 201);
@@ -198,17 +211,22 @@ class UserController extends Controller
             return response()->json(['message' => 'Usuario no encontrado'], 404);
         }
 
-        // 2. Reglas de validación para la actualización
-        $validator = Validator::make($request->all(), [
-            'Personas_nombres' => 'sometimes|required|string|max:255',
-            'Personas_apPaterno' => 'sometimes|required|string|max:255',
-            'Personas_correo' => 'sometimes|required|string|email|max:255',
-            'Personas_usuario' => 'sometimes|required|string|max:255',
-            'Personas_contrasena' => 'sometimes|nullable|string|min:8',
-            // Se recomienda que 'usuario_idRol' use 'sometimes|required' si no siempre se envía,
-            // pero se mantiene 'required' según tu código original.
-            'usuario_idRol' => 'required',
-        ]);
+        $rules = [
+            'Personas_nombres'     => 'required|string|max:255',
+            'Personas_apPaterno'   => 'required|string|max:255',
+            // 'Personas_correo'      => 'required|string|email|max:255',
+            'usuario_idRol'        => 'required',
+        ];
+
+        // Validación condicional
+        if ($request->boolean('userCheck')) {
+            $rules['Personas_usuario']   = 'required|string|max:255';
+            if ($request->filled('Personas_contrasena')) {
+                $rules['Personas_contrasena'] = 'string|min:8';
+            }
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             // Retorna 400 Bad Request con los errores de validación
@@ -218,7 +236,7 @@ class UserController extends Controller
         // 3. Llenar el resto de los campos excluyendo la contraseña (para que se hashee correctamente)
         // El método fill() debe ir antes del check isDirty() para que el modelo tenga los nuevos valores.
         // Además, $request->except() solo debe excluir la contraseña.
-        $user->fill($request->except('Personas_contrasena'));
+        $user->fill($request->except(['Personas_contrasena', 'userCheck']));
 
         $menusToAttach = []; // Inicializamos la variable
 
@@ -249,7 +267,7 @@ class UserController extends Controller
 
         // 5. Manejar la actualización de la contraseña por separado
         if ($request->filled('Personas_contrasena')) {
-            $user->Personas_contrasena = $request->Personas_contrasena;
+            $user->Personas_contrasena = Hash::make($request->Personas_contrasena);
         }
 
         // 6. Guardar los cambios en el usuario

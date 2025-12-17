@@ -87,6 +87,7 @@ function ConfiguracionSMTPForm({ config, reloadConfig, isLoading }) {
     // Usamos el estado local, inicializado con la prop 'config' que viene del padre
     const [formData, setFormData] = useState(config || initialSMTPConfig);
     const [isSaving, setIsSaving] = useState(false);
+    const [sending, setSending] = useState(false);
     const [errors, setErrors] = useState({});
 
     // Sincroniza el estado local cuando la prop 'config' cambia (ej. después de cargarse inicialmente)
@@ -149,24 +150,16 @@ function ConfiguracionSMTPForm({ config, reloadConfig, isLoading }) {
         }
     };
 
-    const sendTestMail = async () => {
+    const sendMailTest = async () => {
+        setSending(true);
         try {
-            const payload = {
-                correoEnvioNotificaciones_correoNotificacion: formData.smtp_correo,
-                correoEnvioNotificaciones_passwordCorreo: formData.smtp_password,
-                correoEnvioNotificaciones_host: formData.smtp_host,
-                correoEnvioNotificaciones_puerto: formData.smtp_port,
-                correoEnvioNotificaciones_seguridadSSL: formData.smtp_security,
-            };
-
-            // Usamos 'request'. Asumimos que lanza una excepción en caso de error (4xx/5xx)
-            await request(route("ConfiguracionCorreoStore"), "POST", payload);
-            toast.success("Correo enviado exitosamente.");
+            await request(route("sendMailTest"), "POST", {});
+            toast.success("Correo de prueba enviado con éxito.");
         } catch (error) {
-            console.error("Error al guardar la configuración SMTP:", error);
-            toast.error(`Hubo un error al enviar el correo: ${error.message || 'Error de red o servidor.'}`);
+            console.error("Error al enviar el correo de prueba:", error);
+            toast.error(`Error al enviar el correo de prueba: ${error.message || 'Error de red o servidor.'}`);
         } finally {
-
+            setSending(false);
         }
     }
 
@@ -252,7 +245,14 @@ function ConfiguracionSMTPForm({ config, reloadConfig, isLoading }) {
                     {errors.smtp_security && <p className="mt-1 text-xs text-red-500">{errors.smtp_security}</p>}
                 </div>
 
-                <div className="md:col-span-2 lg:col-span-5 flex justify-end pt-2">
+                <div className="md:col-span-2 lg:col-span-5 flex justify-end pt-2 gap-4">
+                    <button
+                        onClick={sendMailTest}
+                        disabled={sending}
+                        className="px-6 py-2 text-sm font-medium text-white bg-green-500 rounded-md shadow-md hover:bg-green-700 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+                    >
+                        {isSaving ? 'Enviando...' : 'Enviar Correo de Prueba'}
+                    </button>
                     <button
                         disabled={isSaving || isLoading}
                         className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition duration-150 ease-in-out"

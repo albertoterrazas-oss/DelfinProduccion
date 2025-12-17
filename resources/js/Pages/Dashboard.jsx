@@ -20,7 +20,7 @@ import { Link } from 'react-router-dom'
 
 const quickActions = [
     { name: 'Nueva Unidad', icon: Truck, url: 'unidades' },
-    { name: 'Nuevo Chofer', icon: User, url: 'choferes' },
+    { name: 'Nuevo Chofer', icon: User, url: 'usuarios' },
     { name: 'Registrar Movimiento', icon: Clock, url: 'registrosalida' },
     { name: 'Nuevo Motivo', icon: ClipboardList, url: 'motivos' },
     { name: 'Generar Reporte', icon: FileText, url: 'reportes' },
