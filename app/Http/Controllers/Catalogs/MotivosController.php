@@ -14,12 +14,11 @@ class MotivosController extends Controller
      */
     public function index()
     {
-        // Obtiene todos los registros de la tabla dbo.Motivos
-        $motivos = Motivos::all();
+        // Filtra los motivos donde el estatus sea true (o 1)
+        $motivos = Motivos::where('Motivos_estatus', true)->get();
 
         return response()->json($motivos);
     }
-
 
     public function MotivosQuiencQuien()
     {
