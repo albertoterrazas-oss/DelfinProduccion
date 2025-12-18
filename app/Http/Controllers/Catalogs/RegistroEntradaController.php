@@ -513,6 +513,7 @@ class RegistroEntradaController extends Controller
             'CUA_motivoID' => $motivoID,
             'CUA_destino' => $destino,
             'CUA_usuarioId' => $user,
+            'CUA_autAdmin' => 0,
         ];
 
         // 2. Si NO existe una asignación activa, la creamos directamente.
@@ -576,7 +577,7 @@ class RegistroEntradaController extends Controller
         // actualizar los campos con los datos recibidos
         $asignacionexistente->update([
             'CUA_ayudantes' => is_array($seleccionados) ? implode(', ', $seleccionados) : $seleccionados,
-            
+
         ]);
 
         return response()->json([

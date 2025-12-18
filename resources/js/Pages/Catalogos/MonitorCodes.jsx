@@ -30,11 +30,7 @@ export default function MonitorCodes() {
 
     const handleConfirm = async (unidad, code, type) => {
         try {
-            // if (code.length !== CODE_LENGTH) {
-            //     setError('El código debe tener 6 dígitos.');
-            //     return;
-            // }
-
+           
             toast.info("Verificando código de autorización...");
 
             // **IMPORTANTE**: Asegúrate de que `route('verifycode')` apunta al endpoint correcto
@@ -50,11 +46,6 @@ export default function MonitorCodes() {
                 setError('Código incorrecto o expirado.');
                 throw new Error("Respuesta de verifycode no ok");
             }
-
-            // Si es exitoso
-            // setCode('');
-            // setError('');
-            // onAuthorize(code); // Llama a onAuthorize con el código validado
             toast.success("Autorización completada y verificada.");
             getCodes(); // Refresca la lista después de la autorización
 
@@ -155,9 +146,6 @@ export default function MonitorCodes() {
                                 );
                             },
                         }
-
-
-
                     ]}
                 />
             )}
