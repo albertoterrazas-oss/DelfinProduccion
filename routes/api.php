@@ -131,6 +131,10 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
     Route::post('/WhoDestint',  [RegistroEntradaController::class, 'WhoDestint'])->name('WhoDestint');
     Route::get('/choferes', [UserController::class, 'choferes'])->name('choferes');
 
+
+    Route::post('/WhoAyudantes',  [RegistroEntradaController::class, 'WhoAyudantes'])->name('WhoAyudantes');
+
+    
     Route::get('indexconfiguracioncorreo', [CorreosController::class, 'indexconfiguracioncorreo'])->name('indexconfiguracioncorreo');
     Route::post('ConfiguracionCorreoStore', [CorreosController::class, 'ConfiguracionCorreoStore'])->name('ConfiguracionCorreoStore');
     Route::post('sendMailTest', [RegistroEntradaController::class, 'sendMailTest'])->name('sendMailTest');

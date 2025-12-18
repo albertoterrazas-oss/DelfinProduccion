@@ -29,7 +29,9 @@ class ChoferUnidadAsignar extends Model
         'CUA_destino',
         'CUA_fechaAsignacion',
         'CUA_estatus',
-        'CUA_usuarioId'
+        'CUA_usuarioId',
+        'CUA_ayudantes',
+        'CUA_autAdmin'
     ];
 
 

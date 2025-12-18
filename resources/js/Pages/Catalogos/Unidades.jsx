@@ -11,7 +11,7 @@ import request from "@/utils";
 const route = (name, params = {}) => {
     // Rutas dummy adaptadas para Unidades
     const routeMap = {
-        "unidades.index": "/api/unidades",
+        "UnidadesQuiencQuien": "/api/UnidadesQuiencQuien",
         "unidades.store": "/api/unidades",
         "unidades.update": `/api/unidades/${params}`,
     };
@@ -520,7 +520,7 @@ export default function Unidades() {
         setIsLoading(true);
 
         try {
-            const response = await fetch(route("unidades.index"));
+            const response = await fetch(route("UnidadesQuiencQuien"));
 
             if (!response.ok) {
                 throw new Error(`Error en la solicitud: ${response.statusText} (${response.status})`);

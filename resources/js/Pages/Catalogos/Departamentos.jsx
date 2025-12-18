@@ -9,7 +9,7 @@ import request from "@/utils";
 const route = (name, params = {}) => {
     const id = params.Departamentos_id;
     const routeMap = {
-        "departamentos.index": "/api/departamentos",
+        "DepartamentosActivos": "/api/DepartamentosActivos",
         "departamentos.store": "/api/departamentos",
         "departamentos.update": `/api/departamentos/${id}`,
     };
@@ -206,7 +206,7 @@ export default function Departamentos() {
     const getDepartments = async () => {
         try {
             setIsLoading(true);
-            const data = await fetch(route("departamentos.index")).then(res => res.json());
+            const data = await fetch(route("DepartamentosActivos")).then(res => res.json());
             setDepartments(data);
             setIsLoading(false);
         } catch (error) {

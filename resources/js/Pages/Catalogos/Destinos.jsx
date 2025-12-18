@@ -11,7 +11,7 @@ import request from "@/utils";
 const route = (name, params = {}) => {
     const id = params.Destinos_Id;
     const routeMap = {
-        "destinos.index": "/api/destinos",
+        "DestinosQuiencQuien": "/api/DestinosQuiencQuien",
         "destinos.store": "/api/destinos",
         "destinos.update": `/api/destinos/${id}`,
         "destinos.destroy": `/api/destinos/${id}`,
@@ -300,7 +300,7 @@ export default function Destinos() {
     const getDestinations = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(route("destinos.index"));
+            const response = await fetch(route("DestinosQuiencQuien"));
             const result = await response.json();
 
             setDestinations(result);

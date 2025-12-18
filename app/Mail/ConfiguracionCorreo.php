@@ -21,11 +21,13 @@ class ConfiguracionCorreo extends Mailable
     // ConfiguracionCorreos
     public function build()
     {
-        return $this->subject("Incidencias de correo")
+        return $this->subject($this->information->Titulo)
             ->view('ConfiguracionCorreos', [
                 'information' => $this->information,
                 'incidencias' => $this->information->Incidencias,
                 'Codigo' => $this->information->Codigo,
+
+                // ConfiguracionCorreo
 
             ]);
     }

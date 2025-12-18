@@ -146,7 +146,7 @@
             {{-- <img src="[URL_DE_TU_IMAGEN_O_BASE64]" alt="Logo de DELFIN TECNOLOGYS" class="circle"> --}}
 
             <div class="title">
-                <h1>DELFIN TECNOLOGYS</h1>
+                <h1>DELFIN TECHNOLOGIES</h1>
                 <h2>CORREO DE INCIDENCIAS</h2>
             </div>
         </div>

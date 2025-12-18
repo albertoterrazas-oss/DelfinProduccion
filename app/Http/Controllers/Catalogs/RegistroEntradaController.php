@@ -121,7 +121,7 @@ class RegistroEntradaController extends Controller
                     'codigoAutorizacion_idUnidad'            => $request->unit,
                     'codigoAutorizacion_idUsuarioAutoriza'   => null,
                     'codigoAutorizacion_idUsuarioSolicita'   => $request->user,
-                    'codigoAutorizacion_motivo'              => $request->observation,
+                    'codigoAutorizacion_motivo'              => $request->movementType,
                     'codigoAutorizacion_fechaAut'            => null,
                     'codigoAutorizacion_fecha'               => DB::raw('GETDATE()'),
                     'codigoAutorizacion_estatus'             => 1, // Pendiente
@@ -135,7 +135,7 @@ class RegistroEntradaController extends Controller
                 $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
 
                 $Datos = (object) [
-                    "Titulo" => "CORREO DE INCIDENCIAS: " . $request->movementType,
+                    "Titulo" => "CORREO DE INCIDENCIAS: " . $request->movementType . ", CON LA UNIDAD: " . $unidad->Unidades_numeroEconomico,
                     "Incidencias" => $incidenciasGuardadas,
                     "Codigo" => $codigo_autorizacion,
                 ];
@@ -359,38 +359,13 @@ class RegistroEntradaController extends Controller
     public function configEmail(): void
     {
         $correo = CatalogosConfiguracionCorreo::orderBy('correoEnvioNotificaciones_id', 'desc')->first();
-        // $host = env('MAIL_HOST');
-        // $port = (int) env('MAIL_PORT'); // Asegurar que sea entero
-        // $username = env('MAIL_USERNAME');
-        // $password = env('MAIL_PASSWORD');
-        // $encryption = env('MAIL_ENCRYPTION', 'ssl');
 
-        $host = $correo->correoEnvioNotificaciones_host;
+        // $host = $correo->correoEnvioNotificaciones_host;
         $port = (int) $correo->correoEnvioNotificaciones_puerto; // Asegurar que sea entero
-        $username = $correo->correoEnvioNotificaciones_correoNotificacion;
-        $password = $correo->correoEnvioNotificaciones_passwordCorreo;
-        $encryption = $correo->correoEnvioNotificaciones_seguridadSSL;
-
-        // // correonotificacion
-
-        // // 2. Obtener la plantilla de configuración actual para el mailer 'smtp'.
-        // $config = config('mail.mailers.smtp');
-
-        // // 3. Modificar los valores del mailer 'smtp' con los datos del .env.
-        // $config['host'] = $host;
-        // $config['port'] = $port;
-        // $config['username'] = $username;
-        // $config['password'] = $password;
-        // $config['encryption'] = $encryption;
-
-        // // 4. Crear el array de configuración del remitente ('from') desde el .env.
-        // $from = [
-        //     'address' => env('MAIL_FROM_ADDRESS'),
-        //     'name' => env('MAIL_FROM_NAME', 'DELFIN'), // Usamos 'DELFIN' como valor por defecto si no está en el .env
-        // ];
-
-        // config(['mail.mailers.smtp' => $config]);
-        // config(['mail.from' => $from]);
+        $host = trim($correo->correoEnvioNotificaciones_host);
+        $username = trim($correo->correoEnvioNotificaciones_correoNotificacion);
+        $password = trim($correo->correoEnvioNotificaciones_passwordCorreo);
+        $encryption = trim($correo->correoEnvioNotificaciones_seguridadSSL);
 
         $config = [
             'driver' => 'smtp',
@@ -561,6 +536,55 @@ class RegistroEntradaController extends Controller
         ]);
     }
 
+
+    //  public function WhoAyudantes(Request $request)
+    // {
+    //     $quienConQuien = $request->input('quienconquien');
+    //     $user = $request->input('user');
+    //     $seleccionados = $request->input('seleccionados');
+    //     $asignacionExistente = ChoferUnidadAsignar::find($quienConQuien['CUA_asignacionID'] )
+    //         ->first();
+    //  $asignacionExistente->update( [
+    //             'CUA_ayudantes' => DB::raw('GETDATE()'),
+    //         ]));
+
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'ACTUALIZACION DE AYUDANTES.',
+    //     ]);
+    // }
+
+    public function WhoAyudantes(request $request)
+    {
+        // obtener los datos de la petición
+        $quienconquien = $request->input('quienconquien');
+        $user = $request->input('user');
+        $seleccionados = $request->input('seleccionados');
+
+        // buscar el registro directamente por su id
+        $asignacionexistente = ChoferUnidadAsignar::find($quienconquien['CUA_asignacionID']);
+
+        // validar si el registro existe para evitar errores
+        if (!$asignacionexistente) {
+            return response()->json([
+                'success' => false,
+                'message' => 'no se encontró el registro de asignación.',
+            ], 404);
+        }
+
+        // actualizar los campos con los datos recibidos
+        $asignacionexistente->update([
+            'CUA_ayudantes' => is_array($seleccionados) ? implode(', ', $seleccionados) : $seleccionados,
+            
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'actualizacion de ayudantes exitosa.',
+        ]);
+    }
+
     public function getUltimosMovimientosUnidad(Request $request)
     {
         try {
@@ -623,15 +647,16 @@ class RegistroEntradaController extends Controller
     {
         try {
             $this->configEmail();
+            $destinatario = $request->input('destinatario');
 
-            $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
+            // $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
 
-            if ($Correos->isNotEmpty()) {
-                foreach ($Correos as $correo) {
-                    $destinatario = $correo->correoNotificaciones_correo;
-                    Mail::to($destinatario)->send(new MailTest());
-                }
-            }
+            // if ($Correos->isNotEmpty()) {
+            //     foreach ($Correos as $correo) {
+            //         $destinatario = $correo->correoNotificaciones_correo;
+            Mail::to($destinatario)->send(new MailTest());
+            //     }
+            // }
 
             return response()->json(['message' => 'Correo de prueba enviado exitosamente.'], 200);
         } catch (\Exception $e) {

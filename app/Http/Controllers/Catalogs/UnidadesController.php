@@ -551,6 +551,8 @@ class UnidadesController extends Controller
                 'dbo.ChoferUnidadAsignada.CUA_choferID',
                 'dbo.ChoferUnidadAsignada.CUA_destino',
                 'dbo.ChoferUnidadAsignada.CUA_motivoID',
+                'dbo.ChoferUnidadAsignada.CUA_ayudantes',
+
                 'dbo.ChoferUnidadAsignada.CUA_fechaAsignacion',
                 'dbo.ChoferUnidadAsignada.CUA_asignacionID',
                 'Unidades.Unidades_numeroEconomico'
@@ -588,6 +590,8 @@ class UnidadesController extends Controller
             $unidadBase->CUA_choferID = null;
             $unidadBase->CUA_destino = null;
             $unidadBase->CUA_motivoID = null;
+            $unidadBase->CUA_ayudantes = null;
+
             $unidadBase->CUA_fechaAsignacion = null;
             $unidadBase->CUA_asignacionID = null;
             $unidadBase->UltimoMovimiento = 'ENTRADA';
@@ -668,6 +672,8 @@ class UnidadesController extends Controller
                 'dbo.ChoferUnidadAsignada.CUA_motivoID',
                 'dbo.ChoferUnidadAsignada.CUA_fechaAsignacion',
                 'dbo.ChoferUnidadAsignada.CUA_asignacionID',
+                'dbo.ChoferUnidadAsignada.CUA_ayudantes',
+
                 'Unidades.Unidades_numeroEconomico'
             )
             ->where('dbo.ChoferUnidadAsignada.CUA_estatus', 1)
@@ -696,6 +702,8 @@ class UnidadesController extends Controller
             if ($asignacionesConMovimiento->has($unidadID)) {
                 // Si está asignada, usar los datos de la asignación
                 $asignacion = $asignacionesConMovimiento->get($unidadID);
+                // 'dbo.ChoferUnidadAsignada.CUA_ayudantes',
+                $unidadBase->CUA_ayudantes       = $asignacion->CUA_ayudantes;
 
                 $unidadBase->CUA_unidadID       = $unidadID;
                 $unidadBase->CUA_choferID       = $asignacion->CUA_choferID;
@@ -713,6 +721,8 @@ class UnidadesController extends Controller
                 $unidadBase->CUA_motivoID       = null;
                 $unidadBase->CUA_fechaAsignacion = null;
                 $unidadBase->CUA_asignacionID   = null;
+                $unidadBase->CUA_ayudantes       = null;
+
                 $unidadBase->UltimoMovimiento   = 'ENTRADA';
             }
 

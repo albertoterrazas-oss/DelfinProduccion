@@ -17,14 +17,14 @@ const route = (name, params = {}) => {
 // Validaciones requeridas para el formulario de Motivo
 const motivoValidations = {
     Motivos_nombre: true,
-    Motivos_tipo: true,
+    // Motivos_tipo: true,
 };
 
 // Función DUMMY de validación adaptada para Motivos
 const validateInputs = (validations, data) => {
     let formErrors = {};
     if (validations.Motivos_nombre && !data.Motivos_nombre?.trim()) formErrors.Motivos_nombre = 'El nombre del motivo es obligatorio.';
-    if (validations.Motivos_tipo && !data.Motivos_tipo?.trim()) formErrors.Motivos_tipo = 'El tipo de motivo es obligatorio.';
+    // if (validations.Motivos_tipo && !data.Motivos_tipo?.trim()) formErrors.Motivos_tipo = 'El tipo de motivo es obligatorio.';
     return { isValid: Object.keys(formErrors).length === 0, errors: formErrors };
 };
 
@@ -32,7 +32,7 @@ const validateInputs = (validations, data) => {
 const initialMotivoData = {
     Motivos_motivoID: null, // Nuevo ID para identificar en edición
     Motivos_nombre: "",
-    Motivos_tipo: "",
+    Motivos_tipo: "EN",
     Motivos_descripcion: "",
     Motivos_estatus: "1", // Ejemplo: 'Activo', 'Inactivo'
 };
@@ -50,7 +50,7 @@ function MotivoFormDialog({ isOpen, closeModal, onSubmit, motivoToEdit, action, 
                 ? {
                     ...motivoToEdit,
                     Motivos_nombre: motivoToEdit.Motivos_nombre || "",
-                    Motivos_tipo: motivoToEdit.Motivos_tipo || "",
+                    Motivos_tipo:  "EN",
                     Motivos_descripcion: motivoToEdit.Motivos_descripcion || "",
                     Motivos_estatus: motivoToEdit.Motivos_estatus || "1",
                 }
@@ -126,7 +126,7 @@ function MotivoFormDialog({ isOpen, closeModal, onSubmit, motivoToEdit, action, 
                             </label>
 
 
-                            <label className="block">
+                            {/* <label className="block">
                                 <span className="text-sm font-medium text-gray-700">Tipo: <span className="text-red-500">*</span></span>
                                 <input
                                     type="text"
@@ -136,7 +136,7 @@ function MotivoFormDialog({ isOpen, closeModal, onSubmit, motivoToEdit, action, 
                                     className={`mt-1 block w-full rounded-md border p-2 text-sm ${errors.Motivos_tipo ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}`}
                                 />
                                 {errors.Motivos_nombre && <p className="text-red-500 text-xs mt-1">{errors.Motivos_tipo}</p>}
-                            </label>
+                            </label> */}
 
                             {/* Textarea Descripción */}
                             <label className="block">
@@ -319,7 +319,7 @@ export default function Motivos() {
                             },
                         },
                         { header: 'Nombre', accessor: 'Motivos_nombre' },
-                        { header: 'Tipo', accessor: 'Motivos_tipo' },
+                        // { header: 'Tipo', accessor: 'Motivos_tipo' },
                         { header: 'Descripción', accessor: 'Motivos_descripcion' },
                         {
                             header: "Acciones", accessor: "Acciones",  cell: (eprops) => (<>

@@ -144,7 +144,7 @@
         <div class="header">
 
             <div class="title">
-                <h1>DELFIN TECNOLOGYS</h1>
+                <h1>DELFIN TECHNOLOGIES</h1>
             </div>
         </div>
 
