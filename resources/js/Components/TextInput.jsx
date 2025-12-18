@@ -207,21 +207,23 @@ const TextInput = forwardRef(function TextInput({
     }, [isFocused]);
 
     return (
-        <InputGroup>
-            <InputGroupInput
-                placeholder={placeholder}
-                className={className}
-                ref={input}
-                onChange={handleChange}
-                onFocus={handleFocus}
-                onKeyDown={handleKeyDown}
-                onBlur={handleBlur}
-                onPaste={handlePaste}
-                value={displayValue}
-                inputMode={type === 'number' ? 'decimal' : undefined}
-                {...props}
-            />
-        </InputGroup>
+        <div className='w-full min-w-0'>
+            <InputGroup className='w-full min-w-0'>
+                <InputGroupInput
+                    placeholder={placeholder}
+                    className={`w-full min-w-0 ${className}`}
+                    ref={input}
+                    onChange={handleChange}
+                    onFocus={handleFocus}
+                    onKeyDown={handleKeyDown}
+                    onBlur={handleBlur}
+                    onPaste={handlePaste}
+                    value={displayValue}
+                    inputMode={type === 'number' ? 'decimal' : undefined}
+                    {...props}
+                />
+            </InputGroup>
+        </div>
     );
 });
 

@@ -39,33 +39,13 @@ const SelectInput = forwardRef(({
     valueKey = "value",
     labelKey = "label"
 }, ref) => {
-    // Clases base para el select
-    const baseClasses = `
-        w-full p-3 pr-10
-        border rounded-lg 
-        focus:outline-none focus:ring-2 focus:ring-indigo-500
-        text-gray-800
-        appearance-none transition duration-150 ease-in-out
-        shadow-sm
-    `;
-
-    // Clases condicionales para el estado 'disabled'
-    const disabledClasses = `
-        bg-gray-100 text-gray-500 cursor-not-allowed
-        border-dashed border-gray-400 // Estilo de "borde roto" (discontinuo)
-    `;
-
-    // Clases para el estado normal/activo
-    const activeClasses = `
-        bg-white border-gray-300
-    `;
 
     return (
-        <div className="flex flex-col gap-1 w-full">
+        <div className="flex flex-col gap-1 min-w-0 w-full">
             <label htmlFor={name} className="text-sm font-medium text-gray-700">
                 {label} {isRequired && <span className="text-red-500">*</span>}
             </label>
-            <div className="relative">
+            <div className="relative w-full min-w-0">
                 <Select
                     id={name}
                     name={name}
@@ -75,8 +55,8 @@ const SelectInput = forwardRef(({
                     required={isRequired}
                     disabled={disabled}
                 >
-                    <SelectTrigger>
-                        <SelectValue placeholder={placeholder} />
+                    <SelectTrigger className="w-full min-w-0">
+                        <SelectValue className='truncate' placeholder={placeholder} />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectGroup>
@@ -94,14 +74,14 @@ const SelectInput = forwardRef(({
                     </SelectContent>
                 </Select>
                 {/* Custom arrow icon (ajustado el color para el estado disabled) */}
-                <div
+                {/* <div
                     className={`
                         pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 
                         ${disabled ? 'text-gray-500' : 'text-gray-700'}
                     `}
                 >
 
-                </div>
+                </div> */}
             </div>
         </div>
     );

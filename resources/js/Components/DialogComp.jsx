@@ -33,9 +33,9 @@ const DialogComp = ({
 
     return (
         // <Transition appear show={open}> {/* ← añade "appear" */}
-        <Dialog as="div" className="relative z-50 focus:outline-none" onClose={onClose}>
+        <Dialog open={open} as="div" className="relative z-50 focus:outline-none" onClose={onClose}>
             {/* Backdrop */}
-            {/* <TransitionChild
+            <TransitionChild
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
                     enterTo="opacity-100"
@@ -44,7 +44,7 @@ const DialogComp = ({
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-black bg-opacity-40 transition-opacity" />
-                </TransitionChild> */}
+                </TransitionChild>
 
             {/* Contenedor del diálogo */}
             <div className="fixed inset-0 overflow-y-auto">
