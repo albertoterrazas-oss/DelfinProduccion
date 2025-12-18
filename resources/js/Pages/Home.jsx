@@ -64,13 +64,13 @@ export default function Home({ auth }) {
             {/* 🔴 CAMBIO CLAVE: Se eliminan las clases w-64 y bg-gray-800. */}
             {/* LeftMenu ahora controlará su propio ancho (290px -> 49px) y fondo. */}
             {/* Se mantiene flex-shrink-0 y h-full. */}
-            <div className="flex-shrink-0 h-full">
+            <div className="flex-shrink-0 h-full min-w-[50px]">
                 <LeftMenu auth={usuario} />
             </div>
 
             {/** 2. Contenido Principal (Columna 2) - Ocupa el espacio restante **/}
-            <div className="content sm:overflow-auto md:overflow-hidden bg-gray-100 font-sans">
-
+            <div className="content bg-gray-100 font-sans flex-1 min-w-0">
+                {/* sm:overflow-auto md:overflow-hidden */}
                 {/** A. Header Fijo **/}
                 <Header />
 

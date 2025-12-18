@@ -691,170 +691,141 @@ const RegistroYSalidaUnificado = () => {
     }, [form.movementType]);
 
     return (
-        // <div className="flex flex-col gap-4">
-        <>
-            {/* RENDERIZAR EL MODAL DE AUTORIZACIÓN */}
-            <AuthorizationModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onAuthorize={handleAuthorization}
-                data={form}
-            />
+        <div className={`flex flex-col gap-4 ${isModalOpen ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div className='flex flex-col gap-4'>
+                {/* <button onClick={() => setIsModalOpen(true)}>smn</button> */}
+                <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 pt-4">
+                    Registro Único de Movimientos
+                </h1>
 
-            <Dialog
-                open={isOpen}
-                onClose={closeModal}
-                className="relative z-50"
-            >
-                {/* Overlay (Fondo oscuro) */}
-                <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-                {/* Contenedor del Dialog (Centrado) */}
-                <div className="fixed inset-0 flex w-full items-center justify-center p-4">
-                    <DialogPanel className="w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl relative" style={{ height: '90vh' }}>
-                        <DialogTitle className="text-lg font-bold border-b pb-2 mb-4">
-                            Lista de Verificación de Incidencias del Vehículo
-                        </DialogTitle>
-
-                        {/* Botón de cerrar dentro del modal */}
-                        <button
-                            onClick={closeModal}
-                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-                            aria-label="Cerrar modal"
-                        >
-                            ❌
-                        </button>
-
-                        {/* 💡 Integración del Subcomponente */}
-                        <div style={{ height: 'calc(100% - 60px)' }}>
-                            <ComponenteVerificacion
-                                initialIncidencias={selectedIncidencias}
-                                onIncidenciasChange={handleIncidenciasChange}
-                                onClose={closeModal}
-                            />
-
-                        </div>
-
-                    </DialogPanel>
-                </div>
-            </Dialog>
-
-            {/* CONTENIDO PRINCIPAL - Opacidad reducida si el modal está abierto */}
-            <div className={`${isModalOpen ? 'opacity-50 pointer-events-none' : ''}`}>
-                <button onClick={() =>setIsModalOpen(true)}>smn</button>
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-6">Registro Único de Movimientos</h1>
-                {/* Encabezado General */}
-                <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-md mb-8">
-                    <div className="text-lg font-bold text-gray-800">Unidad: <span className="text-blue-600">
-                        {informacion.NombreUnidad || '—'}
-                    </span></div>
-                    <div className="text-lg font-bold text-gray-800">Chofer: <span className="text-blue-600">{informacion.NombreOperador || '—'}</span></div>
-                    <div className={`px-4 py-2 rounded-full font-semibold ${form.authorizationCode ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        Autorización: <span className="font-bold">{form.authorizationCode ? '✅ Otorgada' : '❌ Pendiente'}</span>
+                {/* Header con info responsiva */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-white p-4 rounded-xl shadow-md">
+                    <div className="text-sm sm:text-lg font-bold text-gray-800">
+                        Unidad: <span className="text-blue-600">{informacion.NombreUnidad || '—'}</span>
+                    </div>
+                    <div className="text-sm sm:text-lg font-bold text-gray-800">
+                        Chofer: <span className="text-blue-600">{informacion.NombreOperador || '—'}</span>
+                    </div>
+                    <div className={`px-4 py-2 rounded-full font-semibold text-sm ${form.authorizationCode ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                        Autorización: <span className="font-bold">
+                            {form.authorizationCode ? '✅ Otorgada' : '❌ Pendiente'}
+                        </span>
                     </div>
                 </div>
+            </div>
 
-                {/* Contenedor Principal de las 2 Columnas */}
-                <div className="flex sm:flex-col gap-8">
-                    <div className="bg-white p-6 rounded-xl shadow-lg">
-                        <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Datos del Movimiento</h2>
+            {/* Contenedor Principal de las 2 Columnas */}
+            <div className="flex flex-col lg:flex-row gap-4 w-full">
 
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                            {/* Toggle ENTRADA/SALIDA */}
-                            <div className="flex gap-2 col-span-2">
-                                <ToggleButton
-                                    label="ENTRADA"
-                                    isActive={form.movementType === 'ENTRADA'}
-                                    onClick={() => setMovementType('ENTRADA')}
-                                />
-                                <ToggleButton
-                                    label="SALIDA"
-                                    isActive={form.movementType === 'SALIDA'}
-                                    onClick={() => setMovementType('SALIDA')}
+                {/* COLUMNA IZQUIERDA: Datos del Movimiento */}
+                <div className="flex-1 min-w-0 bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+                    <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
+                        Datos del Movimiento
+                    </h2>
+
+                    <div className="flex flex-col gap-4 mb-6">
+                        {/* Toggle ENTRADA/SALIDA */}
+                        <div className="flex gap-2">
+                            <ToggleButton
+                                label="ENTRADA"
+                                isActive={form.movementType === 'ENTRADA'}
+                                onClick={() => setMovementType('ENTRADA')}
+                            />
+                            <ToggleButton
+                                label="SALIDA"
+                                isActive={form.movementType === 'SALIDA'}
+                                onClick={() => setMovementType('SALIDA')}
+                            />
+                        </div>
+
+                        {/* Grid de inputs - RESPONSIVO */}
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 w-full'>
+
+                            {/* SELECT Motivo */}
+                            <div className="w-full min-w-0">
+                                <SelectInput
+                                    label="Motivo"
+                                    value={form.motive}
+                                    onChange={(value) => {
+                                        setForm({ ...form, motive: value });
+                                    }}
+                                    options={requests.Motivos}
+                                    placeholder="Seleccionar motivo..."
+                                    valueKey="Motivos_motivoID"
+                                    labelKey="Motivos_nombre"
+                                    disabled={true}
                                 />
                             </div>
 
-                            {/* SELECT Motivo */}
-                            <SelectInput
-                                label="Motivo"
-                                value={form.motive}
-                                onChange={(value) => {
-                                    setForm({ ...form, motive: value });
-                                }}
-                                options={requests.Motivos}
-                                placeholder="Seleccionar motivo..."
-                                valueKey="Motivos_motivoID"
-                                labelKey="Motivos_nombre"
-                                disabled={true} // Deshabilitado, se carga de QuienconQuienControl
-                            />
-
                             {/* SELECT Unidad */}
-                            <div>
+                            <div className='w-full min-w-0'>
                                 <SelectInput
                                     label="Unidad (Número Económico)"
                                     value={form.unit}
                                     onChange={(value) => {
                                         setForm({ ...form, unit: value });
-                                        setForm(prevForm => ({ ...prevForm, authorizationCode: '' })); // Limpiar autorización al cambiar unidad
+                                        setForm(prevForm => ({ ...prevForm, authorizationCode: '' }));
                                     }}
                                     options={requests.QuienconQuienControl}
                                     placeholder="Seleccionar unidad..."
                                     valueKey="CUA_unidadID"
                                     labelKey="Unidades_numeroEconomico"
-
-                                    // LÓGICA CORREGIDA: Se deshabilita si el array está vacío o no cargado.
-                                    // Se asume que esta era la intención original.
                                     disabled={!requests.QuienconQuienControl?.length}
                                 />
-
-                                {/* Mensaje de error/información si NO hay unidades */}
                                 {requests.QuienconQuienControl && requests.QuienconQuienControl.length === 0 && (
-                                    <p className="text-xs text-red-500">
+                                    <span className="text-xs text-red-500 mt-1 block">
                                         No hay unidades disponibles para seleccionar.
-                                    </p>
+                                    </span>
                                 )}
                             </div>
 
                             {/* SELECT Chofer / Ayudante */}
-                            <SelectInput
-                                label="Chofer / Ayudante"
-                                value={form.driver}
-                                onChange={(value) => { setForm({ ...form, driver: value }); }}
-                                options={requests.Choferes}
-                                placeholder="Seleccionar Chofer / ayudante"
-                                valueKey="Personas_usuarioID"
-                                labelKey="nombre_completo"
-                                disabled={true} // Deshabilitado, se carga de QuienconQuienControl
-                            />
+                            <div className="w-full min-w-0">
+                                <SelectInput
+                                    label="Chofer / Ayudante"
+                                    value={form.driver}
+                                    onChange={(value) => { setForm({ ...form, driver: value }); }}
+                                    options={requests.Choferes}
+                                    placeholder="Seleccionar Chofer / ayudante"
+                                    valueKey="Personas_usuarioID"
+                                    labelKey="nombre_completo"
+                                    disabled={true}
+                                />
+                            </div>
 
                             {/* SELECT Destino */}
-                            <SelectInput
-                                label="Destino"
-                                value={form.destination}
-                                onChange={(value) => { setForm({ ...form, destination: value }); }}
-                                options={requests.Destinos}
-                                placeholder="Seleccionar destino..."
-                                valueKey="Destinos_Id"
-                                labelKey="Destinos_Nombre"
-                                disabled={true} // Deshabilitado, se carga de QuienconQuienControl
-                            />
+                            <div className="w-full min-w-0">
+                                <SelectInput
+                                    label="Destino"
+                                    value={form.destination}
+                                    onChange={(value) => { setForm({ ...form, destination: value }); }}
+                                    options={requests.Destinos}
+                                    placeholder="Seleccionar destino..."
+                                    valueKey="Destinos_Id"
+                                    labelKey="Destinos_Nombre"
+                                    disabled={true}
+                                />
+                            </div>
 
                             {/* SELECT Combustible */}
-                            <SelectInput
-                                label="Combustible"
-                                value={form.combustible}
-                                onChange={(value) => { setForm({ ...form, combustible: value }); }}
-                                options={FUEL_OPTIONS}
-                                placeholder="Seleccionar combustible"
-                                valueKey="escala_valor"
-                                labelKey="nombre"
-                            />
+                            <div className="w-full min-w-0">
+                                <SelectInput
+                                    label="Combustible"
+                                    value={form.combustible}
+                                    onChange={(value) => { setForm({ ...form, combustible: value }); }}
+                                    options={FUEL_OPTIONS}
+                                    placeholder="Seleccionar combustible"
+                                    valueKey="escala_valor"
+                                    labelKey="nombre"
+                                />
+                            </div>
 
                             {/* INPUT Kilometraje Actual */}
-                            <div className={`flex flex-col gap-1 h-full`}>
+                            <div className={`flex flex-col gap-1 w-full min-w-0`}>
                                 <label className="text-sm font-medium text-gray-600">
                                     Kilometraje Actual
                                 </label>
-
                                 <TextInput
                                     type="number"
                                     name="kilometers"
@@ -863,145 +834,171 @@ const RegistroYSalidaUnificado = () => {
                                         setForm({ ...form, kilometers: e.target.value });
                                     }}
                                     className={`p-3 border rounded-lg focus:outline-none focus:ring-2 ${!isKmValid && form.movementType === 'ENTRADA' && form.kilometers !== 0
-                                        ? 'border-red-500 focus:ring-red-400'
-                                        : 'border-gray-300 focus:ring-blue-400'
+                                            ? 'border-red-500 focus:ring-red-400'
+                                            : 'border-gray-300 focus:ring-blue-400'
                                         }`}
                                 />
                                 {!isKmValid && form.movementType === 'ENTRADA' && form.kilometers !== 0 && (
-                                    <p className="text-xs text-red-500">
+                                    <span className="text-xs text-red-500 mt-1">
                                         El KM debe ser mayor al último registrado ({informacion.UltimoKilometraje}).
-                                    </p>
+                                    </span>
                                 )}
                             </div>
 
-
-                            {/* INPUT Observaciones */}
-                            <div className={`flex flex-col gap-1 h-full col-span-2`}>
+                            {/* INPUT Observaciones - Ocupa 2 columnas en pantallas grandes */}
+                            <div className={`flex flex-col gap-1 w-full min-w-0 md:col-span-2`}>
                                 <label className="text-sm font-medium text-gray-600">
                                     Observaciones
                                 </label>
-
                                 <textarea
                                     name="observation"
                                     value={form.observation}
                                     onChange={(e) => {
                                         setForm({ ...form, observation: e.target.value });
                                     }}
-                                    className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
                                     rows="2"
                                 />
                             </div>
                         </div>
+                    </div>
 
-                        {/* Checklist y Condiciones */}
-                        <div className="flex justify-between items-center mb-4 border-b pb-2">
-                            {/* Encabezado a la Izquierda */}
-                            <h2 className="text-lg font-bold text-gray-800">
-                                Checklist
-                            </h2>
-
-                            <button
-                                className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-200 
-                                    bg-[#3b82f6] text-white shadow-lg
-                                   `}
-
-                                onClick={openModal}
-                            >
-                                Condiciones de la unidad
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-1 gap-x-8 gap-y-2 mb-6 p-3 border border-gray-200 rounded-lg max-h-60 overflow-y-auto">
-                            {requests.ListasVerificacion.map((item) => {
-                                const listId = item.ListaVerificacion_listaID.toString();
-
-                                const currentItem = Array.isArray(form.checklist)
-                                    ? form.checklist.find(i => i.id === listId)
-                                    : undefined;
-
-                                // Si no hay ítem en el checklist (undefined), asume 'Si' (default)
-                                const currentValue = currentItem ? currentItem.observacion : 'Si';
-
-                                return (
-                                    <ConditionToggle
-                                        key={listId}
-                                        label={item.ListaVerificacion_nombre}
-                                        name={listId}
-                                        currentValue={currentValue}
-                                        onToggle={handleChecklistToggle}
-                                        isCritical={item.ListaVerificacion_tipo === "Obligatorio"}
-                                    />
-                                );
-                            })}
-                        </div>
-
+                    {/* Checklist y Condiciones */}
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 border-b pb-2">
+                        <h2 className="text-lg font-bold text-gray-800">Checklist</h2>
                         <button
-                            onClick={CrearAsignacion}
-                            disabled={isSubmitting || !isFormValid}
-                            className={`w-full py-3 text-white text-lg font-bold rounded-lg shadow-xl transition-colors 
-                        ${isSubmitting || !isFormValid
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-blue-600 hover:bg-blue-700'
-                                }`}
+                            className="px-4 sm:px-6 py-2 rounded-lg font-semibold transition-colors duration-200 bg-[#3b82f6] text-white shadow-lg text-sm sm:text-base"
+                            onClick={openModal}
                         >
-                            {buttonText}
+                            Condiciones de la unidad
                         </button>
                     </div>
 
-                    {/* === COLUMNA DERECHA: RESUMEN Y EVIDENCIAS === */}
-                    <div className="bg-white p-6 rounded-xl shadow-lg">
-                        <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Resumen y Evidencias</h2>
-                        {/* Resumen de Datos (enlazados al estado actual) */}
-                        <div className="flex flex-col gap-2 mb-6 p-3 border border-gray-200 rounded-lg">
-                            <h3 className="text-md font-semibold text-gray-700">Datos Clave</h3>
-                            <ResumenItem label="Tipo de Movimiento" value={form.movementType} />
-                            <ResumenItem label="Unidad" value={informacion.NombreUnidad || '—'} />
-                            <ResumenItem label="Chofer" value={informacion.NombreOperador || '—'} />
-                            <hr className="my-1 border-gray-100" />
-                            <ResumenItem
-                                label="Motivo"
-                                value={(requests.Motivos.find(m => m.Motivos_motivoID === form.motive)?.Motivos_nombre) || '—'}
-                            />
-                            <ResumenItem
-                                label="Destino"
-                                value={(requests.Destinos.find(d => d.Destinos_Id === form.destination)?.Destinos_Nombre) || '—'}
-                            />
-                            <hr className="my-1 border-gray-100" />
-                            <ResumenItem label="Kilometraje Registrado" value={`${form.kilometers} km`} />
-                            <ResumenItem
-                                label="Nivel Combustible"
-                                value={FUEL_OPTIONS.find(f => f.escala_valor == form.combustible)?.nombre || '—'}
-                            />
-                            <hr className="my-1 border-gray-100" />
-                            <div className="flex justify-between items-center py-1">
-                                <span className="text-sm font-medium text-gray-600">Fallas Detectadas</span>
-                                <span className={`text-sm font-bold ${form.estatusCode === 1 ? 'text-red-600' : 'text-green-600'}`}>
-                                    {form.estatusCode === 1 ? 'Sí (Requiere Autorización)' : 'No'}
-                                </span>
-                            </div>
-                        </div>
+                    <div className="grid grid-cols-1 gap-x-4 gap-y-2 mb-6 p-3 border border-gray-200 rounded-lg max-h-60 overflow-y-auto">
+                        {requests.ListasVerificacion.map((item) => {
+                            const listId = item.ListaVerificacion_listaID.toString();
+                            const currentItem = Array.isArray(form.checklist)
+                                ? form.checklist.find(i => i.id === listId)
+                                : undefined;
+                            const currentValue = currentItem ? currentItem.observacion : 'Si';
 
-                        {/* DATATABLE de Últimos Movimientos */}
-                        <h3 className="text-md font-semibold text-gray-700 mb-2">Historial Reciente de Unidad</h3>
-                        {/* <div className="overflow-x-auto"> */}
+                            return (
+                                <ConditionToggle
+                                    key={listId}
+                                    label={item.ListaVerificacion_nombre}
+                                    name={listId}
+                                    currentValue={currentValue}
+                                    onToggle={handleChecklistToggle}
+                                    isCritical={item.ListaVerificacion_tipo === "Obligatorio"}
+                                />
+                            );
+                        })}
+                    </div>
+
+                    <button
+                        onClick={CrearAsignacion}
+                        disabled={isSubmitting || !isFormValid}
+                        className={`w-full py-3 text-white text-base sm:text-lg font-bold rounded-lg shadow-xl transition-colors ${isSubmitting || !isFormValid
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-700'
+                            }`}
+                    >
+                        {buttonText}
+                    </button>
+                </div>
+
+                {/* COLUMNA DERECHA: RESUMEN Y EVIDENCIAS */}
+                <div className="flex-1 min-w-0 bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+                    <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
+                        Resumen y Evidencias
+                    </h2>
+
+                    {/* Resumen de Datos */}
+                    <div className="flex flex-col gap-2 mb-6 p-3 border border-gray-200 rounded-lg overflow-x-auto">
+                        <h3 className="text-md font-semibold text-gray-700">Datos Clave</h3>
+                        <ResumenItem label="Tipo de Movimiento" value={form.movementType} />
+                        <ResumenItem label="Unidad" value={informacion.NombreUnidad || '—'} />
+                        <ResumenItem label="Chofer" value={informacion.NombreOperador || '—'} />
+                        <hr className="my-1 border-gray-100" />
+                        <ResumenItem
+                            label="Motivo"
+                            value={(requests.Motivos.find(m => m.Motivos_motivoID === form.motive)?.Motivos_nombre) || '—'}
+                        />
+                        <ResumenItem
+                            label="Destino"
+                            value={(requests.Destinos.find(d => d.Destinos_Id === form.destination)?.Destinos_Nombre) || '—'}
+                        />
+                        <hr className="my-1 border-gray-100" />
+                        <ResumenItem label="Kilometraje Registrado" value={`${form.kilometers} km`} />
+                        <ResumenItem
+                            label="Nivel Combustible"
+                            value={FUEL_OPTIONS.find(f => f.escala_valor == form.combustible)?.nombre || '—'}
+                        />
+                        <hr className="my-1 border-gray-100" />
+                        <div className="flex justify-between items-center py-1">
+                            <span className="text-sm font-medium text-gray-600">Fallas Detectadas</span>
+                            <span className={`text-sm font-bold ${form.estatusCode === 1 ? 'text-red-600' : 'text-green-600'
+                                }`}>
+                                {form.estatusCode === 1 ? 'Sí (Requiere Autorización)' : 'No'}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* DATATABLE de Últimos Movimientos */}
+                    <h3 className="text-md font-semibold text-gray-700 mb-2">
+                        Historial Reciente de Unidad
+                    </h3>
+                    <div className="overflow-x-auto">
                         <Datatable
                             data={requests.UltimosMovimientos}
                             virtual={true}
                             searcher={false}
                             columns={[
-                                { header: 'Tipo', width: '25%', accessor: 'Movimientos_tipoMovimiento' },
-                                { header: 'Fecha', width: '25%', accessor: 'Movimientos_fecha' },
-                                { header: 'KM', width: '25%', accessor: 'Movimientos_kilometraje' },
-                                { header: 'Chofer', width: '25%', accessor: 'nombre_chofer' },
+                                { header: 'Tipo', accessor: 'Movimientos_tipoMovimiento' },
+                                { header: 'Fecha', accessor: 'Movimientos_fecha' },
+                                { header: 'KM', accessor: 'Movimientos_kilometraje' },
+                                { header: 'Chofer', accessor: 'nombre_chofer' },
                             ]}
-
                         />
-                        {/* </div> */}
-
                     </div>
                 </div>
             </div>
-        </>
-        // {/* </div> */ }
+
+            {/* Modales */}
+            <AuthorizationModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onAuthorize={handleAuthorization}
+                data={form}
+            />
+
+            <Dialog open={isOpen} onClose={closeModal} className="relative z-50">
+                <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+                <div className="fixed inset-0 flex w-full items-center justify-center p-4">
+                    <DialogPanel className="w-full max-w-4xl max-h-[90vh] rounded-lg bg-white p-4 sm:p-6 shadow-xl relative flex flex-col">
+                        <DialogTitle className="text-base sm:text-lg font-bold border-b pb-2 mb-4">
+                            Lista de Verificación de Incidencias del Vehículo
+                        </DialogTitle>
+
+                        <button
+                            onClick={closeModal}
+                            className="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-500 hover:text-gray-700 text-xl"
+                            aria-label="Cerrar modal"
+                        >
+                            ❌
+                        </button>
+
+                        <div className="flex-1 overflow-y-auto">
+                            <ComponenteVerificacion
+                                initialIncidencias={selectedIncidencias}
+                                onIncidenciasChange={handleIncidenciasChange}
+                                onClose={closeModal}
+                            />
+                        </div>
+                    </DialogPanel>
+                </div>
+            </Dialog>
+        </div>
     );
 };
 
