@@ -317,7 +317,9 @@ class UnidadesController extends Controller
                 'Unidades.Unidades_modelo',
                 'Unidades.Unidades_numeroEconomico',
                 'Motivos.Motivos_nombre',
-                'Destinos.Destinos_Nombre'
+                'Destinos.Destinos_Nombre',
+                'ChoferUnidadAsignada.CUA_ayudantes as ayudantes',
+
             )
             ->join('dbo.ChoferUnidadAsignada', 'Movimientos.Movimientos_asignacionID', '=', 'ChoferUnidadAsignada.CUA_asignacionID')
             ->join('dbo.Personas', 'ChoferUnidadAsignada.CUA_choferID', '=', 'Personas.Personas_usuarioID')
@@ -351,7 +353,33 @@ class UnidadesController extends Controller
         // 5. EJECUTAR LA CONSULTA
         // IMPORTANTE: USAMOS LA FUNCIÓN 'OLDEST()' PARA REVERTIR EL ORDEN DESCENDENTE, 
         // YA QUE EL CÁLCULO DE RENDIMIENTO REQUIERE PROCESAR LA SALIDA ANTES DE LA ENTRADA.
-        $movimientosFiltrados = $query->get();
+        // $movimientosFiltrados = $query->get();
+
+
+        // ... (Tu código de consulta anterior permanece igual hasta $query->get())
+
+        $movimientosFiltrados = $query->get()->map(function ($item) {
+            // 1. Convertimos la cadena de ayudantes en un array
+            // Usamos array_filter por si hay espacios o comas extras
+            $listaAyudantes = !empty($item->ayudantes) ? explode(',', $item->ayudantes) : [];
+
+            // 2. Creamos las nuevas propiedades (ayudante1, ayudante2, etc.)
+            // Limitamos a 5 o la cantidad que necesites
+            for ($i = 1; $i <= 5; $i++) {
+                $key = "ayudante" . $i;
+                // Asignamos el nombre limpio o null si no existe ese índice
+                $item->$key = isset($listaAyudantes[$i - 1]) ? trim($listaAyudantes[$i - 1]) : null;
+            }
+
+            // Opcional: eliminar la columna original 'ayudantes' para no duplicar datos
+            unset($item->ayudantes);
+
+            return $item;
+        });
+
+        // dd($movimientosFiltrados);
+
+        // dd($movimientosFiltrados);
 
         // 6. CALCULAR TOTALES Y RENDIMIENTO POR VIAJE COMPLETO
 
@@ -404,9 +432,36 @@ class UnidadesController extends Controller
                     }
 
                     // AGREGAR EL VIAJE COMPLETO
+                    // $viajesCompletos[] = [
+                    //     'asignacion_id' => $asignacionID,
+                    //     'nombre_chofer' => $salida->nombre_chofer,
+                    //     'Unidades_numeroEconomico' => $salida->Unidades_numeroEconomico,
+                    //     'destino' => $salida->Destinos_Nombre,
+                    //     'motivo' => $salida->Motivos_nombre,
+                    //     'fecha_salida' => $salida->Movimientos_fecha,
+                    //     'fecha_entrada' => $entrada->Movimientos_fecha,
+                    //     'km_recorridos' => round($kmRecorridos, 2),
+                    //     'combustible_salida' => (float) $salida->Movimientos_combustible,
+                    //     'combustible_entrada' => $combustible,
+                    //     'combustible_consumido' => round($combustibleConsumido, 4),
+                    //     'rendimiento_kml' => round($rendimiento, 4), // RENDIMIENTO FINAL
+                    // ];
+
+                    // ... dentro del elseif ($movimiento->Movimientos_tipoMovimiento == 'ENTRADA' && $salida)
+
+                    // AGREGAR EL VIAJE COMPLETO
                     $viajesCompletos[] = [
                         'asignacion_id' => $asignacionID,
                         'nombre_chofer' => $salida->nombre_chofer,
+
+                        // --- AGREGAMOS LOS AYUDANTES AQUÍ ---
+                        'ayudante1' => $salida->ayudante1,
+                        'ayudante2' => $salida->ayudante2,
+                        'ayudante3' => $salida->ayudante3,
+                        'ayudante4' => $salida->ayudante4,
+                        'ayudante5' => $salida->ayudante5,
+                        // ------------------------------------
+
                         'Unidades_numeroEconomico' => $salida->Unidades_numeroEconomico,
                         'destino' => $salida->Destinos_Nombre,
                         'motivo' => $salida->Motivos_nombre,
@@ -416,7 +471,7 @@ class UnidadesController extends Controller
                         'combustible_salida' => (float) $salida->Movimientos_combustible,
                         'combustible_entrada' => $combustible,
                         'combustible_consumido' => round($combustibleConsumido, 4),
-                        'rendimiento_kml' => round($rendimiento, 4), // RENDIMIENTO FINAL
+                        'rendimiento_kml' => round($rendimiento, 4),
                     ];
 
                     // REINICIAR LA SALIDA PARA EL SIGUIENTE PAR

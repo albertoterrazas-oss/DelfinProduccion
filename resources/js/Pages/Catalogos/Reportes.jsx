@@ -106,6 +106,11 @@ export default function Reportes() {
 
         { header: "Kilometraje recorrido", accessor: "km_recorridos", type: "number" },
         { header: "Kilometraje Rendimiento", accessor: "rendimiento_kml", type: "number" },
+        { header: "Ayudante-1", accessor: "ayudante1", type: "text" },
+        { header: "Ayudante-2", accessor: "ayudante2", type: "text" },
+        { header: "Ayudante-3", accessor: "ayudante3", type: "text" },
+        { header: "Ayudante-4", accessor: "ayudante4", type: "text" },
+        { header: "Ayudante-5", accessor: "ayudante5", type: "text" },
 
         
     ]

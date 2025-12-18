@@ -518,140 +518,61 @@ import { Truck, UsersRound, SendHorizontal } from 'lucide-react';
 import { useEffect, useState, useCallback } from "react";
 import { toast } from 'sonner';
 
-// --- CONSTANTES ---
-// const INITIAL_MOTIVO_DATA = {
-//     Motivos_nombre: "",
-//     Motivos_tipo: "EN",
-//     Motivos_descripcion: "",
-//     Motivos_estatus: "1",
-// };
+
 const userObject = JSON.parse(localStorage.getItem('user'));
 
-// --- COMPONENTE: FORMULARIO MODAL ---
-// function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, choferes, errors, setErrors }) {
-//     const [motivoData, setMotivoData] = useState(INITIAL_MOTIVO_DATA);
-//     const [loading, setLoading] = useState(false);
 
-//     useEffect(() => {
-//         if (isOpen) {
-//             setMotivoData(motivoToEdit || INITIAL_MOTIVO_DATA);
-//             setErrors({});
-//         }
-//     }, [isOpen, motivoToEdit, setErrors]);
-
-
-//     const handleSubmit = async (e) => {
-//         try {
-//             const response = await fetch(route('WhoAyudantes'), {
-//                 method: "POST",
-//                 body: JSON.stringify({ quienconquien: motivoToEdit, user: userObject.Personas_usuarioID,seleccionados:seleccionados }),
-//                 headers: { "Content-Type": "application/json" }
-//             });
-
-//             if (response.ok) {
-//                 toast.success("ACTUALIZADO CORRECTAMENTE");
-//                 // fetchData();
-//             } else {
-//                 toast.error("ERROR AL ACTUALIZAR");
-//             }
-//         } catch (error) {
-//             toast.error("ERROR DE CONEXIÓN");
-//         }
-//     };
-
-//     const [seleccionados, setSeleccionados] = useState([]);
-
-//     const handleCheckboxChange = (id) => {
-//         setSeleccionados((prev) => {
-//             const nuevoEstado = prev.includes(id)
-//                 ? prev.filter((item) => item !== id) // LO ELIMINA SI YA ESTABA
-//                 : [...prev, id]; // LO AGREGA SI NO ESTABA
-
-//             // AQUÍ TIENES LA CADENA CONCATENADA LISTA PARA TU BASE DE DATOS
-//             const cadenaFinal = nuevoEstado.join(',');
-//             console.log("STRING PARA GUARDAR:", cadenaFinal);
-
-//             return nuevoEstado;
-//         });
-//     };
-
-//     return (
-//         <Dialog open={isOpen} onClose={closeModal} className="relative z-50">
-//             <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-//             <div className="fixed inset-0 flex items-center justify-center p-4">
-//                 <DialogPanel className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl relative">
-//                     {loading && <LoadingDiv />}
-//                     <DialogTitle className="text-2xl font-bold mb-4 text-gray-900 border-b pb-2">
-//                         {action === 'create' ? 'AGREGAR AYUDANTES' : 'EDITAR AYUDANTES'}
-//                     </DialogTitle>
-
-//                     <form onSubmit={handleSubmit} className="space-y-4">
-
-//                         {choferes.map((chofer) => (
-//                             <div key={chofer.nombre_completo} className="flex justify-start">
-//                                 <label className="flex items-center space-x-2 cursor-pointer">
-//                                     <input
-//                                         type="checkbox"
-//                                         className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-//                                         checked={seleccionados.includes(chofer.nombre_completo)}
-//                                         onChange={() => handleCheckboxChange(chofer.nombre_completo)}
-//                                     />
-//                                     <span className="text-sm font-medium text-gray-700">
-//                                         {chofer.nombre_completo.toUpperCase()}
-//                                     </span>
-//                                 </label>
-//                             </div>
-//                         ))}
-
-//                         <div className="mt-4 p-2 bg-gray-100 rounded">
-//                             <p className="text-xs text-gray-500">VALOR A GUARDAR:</p>
-//                             <span className="font-mono">{seleccionados.join(',')}</span>
-//                         </div>
-
-//                         <div className="flex justify-end gap-3 pt-4 border-t">
-//                             <button type="button" onClick={closeModal} className="px-4 py-2 text-sm bg-gray-100 rounded-md">CANCELAR</button>
-//                             <button type="submit" className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md">
-//                                 {action === 'create' ? 'GUARDAR' : 'ACTUALIZAR'}
-//                             </button>
-//                         </div>
-//                     </form>
-//                 </DialogPanel>
-//             </div>
-//         </Dialog>
-//     );
-// }
-
-function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, choferes, errors, setErrors }) {
+function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, choferes, errors, setErrors, userObject }) {
     const [seleccionados, setSeleccionados] = useState([]);
     const [loading, setLoading] = useState(false);
 
     // RESETEAR ESTADO AL ABRIR EL MODAL
     useEffect(() => {
         if (isOpen) {
-            // 1. Verificamos que el string exista y no sea solo espacios
             const ayudantesString = motivoToEdit?.CUA_ayudantes;
 
             if (ayudantesString && ayudantesString.trim().length > 0) {
-                console.log("CARGANDO AYUDANTES EXISTENTES:", ayudantesString);
-
-                // 2. Limpiamos espacios y eliminamos entradas vacías por si hay comas de más
                 const listaLimpia = ayudantesString
                     .split(',')
                     .map(s => s.trim())
                     .filter(s => s !== "");
-
-                setSeleccionados(listaLimpia);
+                
+                // Si por alguna razón la DB tiene más de 5, truncamos para evitar errores en el componente
+                setSeleccionados(listaLimpia.slice(0, 5));
             } else {
                 setSeleccionados([]);
             }
-
-            // 3. Limpiar errores al abrir
             setErrors({});
         }
-    }, [isOpen, motivoToEdit?.CUA_ayudantes, setErrors]); // Dependencia más específica
+    }, [isOpen, motivoToEdit?.CUA_ayudantes, setErrors]);
+
+    // MANEJAR SELECCIÓN CON LÍMITE DE 5
+    const handleCheckboxChange = (nombre) => {
+        setSeleccionados((prev) => {
+            // Si ya está seleccionado, lo removemos
+            if (prev.includes(nombre)) {
+                return prev.filter((item) => item !== nombre);
+            }
+            
+            // Si no está seleccionado y ya hay 5, bloqueamos
+            if (prev.length >= 5) {
+                toast.error("SOLO PUEDES SELECCIONAR UN MÁXIMO DE 5 AYUDANTES");
+                return prev;
+            }
+
+            // Agregamos el nuevo
+            return [...prev, nombre];
+        });
+    };
 
     const handleSubmit = async (e) => {
-        e.preventDefault(); // IMPORTANTE: EVITA QUE LA PÁGINA SE RECARGUE
+        e.preventDefault();
+        
+        if (seleccionados.length > 5) {
+            toast.error("NO SE PERMITEN MÁS DE 5 AYUDANTES");
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -659,8 +580,8 @@ function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, c
                 method: "POST",
                 body: JSON.stringify({
                     quienconquien: motivoToEdit,
-                    user: userObject.Personas_usuarioID,
-                    seleccionados: seleccionados // PASAMOS EL ARRAY DIRECTAMENTE
+                    user: userObject?.Personas_usuarioID,
+                    seleccionados: seleccionados
                 }),
                 headers: {
                     "Content-Type": "application/json",
@@ -673,7 +594,7 @@ function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, c
             if (response.ok && result.success) {
                 toast.success("AYUDANTES ACTUALIZADOS");
                 closeModal();
-                if (onSubmit) onSubmit(); // ESTO DEBERÍA SER fetchData EN EL PADRE
+                if (onSubmit) onSubmit(); 
             } else {
                 toast.error(result.message || "ERROR AL ACTUALIZAR");
             }
@@ -685,60 +606,74 @@ function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, c
         }
     };
 
-    const handleCheckboxChange = (nombre) => {
-        setSeleccionados((prev) =>
-            prev.includes(nombre)
-                ? prev.filter((item) => item !== nombre)
-                : [...prev, nombre]
-        );
-    };
-
     return (
         <Dialog open={isOpen} onClose={closeModal} className="relative z-50">
             <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+            
             <div className="fixed inset-0 flex items-center justify-center p-4">
                 <DialogPanel className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl relative">
                     {loading && <LoadingDiv />}
-                    <DialogTitle className="text-2xl font-bold mb-4 text-gray-900 border-b pb-2">
-                        {action === 'create' ? 'AGREGAR AYUDANTES' : 'EDITAR AYUDANTES'}
+                    
+                    <DialogTitle className="text-2xl font-bold mb-4 text-gray-900 border-b pb-2 flex justify-between items-center">
+                        <span>{action === 'create' ? 'AGREGAR AYUDANTES' : 'EDITAR AYUDANTES'}</span>
+                        <span className={`text-sm font-bold ${seleccionados.length === 5 ? 'text-red-500' : 'text-blue-500'}`}>
+                            {seleccionados.length}/5
+                        </span>
                     </DialogTitle>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="max-h-90 overflow-y-auto space-y-2 p-1">
-                            {choferes.map((chofer) => (
-                                <div key={chofer.Personas_usuarioID} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                                    <input
-                                        id={`chofer-${chofer.Personas_usuarioID}`}
-                                        type="checkbox"
-                                        className="h-4 w-4 text-blue-600 border-gray-300 rounded cursor-pointer"
-                                        checked={seleccionados.includes(chofer.nombre_completo)}
-                                        onChange={() => handleCheckboxChange(chofer.nombre_completo)}
-                                    />
-                                    <label
-                                        htmlFor={`chofer-${chofer.Personas_usuarioID}`}
-                                        className="text-sm font-medium text-gray-700 cursor-pointer flex-grow"
+                        <div className="max-h-90 overflow-y-auto space-y-2 p-1 border rounded-lg bg-gray-50">
+                            {choferes.map((chofer) => {
+                                const isChecked = seleccionados.includes(chofer.nombre_completo);
+                                const isDisabled = seleccionados.length >= 5 && !isChecked;
+
+                                return (
+                                    <div 
+                                        key={chofer.Personas_usuarioID} 
+                                        className={`flex items-center space-x-2 p-2 rounded-lg transition-colors ${
+                                            isDisabled ? 'opacity-40' : 'hover:bg-white cursor-pointer'
+                                        }`}
                                     >
-                                        {chofer.nombre_completo.toUpperCase()}
-                                    </label>
-                                </div>
-                            ))}
+                                        <input
+                                            id={`chofer-${chofer.Personas_usuarioID}`}
+                                            type="checkbox"
+                                            className="h-5 w-5 text-blue-600 border-gray-300 rounded cursor-pointer disabled:cursor-not-allowed"
+                                            checked={isChecked}
+                                            disabled={isDisabled}
+                                            onChange={() => handleCheckboxChange(chofer.nombre_completo)}
+                                        />
+                                        <label
+                                            htmlFor={`chofer-${chofer.Personas_usuarioID}`}
+                                            className={`text-sm font-medium flex-grow uppercase ${
+                                                isDisabled ? 'text-gray-400' : 'text-gray-700 cursor-pointer'
+                                            }`}
+                                        >
+                                            {chofer.nombre_completo}
+                                        </label>
+                                    </div>
+                                );
+                            })}
                         </div>
 
-                        <div className="mt-4 p-2 bg-gray-50 rounded border border-dashed border-gray-300">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase">SELECCIONADOS:</p>
-                            <span className="text-sm font-mono text-blue-600">
-                                {seleccionados.length > 0 ? seleccionados.join(', ') : 'NINGUNO'}
+                        <div className="mt-4 p-3 bg-blue-50 rounded border border-dashed border-blue-200">
+                            <p className="text-[10px] font-bold text-blue-400 uppercase">VISTA PREVIA DE SELECCIÓN:</p>
+                            <span className="text-sm font-mono text-blue-700 break-words">
+                                {seleccionados.length > 0 ? seleccionados.join(', ') : 'NINGUNO SELECCIONADO'}
                             </span>
                         </div>
 
                         <div className="flex justify-end gap-3 pt-4 border-t">
-                            <button type="button" onClick={closeModal} className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                            <button 
+                                type="button" 
+                                onClick={closeModal} 
+                                className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                            >
                                 CANCELAR
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 shadow-sm transition-colors"
                             >
                                 {action === 'create' ? 'GUARDAR' : 'ACTUALIZAR'}
                             </button>
