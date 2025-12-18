@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import Datatable from "@/Components/Datatable";
 import LoadingDiv from "@/Components/LoadingDiv";
 import request from "@/utils";
+import { Truck, UsersRound, SendHorizontal } from 'lucide-react';
 
 
 export default function MonitorCodes() {
@@ -11,7 +12,7 @@ export default function MonitorCodes() {
     const [isLoading, setIsLoading] = useState(true);
 
 
-    const getDepartments = async () => {
+    const getCodes = async () => {
         try {
             setIsLoading(true);
             const data = await fetch(route("codigos.index")).then(res => res.json());
@@ -23,16 +24,16 @@ export default function MonitorCodes() {
     }
 
     useEffect(() => {
-        getDepartments()
+        getCodes()
     }, [])
 
 
     const handleConfirm = async (unidad, code, type) => {
         try {
-            if (code.length !== CODE_LENGTH) {
-                setError('El código debe tener 6 dígitos.');
-                return;
-            }
+            // if (code.length !== CODE_LENGTH) {
+            //     setError('El código debe tener 6 dígitos.');
+            //     return;
+            // }
 
             toast.info("Verificando código de autorización...");
 
@@ -51,10 +52,11 @@ export default function MonitorCodes() {
             }
 
             // Si es exitoso
-            setCode('');
-            setError('');
-            onAuthorize(code); // Llama a onAuthorize con el código validado
+            // setCode('');
+            // setError('');
+            // onAuthorize(code); // Llama a onAuthorize con el código validado
             toast.success("Autorización completada y verificada.");
+            getCodes(); // Refresca la lista después de la autorización
 
         } catch (err) {
             console.error('Error en el proceso de verificación de código:', err);
@@ -96,7 +98,7 @@ export default function MonitorCodes() {
                         {
                             header: "Codigo",
                             accessor: "codigoAutorizacion_codigo",
-                            width: '40%',
+                            width: '30%',
                             cell: ({ item: { codigoAutorizacion_codigo } }) => {
                                 const code = String(codigoAutorizacion_codigo || '').padEnd(6, ' '); // Asegura que sea un string y tiene 6 dígitos (ajusta 6 a tu necesidad)
                                 const digitBoxes = Array(code.length).fill(null); // Crea un array para mapear los dígitos
@@ -126,23 +128,28 @@ export default function MonitorCodes() {
                         },
                         { header: 'Unidad', width: '20%', accessor: 'unidades.Unidades_numeroEconomico' },
                         { header: 'Fecha', width: '20%', accessor: 'codigoAutorizacion_fecha' },
-
+                        { header: 'Tipo de movimiento', width: '10%', accessor: 'codigoAutorizacion_motivo' },
 
                         {
-                            header: "Acciones",
+                            header: "Autorizar",
                             accessor: "Acciones",
-                            width: '5%',
+                            width: '10%',
                             cell: ({ item }) => {
- 
                                 return (
                                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                                         <SendHorizontal
                                             style={{
                                                 width: '20px',
                                                 color: 'green',
-                                                opacity: 1 // La opacidad siempre es 1 ya que el caso 'deshabilitado' está oculto
+                                                cursor: 'pointer', // Añadido para que el usuario sepa que es clickable
+                                                opacity: 1
                                             }}
-                                            onClick={handleConfirm(item.unidades.Unidades_unidadID, item.codigoAutorizacion_codigo, item.codigoAutorizacion_motivo)}
+                                            // CORRECCIÓN: Envolver en una función flecha
+                                            onClick={() => handleConfirm(
+                                                item.unidades.Unidades_unidadID,
+                                                item.codigoAutorizacion_codigo,
+                                                item.codigoAutorizacion_motivo
+                                            )}
                                         />
                                     </div>
                                 );
