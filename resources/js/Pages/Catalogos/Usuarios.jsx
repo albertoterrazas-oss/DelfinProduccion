@@ -29,7 +29,7 @@ const route = (name, params = {}) => {
 
 // Función DUMMY de validación (usada en el componente Usuarios)
 const validateInputs = (validations, data) => {
-    console.log({ user: validations.Personas_usuario, pass: validations.Personas_contrasena })
+    // console.log({ user: validations.Personas_usuario, pass: validations.Personas_contrasena })
     let formErrors = {};
 
     // Validación de prueba básica:
@@ -159,7 +159,7 @@ function PersonFormDialog({ isOpen, closeModal, onSubmit, personToEdit, action, 
         // 2. Si NO es válido, establecer los errores y detener la ejecución
         if (!isValid) {
             setErrors(errors); // Asumo que setErrors está disponible aquí
-            console.log("Errores de validación:", errors);
+            // console.log("Errores de validación:", errors);
             return; // Detiene el envío del formulario
         }
 

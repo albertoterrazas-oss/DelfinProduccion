@@ -252,7 +252,7 @@ export default function Destinos() {
 
     // Función para crear/actualizar un destino
     const submit = async (data) => {
-        console.log("Datos a enviar:", data); // Depuración
+        // console.log("Datos a enviar:", data); // Depuración
         setErrors({});
         const validationResult = validateInputs(destinationValidations, data);
 

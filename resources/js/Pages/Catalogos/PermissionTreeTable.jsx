@@ -190,7 +190,7 @@ const TreeNode = ({ node, level = 0, onPermissionChange }) => {
 
 const PermissionTreeTable = ({ initialData = defaultMenuData }) => {
 
-  console.log("Initial Data:", initialData);
+  // console.log("Initial Data:", initialData);
   
   // Inicializamos el estado con la data de la prop o la data por defecto
   const [data, setData] = useState(() => initializeNodePermissions(initialData));

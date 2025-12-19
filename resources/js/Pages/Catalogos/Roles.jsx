@@ -185,7 +185,7 @@ export default function Roles() {
         try {
             // Se asume que request() maneja la respuesta y errores de la API
             const response = await request(ruta, method, roleData);
-            console.log("Respuesta de la API:", response);
+            // console.log("Respuesta de la API:", response);
             fetchdata(); // Refresca los datos de la tabla
         } catch (error) {
             console.error("Error al guardar/actualizar rol:", error);

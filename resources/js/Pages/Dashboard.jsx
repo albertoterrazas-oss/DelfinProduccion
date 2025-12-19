@@ -84,7 +84,7 @@ export default function Dashboard() {
 
     const userObject = JSON.parse(localStorage.getItem('user'));
 
-    console.log('Usuario en Dashboard:', userObject);
+    // console.log('Usuario en Dashboard:', userObject);
 
     const getUnits = async () => {
         try {

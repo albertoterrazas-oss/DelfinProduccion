@@ -63,7 +63,7 @@ Route::get('/', function () {
 //     ->where('path', '^(?!api).*')
 //     ->name('dashboard');
 
-Route::middleware(['auth'])->get('/{path?}', function () {
+Route::middleware(['auth', 'permission'])->get('/{path?}', function () {
     return Inertia::render('Home');
 })->where('path', '^(?!api|login|register).*$');
 
