@@ -522,13 +522,186 @@ import { toast } from 'sonner';
 const userObject = JSON.parse(localStorage.getItem('user'));
 
 
+// function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, choferes, errors, setErrors, userObject }) {
+//     const [seleccionados, setSeleccionados] = useState([]);
+//     const [loading, setLoading] = useState(false);
+
+//     // RESETEAR ESTADO AL ABRIR EL MODAL
+//     useEffect(() => {
+//         if (isOpen) {
+//             const ayudantesString = motivoToEdit?.CUA_ayudantes;
+
+//             if (ayudantesString && ayudantesString.trim().length > 0) {
+//                 const listaLimpia = ayudantesString
+//                     .split(',')
+//                     .map(s => s.trim())
+//                     .filter(s => s !== "");
+
+//                 // Si por alguna razón la DB tiene más de 5, truncamos para evitar errores en el componente
+//                 setSeleccionados(listaLimpia.slice(0, 5));
+//             } else {
+//                 setSeleccionados([]);
+//             }
+//             setErrors({});
+//         }
+//     }, [isOpen, motivoToEdit?.CUA_ayudantes, setErrors]);
+
+//     // MANEJAR SELECCIÓN CON LÍMITE DE 5
+//     const handleCheckboxChange = (nombre) => {
+//         setSeleccionados((prev) => {
+//             // Si ya está seleccionado, lo removemos
+//             if (prev.includes(nombre)) {
+//                 return prev.filter((item) => item !== nombre);
+//             }
+
+//             // Si no está seleccionado y ya hay 5, bloqueamos
+//             if (prev.length >= 5) {
+//                 toast.error("SOLO PUEDES SELECCIONAR UN MÁXIMO DE 5 AYUDANTES");
+//                 return prev;
+//             }
+
+//             // Agregamos el nuevo
+//             return [...prev, nombre];
+//         });
+//     };
+
+//     const handleSubmit = async (e) => {
+//         e.preventDefault();
+
+//         if (seleccionados.length > 5) {
+//             toast.error("NO SE PERMITEN MÁS DE 5 AYUDANTES");
+//             return;
+//         }
+
+//         setLoading(true);
+
+//         try {
+//             const response = await fetch(route('WhoAyudantes'), {
+//                 method: "POST",
+//                 body: JSON.stringify({
+//                     quienconquien: motivoToEdit,
+//                     user: userObject?.Personas_usuarioID,
+//                     seleccionados: seleccionados
+//                 }),
+//                 headers: {
+//                     "Content-Type": "application/json",
+//                     "Accept": "application/json",
+//                 }
+//             });
+
+//             const result = await response.json();
+
+//             if (response.ok && result.success) {
+//                 toast.success("AYUDANTES ACTUALIZADOS");
+//                 closeModal();
+//                 if (onSubmit) onSubmit(); 
+//             } else {
+//                 toast.error(result.message || "ERROR AL ACTUALIZAR");
+//             }
+//         } catch (error) {
+//             console.error(error);
+//             toast.error("ERROR DE CONEXIÓN AL SERVIDOR");
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+
+//     return (
+//         <Dialog open={isOpen} onClose={closeModal} className="relative z-50">
+//             <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+
+//             <div className="fixed inset-0 flex items-center justify-center p-4">
+//                 <DialogPanel className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl relative">
+//                     {loading && <LoadingDiv />}
+
+//                     <DialogTitle className="text-2xl font-bold mb-4 text-gray-900 border-b pb-2 flex justify-between items-center">
+//                         <span>{action === 'create' ? 'AGREGAR AYUDANTES' : 'EDITAR AYUDANTES'}</span>
+//                         <span className={`text-sm font-bold ${seleccionados.length === 5 ? 'text-red-500' : 'text-blue-500'}`}>
+//                             {seleccionados.length}/5
+//                         </span>
+//                     </DialogTitle>
+
+//                     <form onSubmit={handleSubmit} className="space-y-4">
+//                         <div className="max-h-90 overflow-y-auto space-y-2 p-1 border rounded-lg bg-gray-50">
+//                             {choferes.map((chofer) => {
+//                                 const isChecked = seleccionados.includes(chofer.nombre_completo);
+//                                 const isDisabled = seleccionados.length >= 5 && !isChecked;
+
+//                                 return (
+//                                     <div 
+//                                         key={chofer.Personas_usuarioID} 
+//                                         className={`flex items-center space-x-2 p-2 rounded-lg transition-colors ${
+//                                             isDisabled ? 'opacity-40' : 'hover:bg-white cursor-pointer'
+//                                         }`}
+//                                     >
+//                                         <input
+//                                             id={`chofer-${chofer.Personas_usuarioID}`}
+//                                             type="checkbox"
+//                                             className="h-5 w-5 text-blue-600 border-gray-300 rounded cursor-pointer disabled:cursor-not-allowed"
+//                                             checked={isChecked}
+//                                             disabled={isDisabled}
+//                                             onChange={() => handleCheckboxChange(chofer.nombre_completo)}
+//                                         />
+//                                         <label
+//                                             htmlFor={`chofer-${chofer.Personas_usuarioID}`}
+//                                             className={`text-sm font-medium flex-grow uppercase ${
+//                                                 isDisabled ? 'text-gray-400' : 'text-gray-700 cursor-pointer'
+//                                             }`}
+//                                         >
+//                                             {chofer.nombre_completo}
+//                                         </label>
+//                                     </div>
+//                                 );
+//                             })}
+//                         </div>
+
+//                         <div className="mt-4 p-3 bg-blue-50 rounded border border-dashed border-blue-200">
+//                             <p className="text-[10px] font-bold text-blue-400 uppercase">VISTA PREVIA DE SELECCIÓN:</p>
+//                             <span className="text-sm font-mono text-blue-700 break-words">
+//                                 {seleccionados.length > 0 ? seleccionados.join(', ') : 'NINGUNO SELECCIONADO'}
+//                             </span>
+//                         </div>
+
+//                         <div className="flex justify-end gap-3 pt-4 border-t">
+//                             <button 
+//                                 type="button" 
+//                                 onClick={closeModal} 
+//                                 className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+//                             >
+//                                 CANCELAR
+//                             </button>
+//                             <button
+//                                 type="submit"
+//                                 disabled={loading}
+//                                 className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 shadow-sm transition-colors"
+//                             >
+//                                 {action === 'create' ? 'GUARDAR' : 'ACTUALIZAR'}
+//                             </button>
+//                         </div>
+//                     </form>
+//                 </DialogPanel>
+//             </div>
+//         </Dialog>
+//     );
+// }
+
+// --- COMPONENTE PRINCIPAL ---
+
+
 function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, choferes, errors, setErrors, userObject }) {
     const [seleccionados, setSeleccionados] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // Estados para Paginación y Búsqueda
+    const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
+
     // RESETEAR ESTADO AL ABRIR EL MODAL
     useEffect(() => {
         if (isOpen) {
+            setSearchTerm(""); // Limpiar búsqueda al abrir
+            setCurrentPage(1); // Resetear a página 1
             const ayudantesString = motivoToEdit?.CUA_ayudantes;
 
             if (ayudantesString && ayudantesString.trim().length > 0) {
@@ -536,8 +709,6 @@ function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, c
                     .split(',')
                     .map(s => s.trim())
                     .filter(s => s !== "");
-                
-                // Si por alguna razón la DB tiene más de 5, truncamos para evitar errores en el componente
                 setSeleccionados(listaLimpia.slice(0, 5));
             } else {
                 setSeleccionados([]);
@@ -546,35 +717,37 @@ function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, c
         }
     }, [isOpen, motivoToEdit?.CUA_ayudantes, setErrors]);
 
+    // LÓGICA DE FILTRADO Y PAGINACIÓN
+    const choferesFiltrados = choferes.filter(chofer =>
+        chofer.nombre_completo.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(choferesFiltrados.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = choferesFiltrados.slice(indexOfFirstItem, indexOfLastItem);
+
     // MANEJAR SELECCIÓN CON LÍMITE DE 5
     const handleCheckboxChange = (nombre) => {
         setSeleccionados((prev) => {
-            // Si ya está seleccionado, lo removemos
             if (prev.includes(nombre)) {
                 return prev.filter((item) => item !== nombre);
             }
-            
-            // Si no está seleccionado y ya hay 5, bloqueamos
             if (prev.length >= 5) {
                 toast.error("SOLO PUEDES SELECCIONAR UN MÁXIMO DE 5 AYUDANTES");
                 return prev;
             }
-
-            // Agregamos el nuevo
             return [...prev, nombre];
         });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
         if (seleccionados.length > 5) {
             toast.error("NO SE PERMITEN MÁS DE 5 AYUDANTES");
             return;
         }
-
         setLoading(true);
-
         try {
             const response = await fetch(route('WhoAyudantes'), {
                 method: "POST",
@@ -588,13 +761,11 @@ function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, c
                     "Accept": "application/json",
                 }
             });
-
             const result = await response.json();
-
             if (response.ok && result.success) {
                 toast.success("AYUDANTES ACTUALIZADOS");
                 closeModal();
-                if (onSubmit) onSubmit(); 
+                if (onSubmit) onSubmit();
             } else {
                 toast.error(result.message || "ERROR AL ACTUALIZAR");
             }
@@ -609,11 +780,11 @@ function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, c
     return (
         <Dialog open={isOpen} onClose={closeModal} className="relative z-50">
             <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-            
+
             <div className="fixed inset-0 flex items-center justify-center p-4">
                 <DialogPanel className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl relative">
                     {loading && <LoadingDiv />}
-                    
+
                     <DialogTitle className="text-2xl font-bold mb-4 text-gray-900 border-b pb-2 flex justify-between items-center">
                         <span>{action === 'create' ? 'AGREGAR AYUDANTES' : 'EDITAR AYUDANTES'}</span>
                         <span className={`text-sm font-bold ${seleccionados.length === 5 ? 'text-red-500' : 'text-blue-500'}`}>
@@ -621,39 +792,80 @@ function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, c
                         </span>
                     </DialogTitle>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="max-h-90 overflow-y-auto space-y-2 p-1 border rounded-lg bg-gray-50">
-                            {choferes.map((chofer) => {
-                                const isChecked = seleccionados.includes(chofer.nombre_completo);
-                                const isDisabled = seleccionados.length >= 5 && !isChecked;
+                    {/* BUSCADOR */}
+                    <div className="mb-4">
+                        <input
+                            type="text"
+                            placeholder="Buscar chofer por nombre..."
+                            className="w-full p-2 border rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                            value={searchTerm}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setCurrentPage(1); // Volver a la pág 1 al buscar
+                            }}
+                        />
+                    </div>
 
-                                return (
-                                    <div 
-                                        key={chofer.Personas_usuarioID} 
-                                        className={`flex items-center space-x-2 p-2 rounded-lg transition-colors ${
-                                            isDisabled ? 'opacity-40' : 'hover:bg-white cursor-pointer'
-                                        }`}
-                                    >
-                                        <input
-                                            id={`chofer-${chofer.Personas_usuarioID}`}
-                                            type="checkbox"
-                                            className="h-5 w-5 text-blue-600 border-gray-300 rounded cursor-pointer disabled:cursor-not-allowed"
-                                            checked={isChecked}
-                                            disabled={isDisabled}
-                                            onChange={() => handleCheckboxChange(chofer.nombre_completo)}
-                                        />
-                                        <label
-                                            htmlFor={`chofer-${chofer.Personas_usuarioID}`}
-                                            className={`text-sm font-medium flex-grow uppercase ${
-                                                isDisabled ? 'text-gray-400' : 'text-gray-700 cursor-pointer'
-                                            }`}
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="min-h-[300px] space-y-2 p-1 border rounded-lg bg-gray-50">
+                            {currentItems.length > 0 ? (
+                                currentItems.map((chofer) => {
+                                    const isChecked = seleccionados.includes(chofer.nombre_completo);
+                                    const isDisabled = seleccionados.length >= 5 && !isChecked;
+
+                                    return (
+                                        <div
+                                            key={chofer.Personas_usuarioID}
+                                            className={`flex items-center space-x-2 p-2 rounded-lg transition-colors ${isDisabled ? 'opacity-40' : 'hover:bg-white cursor-pointer'
+                                                }`}
                                         >
-                                            {chofer.nombre_completo}
-                                        </label>
-                                    </div>
-                                );
-                            })}
+                                            <input
+                                                id={`chofer-${chofer.Personas_usuarioID}`}
+                                                type="checkbox"
+                                                className="h-5 w-5 text-blue-600 border-gray-300 rounded cursor-pointer disabled:cursor-not-allowed"
+                                                checked={isChecked}
+                                                disabled={isDisabled}
+                                                onChange={() => handleCheckboxChange(chofer.nombre_completo)}
+                                            />
+                                            <label
+                                                htmlFor={`chofer-${chofer.Personas_usuarioID}`}
+                                                className={`text-sm font-medium flex-grow uppercase ${isDisabled ? 'text-gray-400' : 'text-gray-700 cursor-pointer'
+                                                    }`}
+                                            >
+                                                {chofer.nombre_completo}
+                                            </label>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <p className="text-center text-gray-400 text-sm mt-10">No se encontraron resultados</p>
+                            )}
                         </div>
+
+                        {/* CONTROLES PAGINACIÓN */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-between items-center bg-gray-100 p-2 rounded-lg">
+                                <button
+                                    type="button"
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage(prev => prev - 1)}
+                                    className="px-3 py-1 text-xs font-bold bg-white rounded border disabled:opacity-50"
+                                >
+                                    ANTERIOR
+                                </button>
+                                <span className="text-xs font-bold text-gray-600">
+                                    PÁGINA {currentPage} DE {totalPages}
+                                </span>
+                                <button
+                                    type="button"
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage(prev => prev + 1)}
+                                    className="px-3 py-1 text-xs font-bold bg-white rounded border disabled:opacity-50"
+                                >
+                                    SIGUIENTE
+                                </button>
+                            </div>
+                        )}
 
                         <div className="mt-4 p-3 bg-blue-50 rounded border border-dashed border-blue-200">
                             <p className="text-[10px] font-bold text-blue-400 uppercase">VISTA PREVIA DE SELECCIÓN:</p>
@@ -663,17 +875,17 @@ function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, c
                         </div>
 
                         <div className="flex justify-end gap-3 pt-4 border-t">
-                            <button 
-                                type="button" 
-                                onClick={closeModal} 
-                                className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                            <button
+                                type="button"
+                                onClick={closeModal}
+                                className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
                             >
                                 CANCELAR
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 shadow-sm transition-colors"
+                                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 shadow-sm"
                             >
                                 {action === 'create' ? 'GUARDAR' : 'ACTUALIZAR'}
                             </button>
@@ -685,7 +897,7 @@ function DialogAyudantes({ isOpen, closeModal, onSubmit, motivoToEdit, action, c
     );
 }
 
-// --- COMPONENTE PRINCIPAL ---
+
 export default function QuienConQuienTransporte() {
     const [states, setStates] = useState({
         loading: true,
