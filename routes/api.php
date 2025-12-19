@@ -109,7 +109,12 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
     Route::get('menus-tree', [MenuController::class, 'getTree'])->name('menus-tree');
     Route::get('QuienconQuienUnidades', [UnidadesController::class, 'QuienconQuienUnidades'])->name('QuienconQuienUnidades');
     Route::get('QuienconQuienUnidadesDashboard', [UnidadesController::class, 'QuienconQuienUnidadesDashboard'])->name('QuienconQuienUnidadesDashboard');
+    Route::get('AutorizacionQuienconQuienUnidades', [UnidadesController::class, 'AutorizacionQuienconQuienUnidades'])->name('AutorizacionQuienconQuienUnidades');
 
+    Route::post('AuthorizacionQuienCQuien', [UnidadesController::class, 'AuthorizacionQuienCQuien'])->name('AuthorizacionQuienCQuien');
+
+
+    
 
     
     Route::get('QuienconQuienControl', [UnidadesController::class, 'QuienconQuienControl'])->name('QuienconQuienControl');
@@ -131,6 +136,10 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
     Route::post('/WhoDestint',  [RegistroEntradaController::class, 'WhoDestint'])->name('WhoDestint');
     Route::get('/choferes', [UserController::class, 'choferes'])->name('choferes');
 
+
+    Route::post('/WhoAyudantes',  [RegistroEntradaController::class, 'WhoAyudantes'])->name('WhoAyudantes');
+
+    
     Route::get('indexconfiguracioncorreo', [CorreosController::class, 'indexconfiguracioncorreo'])->name('indexconfiguracioncorreo');
     Route::post('ConfiguracionCorreoStore', [CorreosController::class, 'ConfiguracionCorreoStore'])->name('ConfiguracionCorreoStore');
     Route::post('sendMailTest', [RegistroEntradaController::class, 'sendMailTest'])->name('sendMailTest');

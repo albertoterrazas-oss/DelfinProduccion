@@ -17,26 +17,30 @@ class CorreosController extends Controller
      */
     public function index()
     {
-        // 1. Recupera todos los correos de notificación junto con su usuario
-        $correos = CorreoNotificacion::with('usuario')->get();
+        // 1. Filtramos por estatus y cargamos la relación 'usuario'
+        $correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)
+            ->with('usuario')
+            ->get();
 
-        // 2. Mapea la colección para agregar el nombre completo del usuario a cada correo
+        // 2. Mapeamos para concatenar el nombre
         $correosConNombreCompleto = $correos->map(function ($correo) {
-
-            // Verifica si la relación 'usuario' existe y está cargada
-            if ($correo->relationLoaded('usuario') && $correo->usuario) {
+            if ($correo->usuario) {
                 $usuario = $correo->usuario;
 
-                // Agregamos el nombre completo como un nuevo atributo en el objeto $correo
-                $correo->usuario_nombre_completo = $usuario->Personas_nombres . ' ' .
-                    $usuario->Personas_apPaterno . ' ' .
-                    $usuario->Personas_apMaterno;
+                // Creamos el atributo dinámico
+                $correo->usuario_nombre_completo = trim(
+                    $usuario->Personas_nombres . ' ' .
+                        $usuario->Personas_apPaterno . ' ' .
+                        $usuario->Personas_apMaterno
+                );
+            } else {
+                $correo->usuario_nombre_completo = 'Usuario no encontrado';
             }
 
             return $correo;
         });
 
-        // 3. Retorna la colección modificada
+        // 3. Retornamos la respuesta
         return response()->json($correosConNombreCompleto, 200);
     }
 
@@ -104,7 +108,7 @@ class CorreosController extends Controller
         ]);
 
 
-        
+
 
         if ($validator->fails()) {
             return response()->json([

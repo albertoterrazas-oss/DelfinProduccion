@@ -77,7 +77,7 @@
     <div class="mail-container">
 
         <div class="header">
-            <h1>DELFIN TECNOLOGYS</h1>
+            <h1>DELFIN TECHNOLOGIES</h1>
             <h2>Correo de prueba del sistema</h2>
         </div>
 
@@ -106,7 +106,7 @@
 
             <p>
                 Saludos,<br>
-                <strong>Equipo de Delfin Tecnologys</strong>
+                <strong>Equipo de DELFIN TECHNOLOGIES</strong>
             </p>
         </div>
 

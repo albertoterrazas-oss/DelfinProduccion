@@ -14,13 +14,14 @@ class PuestosController extends Controller
 {
     public function index()
     {
-        // Eager loading para cargar la relación 'departamento' y evitar el problema N+1
-        $puestos = Puestos::with('departamento')->get();
+        // Eager loading + Filtro por estatus
+        $puestos = Puestos::with('departamento')
+            ->where('Puestos_estatus', true) // O usa 1 si tu DB no maneja booleanos nativos
+            ->get();
 
-        // Retorna la colección completa como respuesta JSON
+        // Retorna la colección filtrada como respuesta JSON
         return response()->json($puestos);
     }
-
     public function store(Request $request)
     {
         // 1. Validación de datos

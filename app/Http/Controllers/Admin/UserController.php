@@ -20,25 +20,48 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
+    // public function index()
+    // {
+    //     // 1. Obtiene todos los registros del modelo User.
+    //     $users = User::all();
+
+    //     // 2. Mapea la colección para añadir el campo 'nombre_completo'
+    //     $usersWithFullName = $users->map(function ($user) {
+    //         // Concatenamos los campos del objeto User
+    //         $user->nombre_completo = $user->Personas_nombres . ' ' .
+    //             $user->Personas_apPaterno . ' ' .
+    //             $user->Personas_apMaterno;
+
+    //         // El objeto modificado se devuelve y forma parte de la nueva colección
+    //         return $user;
+    //     });
+
+    //     // 3. Devuelve la colección modificada como respuesta JSON.
+    //     // Tenga en cuenta que esto devuelve la colección de objetos Eloquent con el campo agregado.
+    //     return response()->json($usersWithFullName);
+    // }
+
     public function index()
     {
-        // 1. Obtiene todos los registros del modelo User.
+        // 1. Obtiene todos los registros
         $users = User::all();
 
-        // 2. Mapea la colección para añadir el campo 'nombre_completo'
+        // 2. Mapea para añadir 'nombre_completo'
         $usersWithFullName = $users->map(function ($user) {
-            // Concatenamos los campos del objeto User
-            $user->nombre_completo = $user->Personas_nombres . ' ' .
-                $user->Personas_apPaterno . ' ' .
-                $user->Personas_apMaterno;
-
-            // El objeto modificado se devuelve y forma parte de la nueva colección
+            $user->nombre_completo = trim(
+                $user->Personas_nombres . ' ' .
+                    $user->Personas_apPaterno . ' ' .
+                    $user->Personas_apMaterno
+            );
             return $user;
         });
 
-        // 3. Devuelve la colección modificada como respuesta JSON.
-        // Tenga en cuenta que esto devuelve la colección de objetos Eloquent con el campo agregado.
-        return response()->json($usersWithFullName);
+        // 3. Ordenar por el nuevo campo (Alfabéticamente)
+        // values() se usa para resetear las llaves del array después de ordenar
+        $orderedUsers = $usersWithFullName->sortBy('nombre_completo')->values();
+
+        // 4. Devolver respuesta JSON
+        return response()->json($orderedUsers);
     }
 
 

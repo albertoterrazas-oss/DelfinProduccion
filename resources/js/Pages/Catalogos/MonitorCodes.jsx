@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import Datatable from "@/Components/Datatable";
 import LoadingDiv from "@/Components/LoadingDiv";
 import request from "@/utils";
+import { Truck, UsersRound, SendHorizontal } from 'lucide-react';
 
 
 export default function MonitorCodes() {
@@ -11,7 +12,7 @@ export default function MonitorCodes() {
     const [isLoading, setIsLoading] = useState(true);
 
 
-    const getDepartments = async () => {
+    const getCodes = async () => {
         try {
             setIsLoading(true);
             const data = await fetch(route("codigos.index")).then(res => res.json());
@@ -23,8 +24,38 @@ export default function MonitorCodes() {
     }
 
     useEffect(() => {
-        getDepartments()
+        getCodes()
     }, [])
+
+
+    const handleConfirm = async (unidad, code, type) => {
+        try {
+           
+            toast.info("Verificando código de autorización...");
+
+            // **IMPORTANTE**: Asegúrate de que `route('verifycode')` apunta al endpoint correcto
+            const response = await fetch(route('verifycode'), {
+                method: 'POST',
+                body: JSON.stringify({ unit: unidad, code: code, type: type }),
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                toast.error(`Código incorrecto o error del servidor: ${errorText}`);
+                setError('Código incorrecto o expirado.');
+                throw new Error("Respuesta de verifycode no ok");
+            }
+            toast.success("Autorización completada y verificada.");
+            getCodes(); // Refresca la lista después de la autorización
+
+        } catch (err) {
+            console.error('Error en el proceso de verificación de código:', err);
+            if (!error) {
+                toast.error('Fallo de comunicación con el servidor.');
+            }
+        }
+    };
 
     return (
         <div className="relative h-[100%] pb-4 px-3 overflow-auto blue-scroll">
@@ -58,7 +89,7 @@ export default function MonitorCodes() {
                         {
                             header: "Codigo",
                             accessor: "codigoAutorizacion_codigo",
-                            width: '40%',
+                            width: '30%',
                             cell: ({ item: { codigoAutorizacion_codigo } }) => {
                                 const code = String(codigoAutorizacion_codigo || '').padEnd(6, ' '); // Asegura que sea un string y tiene 6 dígitos (ajusta 6 a tu necesidad)
                                 const digitBoxes = Array(code.length).fill(null); // Crea un array para mapear los dígitos
@@ -88,6 +119,33 @@ export default function MonitorCodes() {
                         },
                         { header: 'Unidad', width: '20%', accessor: 'unidades.Unidades_numeroEconomico' },
                         { header: 'Fecha', width: '20%', accessor: 'codigoAutorizacion_fecha' },
+                        { header: 'Tipo de movimiento', width: '10%', accessor: 'codigoAutorizacion_motivo' },
+
+                        {
+                            header: "Autorizar",
+                            accessor: "Acciones",
+                            width: '10%',
+                            cell: ({ item }) => {
+                                return (
+                                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                        <SendHorizontal
+                                            style={{
+                                                width: '20px',
+                                                color: 'green',
+                                                cursor: 'pointer', // Añadido para que el usuario sepa que es clickable
+                                                opacity: 1
+                                            }}
+                                            // CORRECCIÓN: Envolver en una función flecha
+                                            onClick={() => handleConfirm(
+                                                item.unidades.Unidades_unidadID,
+                                                item.codigoAutorizacion_codigo,
+                                                item.codigoAutorizacion_motivo
+                                            )}
+                                        />
+                                    </div>
+                                );
+                            },
+                        }
                     ]}
                 />
             )}

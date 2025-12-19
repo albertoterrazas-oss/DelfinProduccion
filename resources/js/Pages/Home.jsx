@@ -29,6 +29,7 @@ const routes = [
     { path: "/correosnotificaciones", import: lazy(() => import('./Catalogos/Correos')) },
     // { path: "/MonitorCodes", import: lazy(() => import('./Catalogos/MonitorCodes')) },
     { path: "/MonitorCodes", import: lazy(() => import('./Catalogos/MonitorCodes')) },
+    { path: "/AutorizacionQuien", import: lazy(() => import('./Catalogos/AutorizacionQuien')) },
 
 
 ];
