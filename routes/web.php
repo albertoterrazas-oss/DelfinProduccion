@@ -41,6 +41,11 @@ Route::get('/', function () {
         : redirect()->route('login');
 });
 
+
+// Route::get('/AuthorizationCode', function () {
+//     return Inertia::render('AuthorizationCode');
+// })->name('AuthorizationCode');
+
 // Route::middleware(['auth'])->group(function () {
 //     // 1. Home / Dashboard
 //     Route::get('/', function () {
@@ -62,6 +67,10 @@ Route::get('/', function () {
 // })->middleware(['auth'])
 //     ->where('path', '^(?!api).*')
 //     ->name('dashboard');
+
+Route::get('/AuthorizationCode', function () {
+    return Inertia::render('AuthorizationCode');
+});
 
 Route::middleware(['auth'])->get('/{path?}', function () {
     return Inertia::render('Home');
