@@ -9,27 +9,33 @@ import logo from '../../../../public/img/logo.png' // Asumimos que esta importac
  * @param {string} url - La URL del recurso (que es el valor de 'logo' después de la importación).
  * @returns {Promise<string>} - La cadena Base64 limpia.
  */
-function urlToBase64(url) {
-    return new Promise((resolve, reject) => {
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Error al cargar la imagen: ${response.statusText}`);
-                }
-                return response.blob();
-            })
-            .then(blob => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    // Limpia el prefijo MIME (data:image/png;base64,)
-                    const base64String = reader.result.split(',').pop(); 
-                    resolve(base64String);
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            })
-            .catch(reject);
-    });
+
+// function urlToBase64(url) {
+//     return new Promise((resolve, reject) => {
+//         fetch(url)
+//             .then(res => res.blob())
+//             .then(blob => {
+//                 const reader = new FileReader()
+//                 reader.onloadend = () => {
+//                     resolve(reader.result.split(',')[1])
+//                 }
+//                 reader.readAsDataURL(blob)
+//             })
+//             .catch(reject)
+//     })
+// }
+
+async function urlToBase64(url) {
+    const res = await fetch(url)
+    const blob = await res.blob()
+
+    return new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            resolve(reader.result.split(',')[1])
+        }
+        reader.readAsDataURL(blob)
+    })
 }
 
 export async function excelTemplate(excelData, excelColumns, estado, name) {
@@ -62,29 +68,11 @@ export async function excelTemplate(excelData, excelColumns, estado, name) {
     });
 
     const workbook = new Workbook();
-    
-    // 🚀 NUEVO PASO: Convertir la URL de la imagen a Base64 limpia para exceljs
-    let cleanBase64;
-    try {
-        cleanBase64 = await urlToBase64(logo);
-    } catch (error) {
-        console.error("Error al obtener la imagen del logo:", error);
-        // Puedes optar por continuar sin logo o lanzar un error. Aquí continuamos.
-        cleanBase64 = ''; 
-    }
-    
-    let imageId;
-    if (cleanBase64) {
-        imageId = workbook.addImage({
-            base64: cleanBase64, 
-            extension: 'png', // Asegúrate de que la extensión sea correcta
-        });
-    }
 
     let worksheet = workbook.addWorksheet('Hoja1');
-    
+
     // Pasar imageId, solo se agregará si existe
-    worksheet = await generatTemplate(worksheet, workbook, ('Reportes ' + fch), 'H', estado, imageId)
+    worksheet = await generatTemplate(worksheet, workbook, ('Reportes ' + fch), 'H', estado)
 
     const headerStyle = {
         font: { bold: true, color: { argb: 'FFFFFFFF' } },
@@ -121,17 +109,17 @@ export async function excelTemplate(excelData, excelColumns, estado, name) {
     };
 
     // Agregar una fila vacía
-    worksheet.addRow({});
+    // worksheet.addRow({});
 
     // Configurar fórmulas de suma para las columnas "I" a "J"
-    const columnsToSum = ['I', 'J'];
-    columnsToSum.forEach((col) => {
-        const totalCell = worksheet.getCell(`${col}${worksheet.lastRow.number}`);
-        totalCell.value = {
-            formula: `SUM(${col}7:${col}${worksheet.lastRow.number - 1})`, 
-            formulaType: FormulaType.Shared, 
-        };
-    });
+    // const columnsToSum = ['I', 'J'];
+    // columnsToSum.forEach((col) => {
+    //     const totalCell = worksheet.getCell(`${col}${worksheet.lastRow.number}`);
+    //     totalCell.value = {
+    //         formula: `SUM(${col}7:${col}${worksheet.lastRow.number - 1})`,
+    //         formulaType: FormulaType.Shared,
+    //     };
+    // });
 
     workbook.xlsx.writeBuffer().then((data) => {
         const blob = new Blob([data], { type: 'application/octet-stream' });
@@ -146,18 +134,21 @@ export async function excelTemplate(excelData, excelColumns, estado, name) {
     });
 }
 
-export async function generatTemplate(worksheet, workbook, title = '', finalLogo = 'Z', data, imageId) {
-    // Solo agrega la imagen si imageId es válido
-    if (imageId) {
-        worksheet.addImage(imageId, 
-            {
-                tl: { col: 0, row: 0.3 }, 
-                ext: { height: 75, width: 350 },
-                editAs: 'absolute',
-            }
-        );
-    }
-    
+export async function generatTemplate(worksheet, workbook, title = '', finalLogo = 'Z', data) {
+    const cleanBase64 = await urlToBase64('/img/logo.png');
+    const imageId = workbook.addImage({
+        base64: `data:image/png;base64,${cleanBase64}`,
+        extension: 'png', // Asegúrate de que la extensión sea correcta
+    });
+
+    worksheet.addImage(imageId,
+        {
+            tl: { col: 0, row: 0.3 },
+            ext: { height: 75, width: 350 },
+            editAs: 'absolute',
+        }
+    );
+
     worksheet.addRows([{}, {}, {}, {}]);
     worksheet.getCell('C1').value = `DELFIN TECNOLOGY, S.A. DE C.V`;
     worksheet.getCell('C1').style = { font: { bold: true, size: 20 } };
