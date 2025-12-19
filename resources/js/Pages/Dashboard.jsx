@@ -1,6 +1,3 @@
-
-
-
 import { useEffect, useState } from "react";
 import request from "@/utils";
 import {
@@ -84,6 +81,10 @@ export default function Dashboard() {
         incidencias: [],
         totalIncidencias: 0,
     });
+
+    const userObject = JSON.parse(localStorage.getItem('user'));
+
+    console.log('Usuario en Dashboard:', userObject);
 
     const getUnits = async () => {
         try {
