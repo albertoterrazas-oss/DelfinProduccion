@@ -3,6 +3,7 @@ import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@
 import { Tree } from "primereact/tree";
 import request from "@/utils";
 import SelectComp from "@/components/SelectInput";
+import { toast } from "sonner";
 
 export default function AsignMenusDialog(props) {
     const [state, setState] = useState({
@@ -145,8 +146,10 @@ export default function AsignMenusDialog(props) {
                         props.assignMenuHandler(false);
                         // noty('Datos guardados.', 'success');
                     })
+                    toast.success("Guardado con éxito.");
             } catch (error) {
                 console.error("Error al guardar:", error);
+                toast.error("Ocurrió un error al guardar los datos.");
                 // noty('Ocurrió un error al guardar los datos.', 'error')
             }
         } else if (state.confirmSave) {
@@ -166,8 +169,10 @@ export default function AsignMenusDialog(props) {
                         props.assignMenuHandler(false);
                         // noty('Datos guardados.', 'success');
                     })
+                    toast.success("Guardado con éxito.");
             } catch (error) {
                 console.error("Error al guardar después de confirmar:", error);
+                toast.error("Ocurrió un error al guardar los datos.");
                 // noty('Ocurrió un error al guardar los datos.', 'error')
             }
         }

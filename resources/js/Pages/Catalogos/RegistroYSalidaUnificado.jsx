@@ -829,6 +829,7 @@ const RegistroYSalidaUnificado = () => {
                                 <TextInput
                                     type="number"
                                     name="kilometers"
+                                    disabled={form.movementType === 'SALIDA'}
                                     value={form.kilometers}
                                     onChange={(e) => {
                                         setForm({ ...form, kilometers: e.target.value });

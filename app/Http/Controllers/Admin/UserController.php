@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\UserxMenu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -71,51 +72,84 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        $rules = [
-            'Personas_nombres'     => 'required|string|max:255',
-            'Personas_apPaterno'   => 'required|string|max:255',
-            // 'Personas_correo'      => 'required|string|email|max:255',
-            'usuario_idRol'        => 'required',
-        ];
+        DB::beginTransaction();
 
-        // Validación condicional
-        if ($request->boolean('userCheck')) {
-            $rules['Personas_usuario']   = 'required|string|max:255';
-            $rules['Personas_contrasena'] = 'required|string|min:8';
+        try {
+            $rules = [
+                'Personas_nombres'     => 'required|string|max:255',
+                'Personas_apPaterno'   => 'required|string|max:255',
+                // 'Personas_correo'      => 'required|string|email|max:255',
+                'usuario_idRol'        => 'required',
+            ];
+
+            // Validación condicional
+            if ($request->boolean('userCheck')) {
+                $rules['Personas_usuario']   = 'required|string|max:255';
+                $rules['Personas_contrasena'] = 'required|string|min:8';
+            }
+
+            $validator = Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                // Retorna 400 Bad Request con los errores de validación
+                return response()->json($validator->errors(), 400);
+            }
+
+            $data = [
+                'Personas_nombres'           => $request->Personas_nombres,
+                'Personas_apPaterno'         => $request->Personas_apPaterno,
+                'Personas_apMaterno'         => $request->Personas_apMaterno,
+                'Personas_telefono'          => $request->Personas_telefono,
+                'Personas_direccion'         => $request->Personas_direccion,
+                'Personas_fechaNacimiento'   => $request->Personas_fechaNacimiento,
+                'Personas_correo'            => $request->Personas_correo,
+                'Personas_puesto'            => $request->Personas_puesto,
+                'Personas_licencia'          => $request->Personas_licencia,
+                'Personas_vigenciaLicencia'  => $request->Personas_vigenciaLicencia,
+                'usuario_idRol'              => $request->usuario_idRol,
+                'Personas_esEmpleado'        => $request->Personas_esEmpleado ?? false,
+            ];
+
+            // Solo si crea usuario
+            if ($request->boolean('userCheck')) {
+                $data['Personas_usuario']   = $request->Personas_usuario;
+                $data['Personas_contrasena'] = Hash::make($request->Personas_contrasena);
+            }
+
+            $user = User::create($data);
+
+            $rol = Roles::with('menus')->find($request->usuario_idRol);
+
+            if (!$rol) {
+                throw new \Exception('Rol no encontrado');
+            }
+
+            if ($rol && $rol->menus->count()) {
+
+                $menus = [];
+
+                foreach ($rol->menus as $menu) {
+                    $menus[$menu->menu_id] = [
+                        'usuarioxmenu_alta' => '1',
+                        'usuarioxmenu_cambio' => '1',
+                        'usuarioxmenu_consulta' => '1',
+                        'usuarioxmenu_especial' => '0',
+                    ];
+                }
+
+                // 🔹 Asignar menús al usuario
+                $user->menus()->sync($menus);
+            }
+
+            DB::commit();
+
+            // Retorna 201 Created
+            return response()->json($user, 201);
+        } catch (\Throwable  $e) {
+            DB::rollBack();
+            // Manejo de errores
+            return response()->json(['error' => 'Error al crear el usuario', 'message' => $e->getMessage()], 500);
         }
-
-        $validator = Validator::make($request->all(), $rules);
-
-        if ($validator->fails()) {
-            // Retorna 400 Bad Request con los errores de validación
-            return response()->json($validator->errors(), 400);
-        }
-
-        $data = [
-            'Personas_nombres'           => $request->Personas_nombres,
-            'Personas_apPaterno'         => $request->Personas_apPaterno,
-            'Personas_apMaterno'         => $request->Personas_apMaterno,
-            'Personas_telefono'          => $request->Personas_telefono,
-            'Personas_direccion'         => $request->Personas_direccion,
-            'Personas_fechaNacimiento'   => $request->Personas_fechaNacimiento,
-            'Personas_correo'            => $request->Personas_correo,
-            'Personas_puesto'            => $request->Personas_puesto,
-            'Personas_licencia'          => $request->Personas_licencia,
-            'Personas_vigenciaLicencia'  => $request->Personas_vigenciaLicencia,
-            'usuario_idRol'              => $request->usuario_idRol,
-            'Personas_esEmpleado'        => $request->Personas_esEmpleado ?? false,
-        ];
-
-        // Solo si crea usuario
-        if ($request->boolean('userCheck')) {
-            $data['Personas_usuario']   = $request->Personas_usuario;
-            $data['Personas_contrasena'] = Hash::make($request->Personas_contrasena);
-        }
-
-        $user = User::create($data);
-
-        // Retorna 201 Created
-        return response()->json($user, 201);
     }
 
 

@@ -425,7 +425,7 @@ const Datatable = (props) => {
                                                     </div>
                                                 )
                                             } */}
-                                            <InputGroup>
+                                            <InputGroup className='bg-white border rounded-lg overflow-hidden'>
                                                 <InputGroupInput
                                                     placeholder="Buscar..."
                                                     id="search-input-datatable"
@@ -433,8 +433,8 @@ const Datatable = (props) => {
                                                     value={searchTerm}
                                                     onChange={e => setSearchTerm(e.target.value)}
                                                 />
-                                                <InputGroupAddon>
-                                                    <SearchIcon />
+                                                <InputGroupAddon className='bg-white border-0'>
+                                                    <SearchIcon className="text-gray-500" />
                                                 </InputGroupAddon>
                                             </InputGroup>
                                         </div>
