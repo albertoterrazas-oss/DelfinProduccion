@@ -7,7 +7,7 @@
     <title>Correo de Incidencias</title>
     <style>
         /* Estilos Generales para el Correo */
-       body {
+        body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
@@ -62,13 +62,13 @@
         /* --- NUEVOS ESTILOS PARA EL CÓDIGO CON TABLA (COMPATIBLE CON CORREO) --- */
         .code-wrapper {
             /* Contenedor central para la tabla */
-            text-align: center; 
+            text-align: center;
             padding: 10px 0;
         }
 
         .code-table {
             /* Asegura que la tabla esté centrada */
-            margin: 0 auto; 
+            margin: 0 auto;
             border-collapse: collapse;
             border-spacing: 0;
         }
@@ -76,17 +76,22 @@
         .code-digit-cell {
             /* Estilo para cada dígito (celda) */
             border: 2px solid #0056b3;
-            width: 25px; /* Reducimos el ancho */
-            height: 35px; /* Reducimos la altura */
-            line-height: 35px; /* Ajustamos la línea para centrado vertical */
+            width: 25px;
+            /* Reducimos el ancho */
+            height: 35px;
+            /* Reducimos la altura */
+            line-height: 35px;
+            /* Ajustamos la línea para centrado vertical */
             text-align: center;
-            font-size: 20px; /* Reducimos el tamaño de la fuente */
+            font-size: 20px;
+            /* Reducimos el tamaño de la fuente */
             font-weight: bold;
             color: #0056b3;
             background-color: #e6f0ff;
-            padding: 0; /* Aseguramos que no haya padding */
+            padding: 0;
+            /* Aseguramos que no haya padding */
         }
-        
+
         /* Ajustes de bordes redondeados para el primer y último dígito */
         .code-table tr td:first-child {
             border-top-left-radius: 5px;
@@ -97,6 +102,7 @@
             border-top-right-radius: 5px;
             border-bottom-right-radius: 5px;
         }
+
         /* --- FIN ESTILOS DEL CÓDIGO --- */
 
 
@@ -152,9 +158,9 @@
         </div>
 
 
-          <div class="details">
+        <div class="details">
             <h1>Código de salida</h1>
-            
+
             <div class="code-wrapper">
                 <table class="code-table">
                     <tr>
@@ -169,9 +175,18 @@
             </div>
             <hr>
 
+            {{-- <a
+                href="http://intergastorreon.dyndns.org:5555/ordenconfirmated?token={{ $token }}&id={{ $subColeccion->OC_id }}&method=autorizar&comp=oc">
+                {{ $subColeccion->nombreorden ?? 'N/A' }}
+            </a> --}}
+
+            <a href="http://127.0.0.1:8000/AuthorizationCode?asign={{ '1' }}&upset={{ '2' }}">
+                Autorizar codigo
+            </a>
+
 
         </div>
-        
+
         <div class="details">
             <h1>LISTADO DE INCIDENCIAS REGISTRADAS</h1>
 
@@ -198,10 +213,13 @@
                 </tbody>
             </table>
         </div>
-        
-        <div style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd; text-align: center; font-size: 10px; color: #777;">
+
+        <div
+            style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd; text-align: center; font-size: 10px; color: #777;">
             <p>Este es un correo generado automáticamente. Por favor, no responder a este mensaje.</p>
         </div>
+
+
     </div>
 </body>
 
