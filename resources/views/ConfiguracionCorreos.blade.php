@@ -175,15 +175,13 @@
             </div>
             <hr>
 
-            {{-- <a
-                href="http://intergastorreon.dyndns.org:5555/ordenconfirmated?token={{ $token }}&id={{ $subColeccion->OC_id }}&method=autorizar&comp=oc">
-                {{ $subColeccion->nombreorden ?? 'N/A' }}
-            </a> --}}
 
-            <a href="http://127.0.0.1:8000/AuthorizationCode?asign={{ '1' }}&upset={{ '2' }}">
-                Autorizar codigo
-            </a>
-
+            <div class="d-flex justify-content-center">
+                <a href="http://127.0.0.1:8000/AuthorizationCode?asign={{ $QconQuienUnidad }}&unfg={{ $Unidad }}&oprtd={{ $Operador }}&dest={{ $Destino }}&cgp={{ $Codigo }}&tytype={{ $tytype }}"
+                    class="btn btn-primary">
+                    Autorizar código
+                </a>
+            </div>
 
         </div>
 

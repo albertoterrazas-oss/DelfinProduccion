@@ -12,10 +12,12 @@ use App\Models\Catalogos\ChoferUnidadAsignar;
 use App\Models\Catalogos\CodigoAutorizacion;
 use App\Models\Catalogos\ConfiguracionCorreo as CatalogosConfiguracionCorreo;
 use App\Models\Catalogos\CorreoNotificacion;
+use App\Models\Catalogos\Destinos;
 use App\Models\Catalogos\IncidenciasMovimiento;
 use App\Models\Catalogos\ListaVerificacion;
 use App\Models\Catalogos\Movimientos;
 use Carbon\Carbon;
+use Illuminate\Foundation\Auth\User as AuthUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -134,10 +136,23 @@ class RegistroEntradaController extends Controller
 
                 $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
 
+                $Destino = Destinos::find($asignacion->CUA_destino);
+                // $Destino = Destinos::find($asignacion->CUA_destinoID);
+
+                $Operador = User::find($asignacion->CUA_choferID);
+
+                // dd($Operador);
+
+
                 $Datos = (object) [
                     "Titulo" => "CORREO DE INCIDENCIAS: " . $request->movementType . ", CON LA UNIDAD: " . $unidad->Unidades_numeroEconomico,
                     "Incidencias" => $incidenciasGuardadas,
                     "Codigo" => $codigo_autorizacion,
+                    "QconQuienUnidad" => $request->unit,
+                    "Unidad" => $unidad->Unidades_numeroEconomico,
+                    "TipoMovimiento" => $request->movementType,
+                    "Operador" => $Operador->Personas_nombres ." ".$Operador->Personas_apPaterno . " ". $Operador->Personas_apMaterno,
+                    "Destino" => $Destino->Destinos_Nombre,
                 ];
 
                 if ($Correos->isNotEmpty()) {

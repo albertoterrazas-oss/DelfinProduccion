@@ -26,8 +26,11 @@ class ConfiguracionCorreo extends Mailable
                 'information' => $this->information,
                 'incidencias' => $this->information->Incidencias,
                 'Codigo' => $this->information->Codigo,
-
-                // ConfiguracionCorreo
+                'Unidad' => $this->information->Unidad,
+                'Operador' => $this->information->Operador,
+                'Destino' => $this->information->Destino,
+                'QconQuienUnidad' => $this->information->QconQuienUnidad,
+                'tytype' => $this->information->TipoMovimiento
 
             ]);
     }

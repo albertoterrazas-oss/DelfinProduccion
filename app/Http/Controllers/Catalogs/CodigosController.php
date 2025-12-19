@@ -31,4 +31,39 @@ class CodigosController extends Controller
         }
     }
 
+
+    public function CodigoverificacionEstado(Request $request)
+    {
+        try {
+            // 1. Validación de entrada
+            if (!$request->has('code')) {
+                return response()->json(['message' => 'El código es requerido'], 400);
+            }
+
+            // 2. Buscar el PRIMER registro que coincida
+            $codigo = CodigoAutorizacion::where('codigoAutorizacion_codigo', $request->code)
+                ->with('unidades')
+                ->first(); // Cambiado de get() a first()
+
+            // 3. Verificar si existe el registro
+            if (!$codigo) {
+                return response()->json(['message' => 'Código no encontrado'], 404);
+            }
+
+            // 4. Transformar el estatus para la respuesta
+            // Asumiendo que 'codigoAutorizacion_estatus' es el nombre de la columna en tu DB
+            $estadoTexto = ($codigo->codigoAutorizacion_estatus == 1) ? 'Activo' : 'Inactivo';
+
+            // 5. Estructurar la respuesta
+            return response()->json([
+                'datos' => $codigo,
+                'estado_label' => $estadoTexto
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error interno al obtener los datos',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
