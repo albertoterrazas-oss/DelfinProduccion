@@ -143,11 +143,13 @@ const AuthorizationCard = () => {
                             <div className="inline-block p-3 bg-white/10 rounded-2xl mb-4 border border-white/10">
                                 <Truck className="text-blue-300" size={32} />
                             </div>
-                            <h2 className="text-3xl font-black text-white leading-tight">Autorización <br/><span className="text-blue-300 font-light">de Salida</span></h2>
+                            <h2 className="text-3xl font-black text-white leading-tight">Autorización <br /><span className="text-blue-300 font-light">de
+                                {data.tytype === 'SALIDA' ? ' Salida' : ' Entrada'}
+                            </span></h2>
                         </div>
 
                         <div className="space-y-3">
-                            <InfoRow icon={<Hash size={18} />} label="Asignación" value={data.asign} />
+                            {/* <InfoRow icon={<Hash size={18} />} label="Asignación" value={data.asign} /> */}
                             <InfoRow icon={<Truck size={18} />} label="Unidad" value={data.unfg} highlight />
                             <InfoRow icon={<User size={18} />} label="Operador" value={data.oprtd} />
                             <InfoRow icon={<MapPin size={18} />} label="Destino" value={data.dest} />
@@ -174,7 +176,7 @@ const AuthorizationCard = () => {
 const SuccessView = ({ unit }) => (
     <AnimatePresence>
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-10">
-            <motion.div 
+            <motion.div
                 initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }}
                 className="w-28 h-28 bg-emerald-400 text-[#053AA7] rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-emerald-500/20"
             >
@@ -186,11 +188,11 @@ const SuccessView = ({ unit }) => (
             </p>
             <div className="mt-12 flex justify-center gap-2">
                 {[...Array(3)].map((_, i) => (
-                    <motion.div 
+                    <motion.div
                         key={i}
                         animate={{ opacity: [0.3, 1, 0.3] }}
                         transition={{ repeat: Infinity, duration: 1.5, delay: i * 0.2 }}
-                        className="w-2 h-2 bg-emerald-400 rounded-full" 
+                        className="w-2 h-2 bg-emerald-400 rounded-full"
                     />
                 ))}
             </div>
