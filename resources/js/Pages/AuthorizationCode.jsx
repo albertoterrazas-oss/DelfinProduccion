@@ -1,24 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, Truck, User, MapPin, Send, Hash, Loader2, Lock, XCircle } from 'lucide-react';
+import { CheckCircle, Truck, User, MapPin, Send, Hash, Loader2, Lock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AuthorizationCard = () => {
     const [isAuthorized, setIsAuthorized] = useState(false);
-    const [isLoading, setIsLoading] = useState(true); // Iniciamos en true para la primera carga
-    const [statusError, setStatusError] = useState(null); 
+    const [isLoading, setIsLoading] = useState(true);
+    const [statusError, setStatusError] = useState(null);
+    const [noData, setNoData] = useState(false); // Nuevo estado para URL vacía
     const [data, setData] = useState({
         asign: '', unfg: '', oprtd: '', dest: '', cgp: '', tytype: ''
     });
 
-    // 1. Capturar parámetros de la URL
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        const code = params.get('cgp') || 'N/A';
-        
+        const code = params.get('cgp');
+        const unidad = params.get('unfg');
+
+        // VALIDACIÓN: Si no hay código o unidad, marcar como "Sin Datos"
+        if (!code || !unidad) {
+            setNoData(true);
+            setIsLoading(false);
+            return;
+        }
+
         setData({
             asign: params.get('asign') || 'N/A',
-            unfg: params.get('unfg') || 'N/A',
+            unfg: unidad,
             oprtd: params.get('oprtd') || 'N/A',
             dest: (params.get('dest') || 'N/A').trim(),
             cgp: code,
@@ -26,12 +34,8 @@ const AuthorizationCard = () => {
         });
     }, []);
 
-    // 2. Validar el estado del código al cargar
     const checkCodeStatus = async () => {
-        if (data.cgp === 'N/A' || !data.cgp) {
-            setIsLoading(false);
-            return;
-        }
+        if (noData) return;
 
         try {
             const response = await fetch(route('CodigoverificacionEstado'), {
@@ -47,10 +51,10 @@ const AuthorizationCard = () => {
             } else if (result.estado_label === 'Inactivo') {
                 setStatusError("EL CÓDIGO YA HA SIDO UTILIZADO");
             } else {
-                setStatusError(null); // Está activo
+                setStatusError(null);
             }
         } catch (err) {
-            setStatusError("Error de conexión con el servidor");
+            setStatusError("Error de conexión");
         } finally {
             setIsLoading(false);
         }
@@ -60,7 +64,6 @@ const AuthorizationCard = () => {
         if (data.cgp !== '') checkCodeStatus();
     }, [data.cgp]);
 
-    // 3. Función para autorizar (Botón)
     const handleAuthorize = async () => {
         setIsLoading(true);
         try {
@@ -85,45 +88,62 @@ const AuthorizationCard = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-slate-900 p-4">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="relative w-full max-w-md overflow-hidden bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-3xl shadow-2xl p-8"
-            >
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="flex items-center justify-center min-h-screen bg-[#053AA7] p-4 font-sans relative overflow-hidden">
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-400/20 rounded-full blur-[120px]" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/30 rounded-full blur-[120px]" />
 
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="relative w-full max-w-md overflow-hidden bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] p-8 text-white"
+            >
                 {isLoading ? (
                     <div className="flex flex-col items-center py-20">
-                        <Loader2 className="animate-spin text-blue-500 mb-4" size={40} />
-                        <p className="text-slate-400 animate-pulse text-sm">Validando credenciales...</p>
+                        <Loader2 className="animate-spin text-blue-300 mb-4" size={48} />
+                        <p className="text-blue-100/70 animate-pulse text-sm font-medium tracking-widest uppercase">Verificando...</p>
                     </div>
-                ) : isAuthorized ? (
-                    /* PANTALLA: ÉXITO TOTAL */
-                    <SuccessView unit={data.unfg} />
-                ) : statusError ? (
-                    /* PANTALLA: CÓDIGO INACTIVO / ERROR */
+                ) : noData ? (
+                    /* PANTALLA: SIN DATOS (URL VACÍA) */
                     <div className="text-center py-10 space-y-6">
-                        <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto border border-red-500/50">
-                            <Lock size={40} className="text-red-400" />
+                        <div className="w-20 h-20 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto border border-amber-500/50">
+                            <AlertCircle size={40} className="text-amber-400" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-white uppercase tracking-tight">Acceso Restringido</h2>
-                            <p className="text-red-400 text-xs font-semibold mt-1 uppercase italic">{statusError}</p>
+                            <h2 className="text-2xl font-black text-white uppercase tracking-tight">Faltan Datos</h2>
+                            <p className="text-blue-200/60 text-sm mt-3 leading-relaxed">
+                                No se ha detectado una solicitud válida. Por favor, escanee el código QR nuevamente o use el enlace proporcionado por el sistema.
+                            </p>
                         </div>
-                        <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700 text-left">
-                            <p className="text-slate-500 text-[10px] uppercase font-bold mb-2 text-center">Detalles del intento</p>
-                            <div className="flex justify-between text-xs font-mono"><span className="text-slate-500">Unidad:</span> <span className="text-slate-300">{data.unfg}</span></div>
-                            <div className="flex justify-between text-xs font-mono"><span className="text-slate-500">Código:</span> <span className="text-slate-300">{data.cgp}</span></div>
+                        <div className="h-px bg-white/10 w-full" />
+                        <p className="text-[10px] text-blue-300/40 uppercase font-bold tracking-widest">Error 400: Missing Parameters</p>
+                    </div>
+                ) : isAuthorized ? (
+                    <SuccessView unit={data.unfg} />
+                ) : statusError ? (
+                    /* PANTALLA: ERROR DE CÓDIGO */
+                    <div className="text-center py-8 space-y-6">
+                        <div className="w-24 h-24 bg-red-500/20 rounded-3xl flex items-center justify-center mx-auto border border-red-400/30 rotate-12">
+                            <Lock size={44} className="text-red-400 -rotate-12" />
                         </div>
-                        <p className="text-[10px] text-slate-500 italic">Por favor, solicite un nuevo código de autorización al departamento de tráfico.</p>
+                        <div>
+                            <h2 className="text-2xl font-black uppercase tracking-tight">Acceso Denegado</h2>
+                            <p className="bg-red-500/20 text-red-200 text-xs font-bold mt-3 py-2 px-4 rounded-full inline-block border border-red-500/50 uppercase">
+                                {statusError}
+                            </p>
+                        </div>
+                        <div className="bg-black/20 p-5 rounded-3xl border border-white/10 text-left space-y-2">
+                            <div className="flex justify-between text-xs font-mono"><span className="text-blue-200/50">UNIDAD:</span> <span>{data.unfg}</span></div>
+                            <div className="flex justify-between text-xs font-mono"><span className="text-blue-200/50">CÓDIGO:</span> <span>{data.cgp}</span></div>
+                        </div>
                     </div>
                 ) : (
-                    /* PANTALLA: FORMULARIO ACTIVO */
-                    <div className="space-y-6">
+                    /* VISTA FORMULARIO ACTIVO */
+                    <div className="space-y-8">
                         <div className="text-center">
-                            <h2 className="text-2xl font-bold text-white mb-2">Autorización de Salida</h2>
-                            <p className="text-slate-400 text-sm">Confirme los detalles del despacho</p>
+                            <div className="inline-block p-3 bg-white/10 rounded-2xl mb-4 border border-white/10">
+                                <Truck className="text-blue-300" size={32} />
+                            </div>
+                            <h2 className="text-3xl font-black text-white leading-tight">Autorización <br/><span className="text-blue-300 font-light">de Salida</span></h2>
                         </div>
 
                         <div className="space-y-3">
@@ -135,13 +155,13 @@ const AuthorizationCard = () => {
 
                         <motion.button
                             disabled={isLoading}
-                            whileHover={{ scale: 1.02 }}
+                            whileHover={{ scale: 1.02, backgroundColor: 'white', color: '#053AA7' }}
                             whileTap={{ scale: 0.98 }}
                             onClick={handleAuthorize}
-                            className="w-full py-4 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 shadow-blue-500/20"
+                            className="w-full py-5 bg-white text-[#053AA7] font-black rounded-2xl shadow-xl flex items-center justify-center gap-3 transition-colors uppercase tracking-widest text-sm"
                         >
-                            <Send size={18} />
-                            AUTORIZAR SALIDA
+                            <Send size={20} />
+                            Confirmar Salida
                         </motion.button>
                     </div>
                 )}
@@ -150,30 +170,41 @@ const AuthorizationCard = () => {
     );
 };
 
-// Componentes auxiliares
+// ... (SuccessView e InfoRow se mantienen igual)
 const SuccessView = ({ unit }) => (
     <AnimatePresence>
-        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-10">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-10">
             <motion.div 
-                initial={{ scale: 0 }} animate={{ scale: 1, rotate: 360 }}
-                className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/50"
+                initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }}
+                className="w-28 h-28 bg-emerald-400 text-[#053AA7] rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-emerald-500/20"
             >
-                <CheckCircle size={56} className="text-green-400" />
+                <CheckCircle size={64} strokeWidth={2.5} />
             </motion.div>
-            <h2 className="text-3xl font-black text-white mb-2 italic">¡ÉXITO!</h2>
-            <p className="text-slate-300">La unidad <strong className="text-white font-bold">{unit}</strong> ha sido autorizada correctamente.</p>
-            <div className="h-1.5 bg-green-500 mt-10 rounded-full w-full" />
+            <h2 className="text-4xl font-black text-white mb-3">¡LISTO!</h2>
+            <p className="text-blue-100 text-lg px-4 leading-relaxed">
+                La unidad <span className="text-emerald-400 font-bold underline decoration-2 underline-offset-4">{unit}</span> puede salir.
+            </p>
+            <div className="mt-12 flex justify-center gap-2">
+                {[...Array(3)].map((_, i) => (
+                    <motion.div 
+                        key={i}
+                        animate={{ opacity: [0.3, 1, 0.3] }}
+                        transition={{ repeat: Infinity, duration: 1.5, delay: i * 0.2 }}
+                        className="w-2 h-2 bg-emerald-400 rounded-full" 
+                    />
+                ))}
+            </div>
         </motion.div>
     </AnimatePresence>
 );
 
 const InfoRow = ({ icon, label, value, highlight }) => (
-    <div className="flex items-center justify-between p-3.5 bg-slate-700/30 rounded-2xl border border-slate-600/50">
-        <div className="flex items-center gap-3 text-slate-400">
-            {icon}
-            <span className="text-[10px] uppercase tracking-wider font-bold">{label}</span>
+    <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${highlight ? 'bg-white/20 border-white/40 shadow-lg' : 'bg-white/5 border-white/5'}`}>
+        <div className="flex items-center gap-3 text-blue-200/70">
+            <span className={highlight ? 'text-blue-100' : ''}>{icon}</span>
+            <span className="text-[10px] uppercase tracking-[0.15em] font-black">{label}</span>
         </div>
-        <span className={`font-mono text-sm font-bold ${highlight ? 'text-blue-400' : 'text-slate-100'}`}>
+        <span className={`font-mono text-sm font-bold ${highlight ? 'text-white text-base' : 'text-blue-50'}`}>
             {value}
         </span>
     </div>
