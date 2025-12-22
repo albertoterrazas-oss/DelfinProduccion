@@ -150,7 +150,7 @@
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
 
             <div style="text-align: center; padding: 10px 0;">
-                <a href="http://127.0.0.1:8000/AuthorizationCode?asign={{ $QconQuienUnidad }}&unfg={{ $Unidad }}&oprtd={{ $Operador }}&dest={{ $Destino }}&cgp={{ $Codigo }}&tytype={{ $tytype }}"
+                <a href="http://192.168.0.57:1142/AuthorizationCode?asign={{ $QconQuienUnidad }}&unfg={{ $Unidad }}&oprtd={{ $Operador }}&dest={{ $Destino }}&cgp={{ $Codigo }}&tytype={{ $tytype }}"
                    class="btn-autorizar">
                     Autorizar código
                 </a>

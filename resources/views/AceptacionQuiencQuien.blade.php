@@ -52,10 +52,9 @@
                 </tr>
             </table>
 
-           
-
+            
             <div class="btn-container">
-                <a href="{{ url('/AuthorizationQuiencQuien') }}?asign={{ $QconQuienUnidad }}&uGTYr={{ $User }}&uu={{ $Unidad }}" 
+                <a href="{{ 'http://192.168.0.57:1142/AuthorizationQuiencQuien' }}?asign={{ $QconQuienUnidad }}&uGTYr={{ $User }}&uu={{ $Unidad }}" 
                    class="btn-autorizar">
                     SEGUIR CON LA ACEPTACIÓN
                 </a>
