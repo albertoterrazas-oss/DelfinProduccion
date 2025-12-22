@@ -72,6 +72,14 @@ Route::get('/AuthorizationCode', function () {
     return Inertia::render('AuthorizationCode');
 });
 
+
+Route::get('/AuthorizationQuiencQuien', function () {
+    return Inertia::render('AuthorizationQuiencQuien');
+});
+
+
+
+
 Route::middleware(['auth', 'permission'])->get('/{path?}', function () {
     return Inertia::render('Home');
 })->where('path', '^(?!api|login|register).*$');

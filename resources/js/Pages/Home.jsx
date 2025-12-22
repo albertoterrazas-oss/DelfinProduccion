@@ -30,7 +30,6 @@ const routes = [
     // { path: "/MonitorCodes", import: lazy(() => import('./Catalogos/MonitorCodes')) },
     { path: "/MonitorCodes", import: lazy(() => import('./Catalogos/MonitorCodes')) },
     { path: "/AutorizacionQuien", import: lazy(() => import('./Catalogos/AutorizacionQuien')) },
-    // { path: "/AuthorizationCode", import: lazy(() => import('./AuthorizationCode')) },
 
 
 ];

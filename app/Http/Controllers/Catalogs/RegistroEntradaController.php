@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Catalogs;
 
 use App\Http\Controllers\Controller;
 use App\Mail\CodigoVerificacion;
+
+use App\Mail\CodigoAutorizacionQuiencQuien;
+
+
 use App\Mail\ConfiguracionCorreo;
 use App\Mail\MailTest;
 use App\Models\Catalogos\Unidades;
@@ -137,12 +141,7 @@ class RegistroEntradaController extends Controller
                 $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
 
                 $Destino = Destinos::find($asignacion->CUA_destino);
-                // $Destino = Destinos::find($asignacion->CUA_destinoID);
-
                 $Operador = User::find($asignacion->CUA_choferID);
-
-                // dd($Operador);
-
 
                 $Datos = (object) [
                     "Titulo" => "CORREO DE INCIDENCIAS: " . $request->movementType . ", CON LA UNIDAD: " . $unidad->Unidades_numeroEconomico,
@@ -151,7 +150,7 @@ class RegistroEntradaController extends Controller
                     "QconQuienUnidad" => $request->unit,
                     "Unidad" => $unidad->Unidades_numeroEconomico,
                     "TipoMovimiento" => $request->movementType,
-                    "Operador" => $Operador->Personas_nombres ." ".$Operador->Personas_apPaterno . " ". $Operador->Personas_apMaterno,
+                    "Operador" => $Operador->Personas_nombres . " " . $Operador->Personas_apPaterno . " " . $Operador->Personas_apMaterno,
                     "Destino" => $Destino->Destinos_Nombre,
                 ];
 
@@ -505,52 +504,82 @@ class RegistroEntradaController extends Controller
     }
 
 
-    public function WhoDestint(Request $request)
-    {
-        $quienConQuien = $request->input('quienconquien');
-        $user = $request->input('user');
+    // public function WhoDestint(Request $request)
+    // {
+    //     $quienConQuien = $request->input('quienconquien');
+    //     $user = $request->input('user');
 
-        $unidadID = $quienConQuien['CUA_unidadID'];
-        $choferID = $quienConQuien['CUA_choferID'] ?? null;
-        $destino = $quienConQuien['CUA_destino'] ?? null;
-        $motivoID = $quienConQuien['CUA_motivoID'] ?? null;
-        $ayudanteID = $quienConQuien['CUA_ayudanteID'] ?? null;
+    //     $unidadID = $quienConQuien['CUA_unidadID'];
+    //     $choferID = $quienConQuien['CUA_choferID'] ?? null;
+    //     $destino = $quienConQuien['CUA_destino'] ?? null;
+    //     $motivoID = $quienConQuien['CUA_motivoID'] ?? null;
+    //     $ayudanteID = $quienConQuien['CUA_ayudanteID'] ?? null;
 
-        // 1. Buscar asignación activa para la unidad
-        $asignacionExistente = ChoferUnidadAsignar::where('CUA_unidadID', $unidadID)
-            ->where('CUA_estatus', 1)
-            ->first();
+    //     // 1. Buscar asignación activa para la unidad
+    //     $asignacionExistente = ChoferUnidadAsignar::where('CUA_unidadID', $unidadID)
+    //         ->where('CUA_estatus', 1)
+    //         ->first();
 
-        // Datos del request para la comparación/actualización/creación
-        $nuevosDatos = [
-            'CUA_choferID' => $choferID,
-            'CUA_ayudanteID' => $ayudanteID,
-            'CUA_motivoID' => $motivoID,
-            'CUA_destino' => $destino,
-            'CUA_usuarioId' => $user,
-            'CUA_autAdmin' => 0,
-        ];
+    //     // Datos del request para la comparación/actualización/creación
+    //     $nuevosDatos = [
+    //         'CUA_choferID' => $choferID,
+    //         'CUA_ayudanteID' => $ayudanteID,
+    //         'CUA_motivoID' => $motivoID,
+    //         'CUA_destino' => $destino,
+    //         'CUA_usuarioId' => $user,
+    //         'CUA_autAdmin' => 0,
+    //     ];
 
-        // 2. Si NO existe una asignación activa, la creamos directamente.
-        if (!$asignacionExistente) {
-            $datosAsignacion = array_merge($nuevosDatos, [
-                'CUA_unidadID' => $unidadID,
-                'CUA_fechaAsignacion' => DB::raw('GETDATE()'),
-                'CUA_estatus' => 1,
-            ]);
-            ChoferUnidadAsignar::create($datosAsignacion);
-        } else {
+    //     // 2. Si NO existe una asignación activa, la creamos directamente.
+    //     if (!$asignacionExistente) {
+    //         $datosAsignacion = array_merge($nuevosDatos, [
+    //             'CUA_unidadID' => $unidadID,
+    //             'CUA_fechaAsignacion' => DB::raw('GETDATE()'),
+    //             'CUA_estatus' => 1,
+    //         ]);
+    //         ChoferUnidadAsignar::create($datosAsignacion);
 
-            $asignacionExistente->update(array_merge($nuevosDatos, [
-                'CUA_fechaAsignacion' => DB::raw('GETDATE()'),
-            ]));
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Asignaciones procesadas.',
-        ]);
-    }
+    //         $unidad = Unidades::find($unidadID);
+
+    //         if (!$unidad) {
+    //             return response()->json(['message' => 'La unidad especificada no existe.'], 404);
+    //         }
+
+    //         $this->configEmail();
+
+    //         $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
+
+    //         $Destino = Destinos::find($destino);
+    //         $Operador = User::find($choferID);
+
+    //         $Datos = (object) [
+    //             "Titulo" => "CORREO DE ACEPTACION DE QUIEN CON QUIEN",
+    //             "QconQuienUnidad" => $request->unit,
+    //             "Unidad" => $unidadID->Unidades_numeroEconomico,
+    //             "User" => $user,
+    //             "Operador" => $Operador->Personas_nombres . " " . $Operador->Personas_apPaterno . " " . $Operador->Personas_apMaterno,
+    //             "Destino" => $Destino->Destinos_Nombre,
+    //         ];
+
+    //         if ($Correos->isNotEmpty()) {
+    //             foreach ($Correos as $correo) {
+    //                 $destinatario = $correo->correoNotificaciones_correo;
+    //                 Mail::to($destinatario)->send(new CodigoAutorizacionQuiencQuien($Datos));
+    //             }
+    //         }
+    //     } else {
+
+    //         $asignacionExistente->update(array_merge($nuevosDatos, [
+    //             'CUA_fechaAsignacion' => DB::raw('GETDATE()'),
+    //         ]));
+    //     }
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Asignaciones procesadas.',
+    //     ]);
+    // }
 
 
     //  public function WhoAyudantes(Request $request)
@@ -570,6 +599,171 @@ class RegistroEntradaController extends Controller
     //         'message' => 'ACTUALIZACION DE AYUDANTES.',
     //     ]);
     // }
+
+
+
+    // public function WhoDestint(Request $request)
+    // {
+    //     $quienConQuien = $request->input('quienconquien');
+    //     $userId = $request->input('user');
+
+    //     $unidadID = $quienConQuien['CUA_unidadID'];
+    //     $choferID = $quienConQuien['CUA_choferID'] ?? null;
+    //     $destinoID = $quienConQuien['CUA_destino'] ?? null;
+    //     $motivoID = $quienConQuien['CUA_motivoID'] ?? null;
+    //     $ayudanteID = $quienConQuien['CUA_ayudanteID'] ?? null;
+
+    //     // 1. Validar que la unidad existe antes de continuar
+    //     $unidad = Unidades::find($unidadID);
+    //     if (!$unidad) {
+    //         return response()->json(['success' => false, 'message' => 'La unidad especificada no existe.'], 404);
+    //     }
+
+    //     // 2. Preparar datos base
+    //     $datosAsignacion = [
+    //         'CUA_choferID'   => $choferID,
+    //         'CUA_ayudanteID' => $ayudanteID,
+    //         'CUA_motivoID'   => $motivoID,
+    //         'CUA_destino'    => $destinoID,
+    //         'CUA_usuarioId'  => $userId,
+    //         'CUA_autAdmin'   => 0,
+    //         'CUA_fechaAsignacion' => now(), // Usar helper de Laravel/Carbon
+    //     ];
+
+    //     // 3. Buscar asignación activa
+    //     $asignacionExistente = ChoferUnidadAsignar::where('CUA_unidadID', $unidadID)
+    //         ->where('CUA_estatus', 1)
+    //         ->first();
+
+    //     if (!$asignacionExistente) {
+    //         // Crear nueva
+    //         $datosAsignacion['CUA_unidadID'] = $unidadID;
+    //         $datosAsignacion['CUA_estatus'] = 1;
+    //         ChoferUnidadAsignar::create($datosAsignacion);
+    //     } else {
+    //         // Actualizar existente
+    //         $asignacionExistente->update($datosAsignacion);
+    //     }
+
+    //     // 4. Enviar Notificaciones (Misma lógica para ambos casos)
+    //     try {
+    //         $this->configEmail();
+    //         $correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->pluck('correoNotificaciones_correo');
+
+
+    //         // dd("correos", $correos);
+    //         if ($correos->isNotEmpty()) {
+    //             $destino = Destinos::find($destinoID);
+
+    //             // $operador = User::with('persona')->find($choferID); // Asumiendo relación con personas
+    //             // dd("operador", $operador);
+
+    //             $datosEmail = (object) [
+    //                 "Titulo"         => "CORREO DE ACEPTACION DE QUIEN CON QUIEN",
+    //                 "QconQuienUnidad" => $asignacionExistente->CUA_asignacionID,
+    //                 "Unidad"         => $unidad->Unidades_numeroEconomico, // Corregido: acceso a propiedad del objeto $unidad
+    //                 "User"           => $userId,
+    //                 "Operador"       =>  'N/A',
+    //                 "Destino"        => $destino ? $destino->Destinos_Nombre : 'N/D',
+    //             ];
+    //             // dd($datosEmail);
+
+    //             foreach ($correos as $destinatario) {
+    //                 Mail::to($destinatario)->send(new CodigoAutorizacionQuiencQuien($datosEmail));
+    //             }
+    //         }
+    //     } catch (\Exception $e) {
+    //         // Loguear error pero permitir que la respuesta sea exitosa ya que la DB se actualizó
+    //         Log::error("Error enviando correos: " . $e->getMessage());
+    //     }
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Asignación procesada correctamente.',
+    //     ]);
+    // }
+
+
+    public function WhoDestint(Request $request)
+    {
+        $quienConQuien = $request->input('quienconquien');
+        $userId = $request->input('user');
+
+        $unidadID = $quienConQuien['CUA_unidadID'];
+        $choferID = $quienConQuien['CUA_choferID'] ?? null;
+        $destinoID = $quienConQuien['CUA_destino'] ?? null;
+        $motivoID = $quienConQuien['CUA_motivoID'] ?? null;
+        $ayudanteID = $quienConQuien['CUA_ayudanteID'] ?? null;
+
+        // 1. Validar que la unidad existe
+        $unidad = Unidades::find($unidadID);
+        if (!$unidad) {
+            return response()->json(['success' => false, 'message' => 'La unidad especificada no existe.'], 404);
+        }
+
+        // 2. Preparar datos base
+        $datosAsignacion = [
+            'CUA_choferID'   => $choferID,
+            'CUA_ayudanteID' => $ayudanteID,
+            'CUA_motivoID'   => $motivoID,
+            'CUA_destino'    => $destinoID,
+            'CUA_usuarioId'  => $userId,
+            'CUA_autAdmin'   => 0,
+            'CUA_fechaAsignacion' => now(),
+        ];
+
+        // 3. Buscar o Crear/Actualizar la asignación
+        $asignacion = ChoferUnidadAsignar::where('CUA_unidadID', $unidadID)
+            ->where('CUA_estatus', 1)
+            ->first();
+
+        if (!$asignacion) {
+            // CREAR NUEVA: Asignamos el ID de unidad y estatus al array
+            $datosAsignacion['CUA_unidadID'] = $unidadID;
+            $datosAsignacion['CUA_estatus'] = 1;
+            $asignacion = ChoferUnidadAsignar::create($datosAsignacion);
+        } else {
+            // ACTUALIZAR EXISTENTE
+            $asignacion->update($datosAsignacion);
+        }
+
+        // 4. Enviar Notificaciones
+        try {
+            $correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)
+                ->pluck('correoNotificaciones_correo');
+
+            if ($correos->isNotEmpty()) {
+                $this->configEmail(); // Configurar solo si hay correos
+                $destino = Destinos::find($destinoID);
+
+                // Opcional: Si quieres el nombre del operador real
+                // $operador = User::find($choferID); 
+                // $nombreOperador = $operador ? $operador->name : 'N/A';
+
+                $datosEmail = (object) [
+                    "Titulo"          => "CORREO DE ACEPTACION DE QUIEN CON QUIEN",
+                    "QconQuienUnidad" => $asignacion->CUA_asignacionID, // Usamos $asignacion que siempre existe ahora
+                    "Unidad"          => $unidad->Unidades_numeroEconomico,
+                    "User"            => $userId,
+                    "Operador"        => 'N/A',
+                    "Destino"         => $destino ? $destino->Destinos_Nombre : 'N/D',
+                ];
+
+                foreach ($correos as $destinatario) {
+                    Mail::to($destinatario)->send(new CodigoAutorizacionQuiencQuien($datosEmail));
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error("Error enviando correos en WhoDestint: " . $e->getMessage());
+            // No retornamos error aquí para que el usuario sepa que la DB sí se guardó
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Asignación procesada correctamente.',
+        ]);
+    }
+
 
     public function WhoAyudantes(request $request)
     {

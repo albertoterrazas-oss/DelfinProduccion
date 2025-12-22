@@ -3,13 +3,10 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class ConfiguracionCorreo extends Mailable
+class CodigoAutorizacionQuiencQuien extends Mailable
 {
     use Queueable, SerializesModels;
     public $information;
@@ -22,15 +19,12 @@ class ConfiguracionCorreo extends Mailable
     public function build()
     {
         return $this->subject($this->information->Titulo)
-            ->view('ConfiguracionCorreos', [
-                'information' => $this->information,
-                'incidencias' => $this->information->Incidencias,
-                'Codigo' => $this->information->Codigo,
+            ->view('AceptacionQuiencQuien', [
                 'Unidad' => $this->information->Unidad,
+                'User' => $this->information->User,
                 'Operador' => $this->information->Operador,
                 'Destino' => $this->information->Destino,
                 'QconQuienUnidad' => $this->information->QconQuienUnidad,
-                'tytype' => $this->information->TipoMovimiento
             ]);
     }
 }
