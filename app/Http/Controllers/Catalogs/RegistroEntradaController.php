@@ -709,7 +709,8 @@ class RegistroEntradaController extends Controller
             'CUA_destino'    => $destinoID,
             'CUA_usuarioId'  => $userId,
             'CUA_autAdmin'   => 0,
-            'CUA_fechaAsignacion' => now(),
+            // 'CUA_fechaAsignacion' => now(),
+            'CUA_fechaAsignacion' => now()->format('Y-m-d H:i:s'),
         ];
 
         // 3. Buscar o Crear/Actualizar la asignación
@@ -735,10 +736,6 @@ class RegistroEntradaController extends Controller
             if ($correos->isNotEmpty()) {
                 $this->configEmail(); // Configurar solo si hay correos
                 $destino = Destinos::find($destinoID);
-
-                // Opcional: Si quieres el nombre del operador real
-                // $operador = User::find($choferID); 
-                // $nombreOperador = $operador ? $operador->name : 'N/A';
 
                 $datosEmail = (object) [
                     "Titulo"          => "CORREO DE ACEPTACION DE QUIEN CON QUIEN",
