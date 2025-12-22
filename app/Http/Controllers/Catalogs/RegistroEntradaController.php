@@ -709,8 +709,8 @@ class RegistroEntradaController extends Controller
             'CUA_destino'    => $destinoID,
             'CUA_usuarioId'  => $userId,
             'CUA_autAdmin'   => 0,
-            // 'CUA_fechaAsignacion' => now(),
-            'CUA_fechaAsignacion' => now()->format('Y-m-d H:i:s'),
+            // 'CUA_fechaAsignacion' => now()->format('Y-m-d H:i:s'),
+            'CUA_fechaAsignacion' => date('Ymd H:i:s'), // Formato YYYYMMDD es el más seguro en SQL Server
         ];
 
         // 3. Buscar o Crear/Actualizar la asignación
