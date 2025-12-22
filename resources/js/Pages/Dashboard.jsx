@@ -550,7 +550,7 @@ export default function Dashboard() {
     const userObject = JSON.parse(localStorage.getItem('user'));
 
     // Verificación de ROL (Admin = "2" según tu código previo)
-    const isAdmin = userObject?.usuario_idRol === "2";
+    const isAdmin = userObject?.usuario_idRol === "1002";
 
     const getDashboardInfo = async () => {
         if (!isAdmin) return;
