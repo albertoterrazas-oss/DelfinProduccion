@@ -737,12 +737,14 @@ class RegistroEntradaController extends Controller
                 $this->configEmail(); // Configurar solo si hay correos
                 $destino = Destinos::find($destinoID);
 
+                $Operador = User::find($choferID);
+
                 $datosEmail = (object) [
                     "Titulo"          => "CORREO DE ACEPTACION DE QUIEN CON QUIEN",
                     "QconQuienUnidad" => $asignacion->CUA_asignacionID, // Usamos $asignacion que siempre existe ahora
-                    "Unidad"          => $unidad->Unidades_numeroEconomico,
+                    "Unidad"          => "Modelo: " . $unidad->Unidades_modelo . "-" . "Numero Economico: " . $unidad->Unidades_numeroEconomico,
                     "User"            => $userId,
-                    "Operador"        => 'N/A',
+                    "Operador"        => $Operador->Personas_nombres . " " . $Operador->Personas_apPaterno . " " . $Operador->Personas_apMaterno,
                     "Destino"         => $destino ? $destino->Destinos_Nombre : 'N/D',
                 ];
 

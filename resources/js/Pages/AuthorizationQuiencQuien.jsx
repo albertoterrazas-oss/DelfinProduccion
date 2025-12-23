@@ -114,13 +114,25 @@ const AuthorizationCard = () => {
 };
 
 // Componentes Auxiliares
+// const InfoRow = ({ icon, label, value, highlight }) => (
+//     <div className={`flex items-center justify-between p-4 rounded-2xl border ${highlight ? 'bg-white/20 border-white/40' : 'bg-white/5 border-white/5'}`}>
+//         <div className="flex items-center gap-3 text-blue-200/70">
+//             {icon}
+//             <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+//         </div>
+//         <span className={`font-mono font-bold ${highlight ? 'text-md text-white' : 'text-blue-100'}`}>{value}</span>
+//     </div>
+// );
+
 const InfoRow = ({ icon, label, value, highlight }) => (
-    <div className={`flex items-center justify-between p-4 rounded-2xl border ${highlight ? 'bg-white/20 border-white/40' : 'bg-white/5 border-white/5'}`}>
-        <div className="flex items-center gap-3 text-blue-200/70">
+    <div className={`flex items-start justify-between p-4 rounded-2xl border gap-4 ${highlight ? 'bg-white/20 border-white/40' : 'bg-white/5 border-white/5'}`}>
+        <div className="flex items-center gap-3 text-blue-200/70 pt-1">
             {icon}
-            <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">{label}</span>
         </div>
-        <span className={`font-mono font-bold ${highlight ? 'text-lg text-white' : 'text-blue-100'}`}>{value}</span>
+        <span className={`font-mono font-bold text-right break-words max-w-[60%] ${highlight ? 'text-md text-white' : 'text-blue-100'}`}>
+            {value}
+        </span>
     </div>
 );
 
@@ -130,7 +142,7 @@ const SuccessView = ({ unit }) => (
             <CheckCircle size={50} strokeWidth={3} />
         </div>
         <h2 className="text-3xl font-black mb-2">¡CONFIRMADO!</h2>
-        <p className="text-blue-100">La unidad <span className="font-bold text-emerald-400">{unit}</span> ha sido aceptada correctamente.</p>
+        <p className="text-blue-100">La unidad <span className="font-bold text-emerald-400"></span> ha sido aceptada correctamente.</p>
     </motion.div>
 );
 

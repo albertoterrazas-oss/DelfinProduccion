@@ -790,6 +790,9 @@ class UnidadesController extends Controller
 
         $asignacionesDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
             ->join('dbo.Unidades', 'dbo.ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
+            ->join('dbo.Destinos', 'dbo.ChoferUnidadAsignada.CUA_destino', '=', 'Destinos.Destinos_Id')
+            ->join('dbo.Personas', 'dbo.ChoferUnidadAsignada.CUA_choferID', '=', 'Personas.Personas_usuarioID')
+
             ->select(
                 'dbo.ChoferUnidadAsignada.CUA_unidadID',
                 'dbo.ChoferUnidadAsignada.CUA_choferID',
@@ -800,7 +803,11 @@ class UnidadesController extends Controller
                 'dbo.ChoferUnidadAsignada.CUA_ayudantes',
                 'dbo.ChoferUnidadAsignada.CUA_estatus',
                 'dbo.ChoferUnidadAsignada.CUA_autAdmin',
-                'Unidades.Unidades_numeroEconomico'
+                'Unidades.Unidades_numeroEconomico',
+                'Unidades.Unidades_modelo',
+                'Destinos.Destinos_Nombre',
+                // 'Destinos.Destinos_Nombre',
+                DB::raw("CONCAT(Personas.Personas_nombres, ' ', Personas.Personas_apPaterno, ' ', Personas.Personas_apMaterno) AS nombre_chofer")
             )
             ->where('dbo.ChoferUnidadAsignada.CUA_estatus', 1)
             ->where('dbo.ChoferUnidadAsignada.CUA_autAdmin', 0)
