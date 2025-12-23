@@ -840,6 +840,8 @@ class UnidadesController extends Controller
                 'dbo.ChoferUnidadAsignada.CUA_destino',
                 'dbo.ChoferUnidadAsignada.CUA_motivoID',
                 'dbo.ChoferUnidadAsignada.CUA_autAdmin',
+                'dbo.ChoferUnidadAsignada.CUA_ayudantes',
+
                 'dbo.ChoferUnidadAsignada.CUA_fechaAsignacion',
                 'Unidades.Unidades_numeroEconomico'
             )

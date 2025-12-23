@@ -19,7 +19,7 @@ class CorreosController extends Controller
     {
         // 1. Filtramos por estatus y cargamos la relación 'usuario'
         $correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)
-            ->with('usuario')
+            ->with('usuario','asunto')
             ->get();
 
         // 2. Mapeamos para concatenar el nombre
@@ -58,7 +58,11 @@ class CorreosController extends Controller
         $validator = Validator::make($request->all(), [
             'correoNotificaciones_correo'     => 'required|email',
             'correoNotificaciones_idUsuario'  => 'required|integer',
-            'correoNotificaciones_estatus'    => 'sometimes|boolean', // 'sometimes' permite que sea opcional, pero si se envía, debe ser booleano
+            'correoNotificaciones_estatus'    => 'sometimes|boolean',
+            'correoNotificaciones_idAsunto'  => 'required|integer',
+
+
+            // 'sometimes' permite que sea opcional, pero si se envía, debe ser booleano
         ]);
 
         if ($validator->fails()) {
@@ -170,6 +174,7 @@ class CorreosController extends Controller
             'correoNotificaciones_correo'     => 'required|email|max:255',
             'correoNotificaciones_idUsuario'  => 'sometimes|integer', // 'sometimes' para permitir actualizaciones parciales
             'correoNotificaciones_estatus'    => 'sometimes|boolean',
+            'correoNotificaciones_idAsunto'  => 'sometimes|integer',
         ]);
 
         if ($validator->fails()) {

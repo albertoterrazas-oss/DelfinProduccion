@@ -39,7 +39,8 @@ const RegistroYSalidaUnificado = () => {
         checklist: [],
         authorizationCode: '',
         user: userObject.Personas_usuarioID,
-        estatusCode: 0
+        estatusCode: 0,
+        Ayudantes: ''
     };
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
@@ -365,9 +366,11 @@ const RegistroYSalidaUnificado = () => {
     );
 
     const ResumenItem = ({ label, value }) => (
-        <div className="flex justify-between items-center py-1 border-b border-gray-200">
-            <span className="text-sm font-medium text-gray-600">{label}</span>
-            <span className="text-sm font-semibold text-gray-800">{value}</span>
+        <div className="flex justify-between items-start py-2 border-b border-gray-200 gap-4">
+            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">{label}</span>
+            <span className="text-sm font-semibold text-gray-800 text-right break-words max-w-[70%]">
+                {value}
+            </span>
         </div>
     );
 
@@ -436,6 +439,8 @@ const RegistroYSalidaUnificado = () => {
                 motive: Number(QuienConQuien.CUA_motivoID),
                 destination: Number(QuienConQuien.CUA_destino),
                 driver: Number(QuienConQuien.CUA_choferID),
+                Ayudantes: QuienConQuien.CUA_ayudantes,
+
                 // kilometers se carga en fetchUltimosMovimientos
             }));
             if (QuienConQuien.EstatusCodigo === "1") {
@@ -464,25 +469,14 @@ const RegistroYSalidaUnificado = () => {
     return (
         <div className={`flex flex-col gap-4 ${isModalOpen ? 'opacity-50 pointer-events-none' : ''}`}>
             <div className='flex flex-col gap-4'>
-                {/* <button onClick={() => setIsModalOpen(true)}>smn</button> */}
-                <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 pt-4">
-                    Registro Único de Movimientos
-                </h1>
-
+               
                 {/* Header con info responsiva */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-white p-4 rounded-xl shadow-md">
                     <div className="text-sm sm:text-lg font-bold text-gray-800">
-                        Unidad: <span className="text-blue-600">{informacion.NombreUnidad || '—'}</span>
+                        {/* Unidad: <span className="text-blue-600">{informacion.NombreUnidad || '—'}</span> */}
+                         Registro Único de Movimientos: <span className="text-blue-600"> Unidad- {informacion.NombreUnidad || 'S/N'}</span>
                     </div>
-                    <div className="text-sm sm:text-lg font-bold text-gray-800">
-                        Chofer: <span className="text-blue-600">{informacion.NombreOperador || '—'}</span>
-                    </div>
-                    <div className={`px-4 py-2 rounded-full font-semibold text-sm ${form.authorizationCode ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                        Autorización: <span className="font-bold">
-                            {form.authorizationCode ? '✅ Otorgada' : '❌ Pendiente'}
-                        </span>
-                    </div>
+                   
                 </div>
             </div>
 
@@ -606,8 +600,8 @@ const RegistroYSalidaUnificado = () => {
                                         setForm({ ...form, kilometers: e.target.value });
                                     }}
                                     className={`p-3 border rounded-lg focus:outline-none focus:ring-2 ${!isKmValid && form.movementType === 'ENTRADA' && form.kilometers !== 0
-                                            ? 'border-red-500 focus:ring-red-400'
-                                            : 'border-gray-300 focus:ring-blue-400'
+                                        ? 'border-red-500 focus:ring-red-400'
+                                        : 'border-gray-300 focus:ring-blue-400'
                                         }`}
                                 />
                                 {!isKmValid && form.movementType === 'ENTRADA' && form.kilometers !== 0 && (
@@ -671,8 +665,8 @@ const RegistroYSalidaUnificado = () => {
                         onClick={CrearAsignacion}
                         disabled={isSubmitting || !isFormValid}
                         className={`w-full py-3 text-white text-base sm:text-lg font-bold rounded-lg shadow-xl transition-colors ${isSubmitting || !isFormValid
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-600 hover:bg-blue-700'
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-700'
                             }`}
                     >
                         {buttonText}
@@ -690,7 +684,7 @@ const RegistroYSalidaUnificado = () => {
                         <h3 className="text-md font-semibold text-gray-700">Datos Clave</h3>
                         <ResumenItem label="Tipo de Movimiento" value={form.movementType} />
                         <ResumenItem label="Unidad" value={informacion.NombreUnidad || '—'} />
-                        <ResumenItem label="Chofer" value={informacion.NombreOperador || '—'} />
+                        <ResumenItem label="Ayudantes" value={form.Ayudantes || '—'} />
                         <hr className="my-1 border-gray-100" />
                         <ResumenItem
                             label="Motivo"
