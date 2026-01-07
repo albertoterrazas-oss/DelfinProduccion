@@ -23,8 +23,17 @@ class PermissionToAccess
         // if(in_array($request->path(), RouteServiceProvider::SKIPPED_ROUTES_PERMISSION))
         //     return $next($request);
         $menu = Menu::where('menu_url', $route)->firstOrFail();
-        if(!$user->menus->contains($menu->menu_id))
-            return response()->view('errors.403');
+        if (!$user->menus->contains($menu->menu_id)) {
+            $dashboard = $user->menus->firstWhere('menu_url', 'dashboard');
+
+            $redirectUrl = $dashboard
+                ? '/dashboard'
+                : ($user->menus->first()
+                    ? '/' . $user->menus->first()->menu_url
+                    : '/login');
+
+            return response()->view('errors.403', compact('redirectUrl'));
+        }
         return $next($request);
     }
 }

@@ -17,7 +17,7 @@
 <script>
     setTimeout(function() {
       var appUrl = "{{ env('APP_URL') }}";
-      var redirectUrl = '/dashboard';
+      var redirectUrl = "{{ $redirectUrl ?? '/login' }}";
       window.location = redirectUrl;
     }, 5000);
   </script>
