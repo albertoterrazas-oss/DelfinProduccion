@@ -57,9 +57,7 @@ export default function Reportes() {
         }
     };
 
-
     const getUnits = async () => {
-
         try {
             const response = await fetch(route("unidades.index"));
 
@@ -84,7 +82,6 @@ export default function Reportes() {
         }
     }
 
-
     useEffect(() => {
         getReportes()
         getUsers();
@@ -94,8 +91,6 @@ export default function Reportes() {
     const excelColumns = [
         { header: "Fecha salida", accessor: "fecha_salida", type: "date" },
         { header: "Fecha entrada", accessor: "fecha_entrada", type: "date" },
-
-
         { header: "Chofer", accessor: "nombre_chofer", type: "text" },
         { header: "Unidad", accessor: "Unidades_numeroEconomico", type: "text" },
         { header: "Motivo", accessor: "motivo", type: "text" },
@@ -103,7 +98,6 @@ export default function Reportes() {
         { header: "Combustible salida", accessor: "combustible_salida", type: "number" },
         { header: "Combustible entrada", accessor: "combustible_entrada", type: "number" },
         { header: "Combustible consumido", accessor: "combustible_consumido", type: "number" },
-
         { header: "Kilometraje recorrido", accessor: "km_recorridos", type: "number" },
         { header: "Kilometraje Rendimiento", accessor: "rendimiento_kml", type: "number" },
         { header: "Ayudante-1", accessor: "ayudante1", type: "text" },
@@ -111,8 +105,6 @@ export default function Reportes() {
         { header: "Ayudante-3", accessor: "ayudante3", type: "text" },
         { header: "Ayudante-4", accessor: "ayudante4", type: "text" },
         { header: "Ayudante-5", accessor: "ayudante5", type: "text" },
-
-        
     ]
 
     const handleExportExcel = () => excelTemplate(
@@ -121,7 +113,6 @@ export default function Reportes() {
         filtros,
         "Reporte_Movimientos"
     )
-
 
     function StatCard({ name, value, color = 'text-gray-900', icon: Icon }) {
         return (
@@ -148,25 +139,18 @@ export default function Reportes() {
 
     return (
         <div className="relative h-[100%] pb-4 px-3 overflow-auto blue-scroll">
-
-
             <div className="flex justify-between items-center p-3 border-b mb-4">
                 <h2 className="text-3xl font-bold text-gray-800">Gestion de reporteria </h2>
             </div>
-
-
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-5 mb-8">
                 {stats.map((stat) => (
                     <StatCard key={stat.name} {...stat} />
                 ))}
             </div>
-
             {/* <ReportFilterSection /> */}
             <div className="bg-white rounded-lg p-5 shadow-sm mt-5 ring-1 ring-gray-100">
                 <h3 className="text-xl font-bold mb-4 text-gray-800">Filtros</h3>
-
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
                     {/* Campo: Fecha inicio */}
                     <div className="space-y-3">
                         <label className="block">
@@ -286,6 +270,7 @@ export default function Reportes() {
                     columns={[
                         { header: 'Fecha Salida', accessor: 'fecha_salida' },
                         { header: 'Fecha Entrada', accessor: 'fecha_entrada' },
+                        { header: 'Unidad', accessor: 'Unidades_numeroEconomico' },
                         { header: 'Chofer', accessor: 'nombre_chofer' },
                         { header: 'Destino', accessor: 'destino' },
                         { header: 'Motivo', accessor: 'motivo' },

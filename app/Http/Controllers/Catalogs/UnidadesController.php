@@ -320,18 +320,33 @@ class UnidadesController extends Controller
                 'Destinos.Destinos_Nombre',
                 'ChoferUnidadAsignada.CUA_ayudantes as ayudantes',
 
+                // CAMPOS DE INCIDENCIAS Y LISTA DE VERIFICACIÓN
+                'IncidenciasMovimiento.IncidenciasMovimiento_movimientoID',
+                'IncidenciasMovimiento.IncidenciasMovimiento_listaID',
+                'IncidenciasMovimiento.IncidenciasMovimiento_usuarioID',
+                'IncidenciasMovimiento.IncidenciasMovimiento_observaciones',
+
+                'ListaVerificacion.ListaVerificacion_listaID',
+                'ListaVerificacion.ListaVerificacion_nombre',
+                'ListaVerificacion.ListaVerificacion_tipo',
+                'ListaVerificacion.ListaVerificacion_observaciones as ListaVerificacion_observaciones',
+                'ListaVerificacion.ListaVerificacion_usuarioID',
+                'ListaVerificacion.ListaVerificacion_imgVehiculo',
+
             )
             ->join('dbo.ChoferUnidadAsignada', 'Movimientos.Movimientos_asignacionID', '=', 'ChoferUnidadAsignada.CUA_asignacionID')
             ->join('dbo.Personas', 'ChoferUnidadAsignada.CUA_choferID', '=', 'Personas.Personas_usuarioID')
             ->join('dbo.Unidades', 'ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
             ->join('dbo.Motivos', 'ChoferUnidadAsignada.CUA_motivoID', '=', 'Motivos.Motivos_motivoID')
             ->join('dbo.Destinos', 'ChoferUnidadAsignada.CUA_destino', '=', 'Destinos.Destinos_Id')
+            ->leftJoin('dbo.IncidenciasMovimiento', 'Movimientos.Movimientos_movimientoID', '=', 'IncidenciasMovimiento.IncidenciasMovimiento_id')
+            ->leftJoin('dbo.ListaVerificacion', 'IncidenciasMovimiento.IncidenciasMovimiento_listaID', '=', 'ListaVerificacion.ListaVerificacion_listaID')
             ->orderBy('Movimientos.Movimientos_fecha', 'DESC');
 
         // 2. FILTRAR POR RANGO DE FECHAS
         if ($request->filled('fechaInicio') && $request->filled('fechaFin')) {
-            $fechaInicio = $request->input('fechaInicio');
-            $fechaFin = $request->input('fechaFin');
+            $fechaInicio = Carbon::parse($request->fechaInicio)->startOfDay();
+            $fechaFin = Carbon::parse($request->fechaFin)->endOfDay();
             $query->whereBetween('Movimientos.Movimientos_fecha', [$fechaInicio, $fechaFin]);
         }
 
@@ -389,6 +404,7 @@ class UnidadesController extends Controller
         $viajesCompletos = [];
         $salidasPendientes = []; // USAMOS ESTO PARA RASTREAR LAS SALIDAS SIN ENTRADA CORRESPONDIENTE
         $movimientosPendientes = [];
+        $incidencias = [];
 
         // AGRUPAR MOVIMIENTOS POR ASIGNACIÓN (CUA_ASIGNACIONID).
         // ESTO ES CLAVE PARA ASEGURAR QUE SOLO EMPAREJAMOS LA SALIDA Y ENTRADA DEL MISMO VIAJE.
@@ -474,6 +490,25 @@ class UnidadesController extends Controller
                         'rendimiento_kml' => round($rendimiento, 4),
                     ];
 
+                    $incidencias[] = [
+                        'movimiento_id' => $movimiento->IncidenciasMovimiento_movimientoID,
+                        'usuario_id' => $movimiento->IncidenciasMovimiento_usuarioID,
+                        'observaciones' => $movimiento->IncidenciasMovimiento_observaciones,
+
+                        'lista_verificacion' => [
+                            'lista_id' => $movimiento->ListaVerificacion_listaID,
+                            'nombre' => $movimiento->ListaVerificacion_nombre,
+                            'tipo' => $movimiento->ListaVerificacion_tipo,
+                            'observaciones' => $movimiento->ListaVerificacion_observaciones,
+                            'usuario_id' => $movimiento->ListaVerificacion_usuarioID,
+                            'imgVehiculo' => $movimiento->ListaVerificacion_imgVehiculo,
+                        ],
+
+                        // opcional pero útil
+                        'fecha_movimiento' => $movimiento->Movimientos_fecha,
+                        'asignacion_id' => $asignacionID,
+                    ];
+
                     // REINICIAR LA SALIDA PARA EL SIGUIENTE PAR
                     $salida = null;
                 }
@@ -495,6 +530,7 @@ class UnidadesController extends Controller
             'movimientos_base' => $movimientosFiltrados, // MOVIMIENTOS ORIGINALES COMPLETOS
             'viajes_completos_rendimiento' => $viajesCompletos, // VIAJES CON CÁLCULOS DE RENDIMIENTO
             'movimientos_pendientes' => $movimientosPendientes, // SALIDAS SIN ENTRADA (OPCIONAL)
+            'incidencias' => $incidencias,
             'rendimiento_promedio_global_kml' => round($rendimientoPromedioGlobal, 4),
             'totalMovimientos' => $movimientosFiltrados->count(),
             'totalViajesCompletos' => $conteoViajes,
