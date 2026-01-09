@@ -339,7 +339,7 @@ class UnidadesController extends Controller
             ->join('dbo.Unidades', 'ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
             ->join('dbo.Motivos', 'ChoferUnidadAsignada.CUA_motivoID', '=', 'Motivos.Motivos_motivoID')
             ->join('dbo.Destinos', 'ChoferUnidadAsignada.CUA_destino', '=', 'Destinos.Destinos_Id')
-            ->leftJoin('dbo.IncidenciasMovimiento', 'Movimientos.Movimientos_movimientoID', '=', 'IncidenciasMovimiento.IncidenciasMovimiento_id')
+            ->leftJoin('dbo.IncidenciasMovimiento', 'Movimientos.Movimientos_movimientoID', '=', 'IncidenciasMovimiento.IncidenciasMovimiento_movimientoID')
             ->leftJoin('dbo.ListaVerificacion', 'IncidenciasMovimiento.IncidenciasMovimiento_listaID', '=', 'ListaVerificacion.ListaVerificacion_listaID')
             ->orderBy('Movimientos.Movimientos_fecha', 'DESC');
 
@@ -417,7 +417,7 @@ class UnidadesController extends Controller
 
             $salida = null;
             foreach ($grupoOrdenado as $movimiento) {
-
+                // dd($movimiento);
                 // CONVERTIR KILOMETRAJE Y COMBUSTIBLE A NÚMEROS PARA EL CÁLCULO
                 $kilometraje = (float) $movimiento->Movimientos_kilometraje;
                 $combustible = (float) $movimiento->Movimientos_combustible;
@@ -494,18 +494,20 @@ class UnidadesController extends Controller
                         'movimiento_id' => $movimiento->IncidenciasMovimiento_movimientoID,
                         'usuario_id' => $movimiento->IncidenciasMovimiento_usuarioID,
                         'observaciones' => $movimiento->IncidenciasMovimiento_observaciones,
+                        'unidad' => $movimiento->Unidades_numeroEconomico,
+                        'Movimientos_tipoMovimiento' => $movimiento->Movimientos_tipoMovimiento,
 
-                        'lista_verificacion' => [
-                            'lista_id' => $movimiento->ListaVerificacion_listaID,
-                            'nombre' => $movimiento->ListaVerificacion_nombre,
-                            'tipo' => $movimiento->ListaVerificacion_tipo,
-                            'observaciones' => $movimiento->ListaVerificacion_observaciones,
-                            'usuario_id' => $movimiento->ListaVerificacion_usuarioID,
-                            'imgVehiculo' => $movimiento->ListaVerificacion_imgVehiculo,
-                        ],
+                        // 'lista_verificacion' => [
+                            'lista_verf_lista_id' => $movimiento->ListaVerificacion_listaID,
+                            'lista_verf_nombre' => $movimiento->ListaVerificacion_nombre,
+                            'lista_verf_tipo' => $movimiento->ListaVerificacion_tipo,
+                            'lista_verf_observaciones' => $movimiento->ListaVerificacion_observaciones,
+                            'lista_verf_usuario_id' => $movimiento->ListaVerificacion_usuarioID,
+                            'lista_verf_imgVehiculo' => $movimiento->ListaVerificacion_imgVehiculo,
+                        // ],
 
                         // opcional pero útil
-                        'fecha_movimiento' => $movimiento->Movimientos_fecha,
+                        'Movimientos_fecha' => $movimiento->Movimientos_fecha,
                         'asignacion_id' => $asignacionID,
                     ];
 

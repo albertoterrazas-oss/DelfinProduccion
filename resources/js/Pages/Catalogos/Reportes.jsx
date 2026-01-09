@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from 'sonner';
 import Datatable from "@/Components/Datatable";
 import { excelTemplate } from '../Catalogos/ExcelTemplate'
+import { excelTemplateIncidencias } from '../Catalogos/ExcelTemplateIncidencias'
 
 import {
     Truck,
@@ -107,11 +108,26 @@ export default function Reportes() {
         { header: "Ayudante-5", accessor: "ayudante5", type: "text" },
     ]
 
+    const incidenciasColumns = [
+        { header: 'Unidad', accessor: 'unidad' },
+        { header: 'Fecha mov.', accessor: 'Movimientos_fecha' },
+        { header: 'Tipo mov.', accessor: 'Movimientos_tipoMovimiento' },
+        { header: 'Lista verif.', accessor: 'lista_verf_nombre' },
+        { header: 'Observaciones', accessor: 'lista_verf_observaciones' },
+        { header: 'Cumple', accessor: 'observaciones' },
+    ]
+
     const handleExportExcel = () => excelTemplate(
         reportes.viajes_completos_rendimiento,
         excelColumns,
         filtros,
         "Reporte_Movimientos"
+    )
+    const handleExportExcelIncidencias = () => excelTemplateIncidencias(
+        reportes.incidencias,
+        incidenciasColumns,
+        filtros,
+        "Reporte_Incidencias"
     )
 
     function StatCard({ name, value, color = 'text-gray-900', icon: Icon }) {
@@ -255,7 +271,14 @@ export default function Reportes() {
                         className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition disabled:opacity-50"
                         style={{ backgroundColor: '#5bc0de' }} // Color exacto de la imagen
                     >
-                        Exportar
+                        Exportar movimientos
+                    </button>
+                    <button
+                        onClick={handleExportExcelIncidencias}
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition disabled:opacity-50"
+                        style={{ backgroundColor: '#5bc0de' }} // Color exacto de la imagen
+                    >
+                        Exportar incidencias
                     </button>
                 </div>
             </div>
@@ -263,6 +286,9 @@ export default function Reportes() {
 
             {/* Contenido de la tabla de Reportes */}
             <div className="p-3 w-full bg-white rounded-lg shadow-md min-h-[300px] mt-4 ring-1 ring-gray-100">
+                <h2 className="text-2xl font-semibold text-gray-800 pb-4 pt-1">
+                    Movimientos
+                </h2>
                 <Datatable
                     data={reportes.viajes_completos_rendimiento}
                     virtual={true}
@@ -280,6 +306,17 @@ export default function Reportes() {
                         { header: 'Combustible consumido (lts)', accessor: 'combustible_consumido' },
                         { header: 'Rendimiento', accessor: 'rendimiento_kml' },
                     ]}
+                />
+            </div>
+            <div className="p-3 w-full bg-white rounded-lg shadow-md min-h-[300px] mt-4 ring-1 ring-gray-100">
+                <h2 className="text-2xl font-semibold text-gray-800 pb-4 pt-1">
+                    Incidencias
+                </h2>
+                <Datatable
+                    data={reportes.incidencias}
+                    virtual={true}
+                    searcher={false}
+                    columns={incidenciasColumns}
                 />
             </div>
         </div>
