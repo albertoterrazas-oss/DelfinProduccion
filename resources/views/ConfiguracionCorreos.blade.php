@@ -27,8 +27,6 @@
 
         /* Encabezado */
         .header {
-            display: flex;
-            align-items: center;
             margin-bottom: 20px;
             border-bottom: 2px solid #0056b3;
             padding-bottom: 10px;
@@ -59,54 +57,43 @@
             text-align: center;
         }
 
-        /* --- NUEVOS ESTILOS PARA EL CÓDIGO CON TABLA (COMPATIBLE CON CORREO) --- */
+        /* --- ESTILOS DEL CÓDIGO --- */
         .code-wrapper {
-            /* Contenedor central para la tabla */
             text-align: center;
             padding: 10px 0;
         }
 
         .code-table {
-            /* Asegura que la tabla esté centrada */
             margin: 0 auto;
             border-collapse: collapse;
-            border-spacing: 0;
         }
 
         .code-digit-cell {
-            /* Estilo para cada dígito (celda) */
             border: 2px solid #0056b3;
             width: 25px;
-            /* Reducimos el ancho */
             height: 35px;
-            /* Reducimos la altura */
             line-height: 35px;
-            /* Ajustamos la línea para centrado vertical */
             text-align: center;
             font-size: 20px;
-            /* Reducimos el tamaño de la fuente */
             font-weight: bold;
             color: #0056b3;
             background-color: #e6f0ff;
-            padding: 0;
-            /* Aseguramos que no haya padding */
         }
 
-        /* Ajustes de bordes redondeados para el primer y último dígito */
-        .code-table tr td:first-child {
-            border-top-left-radius: 5px;
-            border-bottom-left-radius: 5px;
+        /* --- NUEVO ESTILO PELÓN PARA EL BOTÓN (COMPATIBLE CON CORREO) --- */
+        .btn-autorizar {
+            background-color: #0056b3;
+            color: #ffffff !important;
+            padding: 12px 25px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            display: inline-block;
+            border: 1px solid #004494;
         }
 
-        .code-table tr td:last-child {
-            border-top-right-radius: 5px;
-            border-bottom-right-radius: 5px;
-        }
-
-        /* --- FIN ESTILOS DEL CÓDIGO --- */
-
-
-        /* Estilos de Tabla de Detalles (Mantenidos) */
+        /* Estilos de Tabla de Detalles */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -134,29 +121,17 @@
         tbody tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-
-        .letracontainerbold {
-            font-weight: bold;
-        }
-
-        .letracontainer {
-            font-weight: normal;
-        }
     </style>
 </head>
 
 <body>
     <div class="factura-container">
         <div class="header">
-            {{-- Puedes colocar un logo aquí si lo deseas --}}
-            {{-- <img src="[URL_DE_TU_IMAGEN_O_BASE64]" alt="Logo de DELFIN TECNOLOGYS" class="circle"> --}}
-
             <div class="title">
                 <h1>DELFIN TECHNOLOGIES</h1>
                 <h2>CORREO DE INCIDENCIAS</h2>
             </div>
         </div>
-
 
         <div class="details">
             <h1>Código de salida</h1>
@@ -164,63 +139,47 @@
             <div class="code-wrapper">
                 <table class="code-table">
                     <tr>
-                        @php
-                            $codeDigits = str_split($Codigo);
-                        @endphp
+                        @php $codeDigits = str_split($Codigo); @endphp
                         @foreach ($codeDigits as $digit)
                             <td class="code-digit-cell">{{ $digit }}</td>
                         @endforeach
                     </tr>
                 </table>
             </div>
-            <hr>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
 
-            {{-- <a
-                href="http://intergastorreon.dyndns.org:5555/ordenconfirmated?token={{ $token }}&id={{ $subColeccion->OC_id }}&method=autorizar&comp=oc">
-                {{ $subColeccion->nombreorden ?? 'N/A' }}
-            </a> --}}
-
-            <a href="http://127.0.0.1:8000/AuthorizationCode?asign={{ '1' }}&upset={{ '2' }}">
-                Autorizar codigo
-            </a>
-
-
+            <div style="text-align: center; padding: 10px 0;">
+                <a href="http://192.168.0.57:1142/AuthorizationCode?asign={{ $QconQuienUnidad }}&unfg={{ $Unidad }}&oprtd={{ $Operador }}&dest={{ $Destino }}&cgp={{ $Codigo }}&tytype={{ $tytype }}"
+                   class="btn-autorizar">
+                    Autorizar código
+                </a>
+            </div>
         </div>
 
         <div class="details">
             <h1>LISTADO DE INCIDENCIAS REGISTRADAS</h1>
-
             <table>
                 <thead>
                     <tr class="table-header">
-                        <th class="letracontainerbold">NOMBRE DE LA VERIFICACIÓN</th>
-                        <th class="letracontainerbold">OBSERVACIONES DE INCIDENCIA</th>
+                        <th>NOMBRE DE LA VERIFICACIÓN</th>
+                        <th>OBSERVACIONES DE INCIDENCIA</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($incidencias as $item)
                         <tr class="table-data">
-                            {{-- Nombre de la Verificación (ListaVerificacion_nombre) --}}
-                            <td class="letracontainer">
-                                {{ $item->listaVerificacion->ListaVerificacion_nombre ?? 'N/A' }}
-                            </td>
-                            {{-- Observaciones de la Incidencia (IncidenciasMovimiento_observaciones) --}}
-                            <td class="letracontainer">
-                                {{ $item->IncidenciasMovimiento_observaciones }}
-                            </td>
+                            <td>{{ $item->listaVerificacion->ListaVerificacion_nombre ?? 'N/A' }}</td>
+                            <td>{{ $item->IncidenciasMovimiento_observaciones }}</td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
 
-        <div
-            style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd; text-align: center; font-size: 10px; color: #777;">
+        <div style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd; text-align: center; font-size: 10px; color: #777;">
             <p>Este es un correo generado automáticamente. Por favor, no responder a este mensaje.</p>
         </div>
-
-
     </div>
 </body>
-
 </html>

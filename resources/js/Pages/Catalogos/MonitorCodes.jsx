@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import Datatable from "@/Components/Datatable";
 import LoadingDiv from "@/Components/LoadingDiv";
 import request from "@/utils";
-import { Truck, UsersRound, SendHorizontal } from 'lucide-react';
+import { Truck, UsersRound, SendHorizontal,Check } from 'lucide-react';
 
 
 export default function MonitorCodes() {
@@ -128,7 +128,7 @@ export default function MonitorCodes() {
                             cell: ({ item }) => {
                                 return (
                                     <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                        <SendHorizontal
+                                        <Check
                                             style={{
                                                 width: '20px',
                                                 color: 'green',

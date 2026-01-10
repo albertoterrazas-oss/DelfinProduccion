@@ -955,25 +955,6 @@ export default function QuienConQuienTransporte() {
         }
     };
 
-    // const submitChange = async (data) => {
-    //     try {
-    //         const response = await fetch(route('WhoDestint'), {
-    //             method: "POST",
-    //             body: JSON.stringify({ quienconquien: data, user: userObject.Personas_usuarioID }),
-    //             headers: { "Content-Type": "application/json" }
-    //         });
-
-    //         if (response.ok) {
-    //             toast.success("ACTUALIZADO CORRECTAMENTE");
-    //             fetchData();
-    //         } else {
-    //             toast.error("ERROR AL ACTUALIZAR");
-    //         }
-    //     } catch (error) {
-    //         toast.error("ERROR DE CONEXIÓN");
-    //     }
-    // };
-
     const SubmitQuien = async (e) => {
         try {
             const response = await fetch(route('WhoDestint'), {

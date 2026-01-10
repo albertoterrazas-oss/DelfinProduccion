@@ -828,6 +828,9 @@ class UnidadesController extends Controller
 
         $asignacionesDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
             ->join('dbo.Unidades', 'dbo.ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
+            ->join('dbo.Destinos', 'dbo.ChoferUnidadAsignada.CUA_destino', '=', 'Destinos.Destinos_Id')
+            ->join('dbo.Personas', 'dbo.ChoferUnidadAsignada.CUA_choferID', '=', 'Personas.Personas_usuarioID')
+
             ->select(
                 'dbo.ChoferUnidadAsignada.CUA_unidadID',
                 'dbo.ChoferUnidadAsignada.CUA_choferID',
@@ -838,7 +841,11 @@ class UnidadesController extends Controller
                 'dbo.ChoferUnidadAsignada.CUA_ayudantes',
                 'dbo.ChoferUnidadAsignada.CUA_estatus',
                 'dbo.ChoferUnidadAsignada.CUA_autAdmin',
-                'Unidades.Unidades_numeroEconomico'
+                'Unidades.Unidades_numeroEconomico',
+                'Unidades.Unidades_modelo',
+                'Destinos.Destinos_Nombre',
+                // 'Destinos.Destinos_Nombre',
+                DB::raw("CONCAT(Personas.Personas_nombres, ' ', Personas.Personas_apPaterno, ' ', Personas.Personas_apMaterno) AS nombre_chofer")
             )
             ->where('dbo.ChoferUnidadAsignada.CUA_estatus', 1)
             ->where('dbo.ChoferUnidadAsignada.CUA_autAdmin', 0)
@@ -859,8 +866,6 @@ class UnidadesController extends Controller
         $today = now()->toDateString();
         $filterType = $request->query('id');
 
-        // ... (Obtención de datos y bucle foreach - sin cambios) ...
-
         $unidadesCompletasDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
             ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_choferID')
             ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_destino')
@@ -873,6 +878,7 @@ class UnidadesController extends Controller
                 'dbo.ChoferUnidadAsignada.CUA_destino',
                 'dbo.ChoferUnidadAsignada.CUA_motivoID',
                 'dbo.ChoferUnidadAsignada.CUA_autAdmin',
+                'dbo.ChoferUnidadAsignada.CUA_ayudantes',
 
                 'dbo.ChoferUnidadAsignada.CUA_fechaAsignacion',
                 'Unidades.Unidades_numeroEconomico'
@@ -941,18 +947,45 @@ class UnidadesController extends Controller
     //     }
 
 
+    // public function AuthorizacionQuienCQuien(Request $request)
+    // {
+    //     $id =   $request->input('id');
+
+
+    //     $asignacion = ChoferUnidadAsignar::find($id);
+
+    //     if ($asignacion) {
+    //         $asignacion->update(['CUA_autAdmin' => true]); // O el valor que necesites
+    //     }
+
+    //     return response()->json(['message' => 'Actualizado con éxito']);
+    // }
+
     public function AuthorizacionQuienCQuien(Request $request)
     {
-        $id =   $request->input('id');
-
-
+        $id = $request->input('id');
         $asignacion = ChoferUnidadAsignar::find($id);
 
-        if ($asignacion) {
-            $asignacion->update(['CUA_autAdmin' => true]); // O el valor que necesites
+        // 1. Verificar si el registro existe
+        if (!$asignacion) {
+            return response()->json(['message' => 'Registro no encontrado'], 404);
         }
 
-        return response()->json(['message' => 'Actualizado con éxito']);
+        // 2. Verificar si ya está autorizado (ya es true)
+        if ($asignacion->CUA_autAdmin) {
+            return response()->json([
+                'message' => 'Esta asignación ya había sido autorizada previamente.',
+                'status' => 'already_authorized'
+            ], 200); // O 400 si prefieres que sea un error de cliente
+        }
+
+        // 3. Si no es true, proceder a actualizar
+        $asignacion->update(['CUA_autAdmin' => true]);
+
+        return response()->json([
+            'message' => 'Autorización concedida con éxito',
+            'status' => 'updated'
+        ]);
     }
 
 

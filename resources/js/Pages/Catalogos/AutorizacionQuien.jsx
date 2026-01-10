@@ -78,7 +78,7 @@ export default function QuienConQuienTransporte() {
                                 {
                                     header: "Estatus",
                                     accessor: "Unidades_estatus",
-                                    width: '30%',
+                                    width: '10%',
                                     cell: ({ item: { Unidades_estatus } }) => {
                                         const color = String(Unidades_estatus) === "1"
                                             ? "bg-green-300" // Si es "1"
@@ -89,12 +89,17 @@ export default function QuienConQuienTransporte() {
                                         );
                                     },
                                 },
-                                { header: 'No. Económico', width: '50%', accessor: 'Unidades_numeroEconomico' },
+                                { header: 'No. Económico', width: '20%', accessor: 'Unidades_numeroEconomico' },
+                                { header: 'Modelo Unidad', width: '20%', accessor: 'Unidades_modelo' },
+
+                                { header: 'Destino', width: '20%', accessor: 'Destinos_Nombre' },
+                                { header: 'Chofer', width: '20%', accessor: 'nombre_chofer' },
+
 
                                 {
                                     header: "Acciones",
                                     accessor: "Acciones",
-                                    width: '20%',
+                                    width: '10%',
                                     cell: (eprops) => (
                                         <div style={{
                                             display: 'flex',

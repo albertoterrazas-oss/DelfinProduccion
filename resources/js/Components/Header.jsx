@@ -13,13 +13,13 @@ export default function Header() {
         </div>
 
         <div className="flex flex-col items-end">
-          <Link to={'/dashboard'} className="w-full">
+          <div className="w-full">
             <img
               src={logo}
               alt="Logo delfin"
               className="h-6 sm:h-8"
             />
-          </Link>
+          </div>
         </div>
       </div>
     </header>

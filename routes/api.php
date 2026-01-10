@@ -4,6 +4,7 @@
 
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RolesController;
+// use App\Http\Controllers\Catalogos\AsuntosController;
 use App\Http\Controllers\Catalogs\CodigosController;
 use App\Http\Controllers\Catalogs\CorreosController;
 use App\Http\Controllers\Catalogs\DepartamentoController;
@@ -14,6 +15,10 @@ use App\Http\Controllers\Catalogs\MotivosController;
 use App\Http\Controllers\Catalogs\PuestosController;
 use App\Http\Controllers\Catalogs\RegistroEntradaController;
 use App\Http\Controllers\Catalogs\UnidadesController;
+use App\Http\Controllers\Catalogs\AsuntosController;
+
+
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -91,10 +96,22 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
 
 
      Route::resource('codigos', CodigosController::class)->only([
-        'index',  // Registra el método index (GET)
-        'store',  // Registra el método store (POST)
-        'update'  // Registra el método update (PUT/PATCH)
+        'index',
+        'store',
+        'update'
     ]);
+
+
+    Route::resource('asuntos', AsuntosController::class)->only([
+        'index',
+        'store',
+        'update'
+    ]);
+
+    
+
+
+    
 
     // Route::get('menus-tree', [MenuController::class, 'getTree'])->name('menus-tree');
 
@@ -171,7 +188,7 @@ Route::get('user/menus/{id}', [UserController::class, 'menus'])->name('user.menu
     ]);
 // });
 
-
+Route::post('CodigoverificacionEstado', [CodigosController::class, 'CodigoverificacionEstado'])->name('CodigoverificacionEstado');
 Route::get('rolesxmenu', [RolesController::class, 'getAllRolesMenu'])->name('rolesxmenu.index');
 Route::get('rolesxmenu/{id}', [RolesController::class, 'getRolesMenu'])->name('rolesxmenu.show');
 Route::put('rolesxmenu/{id}', [RolesController::class, 'rolesxmenu'])->name('rolesxmenu.update');

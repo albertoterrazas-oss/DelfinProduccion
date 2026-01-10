@@ -7,235 +7,6 @@ import ComponenteVerificacion from "./ListaVerificacionImagenes";
 import { Dialog, DialogPanel, DialogTitle, Transition } from '@headlessui/react';
 import AuthorizationModal from './AuthorizationModal';
 
-// const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
-//     const [code, setCode] = useState('');
-//     const [error, setError] = useState('');
-//     const CODE_LENGTH = 6;
-//     const digitBoxes = Array(CODE_LENGTH).fill(0);
-
-//     if (!isOpen) return null;
-
-//     const handleConfirm = async () => {
-//         try {
-//             if (code.length !== CODE_LENGTH) {
-//                 setError('El código debe tener 6 dígitos.');
-//                 return;
-//             }
-
-//             toast.info("Verificando código de autorización...");
-
-//             // **IMPORTANTE**: Asegúrate de que `route('verifycode')` apunta al endpoint correcto
-//             const response = await fetch(route('verifycode'), {
-//                 method: 'POST',
-//                 body: JSON.stringify({ unit: data.unit, code: code,type:data.movementType }),
-//                 headers: { 'Content-Type': 'application/json' },
-//             });
-
-//             if (!response.ok) {
-//                 const errorText = await response.text();
-//                 toast.error(`Código incorrecto o error del servidor: ${errorText}`);
-//                 setError('Código incorrecto o expirado.');
-//                 throw new Error("Respuesta de verifycode no ok");
-//             }
-
-//             // Si es exitoso
-//             setCode('');
-//             setError('');
-//             onAuthorize(code); // Llama a onAuthorize con el código validado
-//             toast.success("Autorización completada y verificada.");
-
-//         } catch (err) {
-//             console.error('Error en el proceso de verificación de código:', err);
-//             if (!error) {
-//                 toast.error('Fallo de comunicación con el servidor.');
-//             }
-//         }
-//     };
-
-//     const handleInputChange = (e) => {
-//         const value = e.target.value.replace(/\D/g, '').substring(0, CODE_LENGTH);
-//         setCode(value);
-//         setError('');
-//     };
-
-//     const focusInput = () => {
-//         document.getElementById('auth-code-input').focus();
-//     };
-
-//     return (
-//         <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
-//             <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative">
-
-//                 {/* BOTÓN DE CIERRE (X) */}
-//                 <button
-//                     onClick={onClose}
-//                     className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 p-1 rounded-full hover:bg-gray-100"
-//                     aria-label="Cerrar modal"
-//                 >
-//                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-//                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-//                     </svg>
-//                 </button>
-//                 {/* FIN BOTÓN DE CIERRE */}
-
-//                 <h2 className="text-xl font-bold text-gray-900 mb-4">Código de Autorización</h2>
-//                 <p className="text-sm text-gray-600 mb-4">
-//                     Introduce el código de 6 dígitos para continuar.
-//                 </p>
-
-//                 <div className="mb-6 flex flex-col items-center">
-
-//                     <div
-//                         className="flex justify-center space-x-2 mb-4 cursor-text"
-//                         onClick={focusInput}
-//                     >
-//                         {digitBoxes.map((_, index) => {
-//                             const digit = code[index] || '';
-//                             const isActive = index === code.length;
-
-//                             return (
-//                                 <div
-//                                     key={index}
-//                                     className={`w-10 h-12 flex items-center justify-center text-xl font-mono border-2 rounded-lg 
-//                                     ${isActive
-//                                             ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50'
-//                                             : 'border-gray-300 bg-gray-100'}
-//                                         transition-all duration-150`}
-//                                 >
-//                                     {digit}
-//                                 </div>
-//                             );
-//                         })}
-//                     </div>
-
-//                     {/* Input invisible real que captura el valor */}
-//                     <input
-//                         id="auth-code-input"
-//                         type="tel"
-//                         maxLength={CODE_LENGTH}
-//                         value={code}
-//                         onChange={handleInputChange}
-//                         onBlur={() => {
-//                             if (code.length !== CODE_LENGTH && code.length > 0) {
-//                                 setError('Faltan dígitos.');
-//                             } else if (code.length === CODE_LENGTH) {
-//                                 setError('');
-//                             }
-//                         }}
-//                         className="absolute opacity-0 w-0 h-0 p-0 m-0 overflow-hidden"
-//                         autoFocus
-//                     />
-
-//                     {error && <p className="mt-2 text-sm text-red-600 text-center">{error}</p>}
-//                 </div>
-
-//                 <button
-//                     onClick={handleConfirm}
-//                     disabled={code.length !== CODE_LENGTH || !!error}
-//                     className={`w-full py-3 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 
-//                         ${code.length === CODE_LENGTH && !error ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
-//                 >
-//                     Confirmar Código
-//                 </button>
-//             </div>
-//         </div>
-//     );
-// };
-
-
-
-// const ListaVerificacionModal = ({ isOpen, onClose, onAuthorize, data }) => {
-// const AuthorizationModal = ({ isOpen, onClose, onAuthorize, data }) => {
-//     const [code, setCode] = useState('');
-//     const [error, setError] = useState('');
-//     const CODE_LENGTH = 6;
-//     const digitBoxes = Array(CODE_LENGTH).fill(0);
-
-//     if (!isOpen) return null;
-
-//     const handleConfirm = async () => {
-//     };
-
-//     const handleInputChange = (e) => {
-//     };
-
-//     const focusInput = () => {
-//         document.getElementById('auth-code-input').focus();
-//     };
-
-//     return (
-//         <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
-//             <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative">
-//                 {/* BOTÓN DE CIERRE (X) */}
-//                 <button
-//                     onClick={onClose}
-//                     className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors duration-150 p-1 rounded-full hover:bg-gray-100"
-//                     aria-label="Cerrar modal"
-//                 >
-//                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-//                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-//                     </svg>
-//                 </button>
-//                 {/* FIN BOTÓN DE CIERRE */}
-//                 <h2 className="text-xl font-bold text-gray-900 mb-4">Código de Autorización</h2>
-//                 <p className="text-sm text-gray-600 mb-4">
-//                     Introduce el código de 6 dígitos para continuar.
-//                 </p>
-//                 <div className="mb-6 flex flex-col items-center">
-//                     <div
-//                         className="flex justify-center space-x-2 mb-4 cursor-text"
-//                         onClick={focusInput}
-//                     >
-//                         {digitBoxes.map((_, index) => {
-//                             const digit = code[index] || '';
-//                             const isActive = index === code.length;
-
-//                             return (
-//                                 <div
-//                                     key={index}
-//                                     className={`w-10 h-12 flex items-center justify-center text-xl font-mono border-2 rounded-lg 
-//                                     ${isActive
-//                                             ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50'
-//                                             : 'border-gray-300 bg-gray-100'}
-//                                         transition-all duration-150`}
-//                                 >
-//                                     {digit}
-//                                 </div>
-//                             );
-//                         })}
-//                     </div>
-//                     {/* Input invisible real que captura el valor */}
-//                     <input
-//                         id="auth-code-input"
-//                         type="tel"
-//                         maxLength={CODE_LENGTH}
-//                         value={code}
-//                         onChange={handleInputChange}
-//                         onBlur={() => {
-//                             if (code.length !== CODE_LENGTH && code.length > 0) {
-//                                 setError('Faltan dígitos.');
-//                             } else if (code.length === CODE_LENGTH) {
-//                                 setError('');
-//                             }
-//                         }}
-//                         className="absolute opacity-0 w-0 h-0 p-0 m-0 overflow-hidden"
-//                         autoFocus
-//                     />
-//                     {error && <p className="mt-2 text-sm text-red-600 text-center">{error}</p>}
-//                 </div>
-//                 <button
-//                     onClick={handleConfirm}
-//                     disabled={code.length !== CODE_LENGTH || !!error}
-//                     className={`w-full py-3 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 
-//                         ${code.length === CODE_LENGTH && !error ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
-//                 >
-//                     Confirmar Código
-//                 </button>
-//             </div>
-//         </div>
-//     );
-// };
-
 const FUEL_OPTIONS = [
     { nombre: '1/8', escala_valor: 1, litros: 5 },
     { nombre: '1/4', escala_valor: 2, litros: 10 },
@@ -268,7 +39,8 @@ const RegistroYSalidaUnificado = () => {
         checklist: [],
         authorizationCode: '',
         user: userObject.Personas_usuarioID,
-        estatusCode: 0
+        estatusCode: 0,
+        Ayudantes: ''
     };
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
@@ -594,9 +366,11 @@ const RegistroYSalidaUnificado = () => {
     );
 
     const ResumenItem = ({ label, value }) => (
-        <div className="flex justify-between items-center py-1 border-b border-gray-200">
-            <span className="text-sm font-medium text-gray-600">{label}</span>
-            <span className="text-sm font-semibold text-gray-800">{value}</span>
+        <div className="flex justify-between items-start py-2 border-b border-gray-200 gap-4">
+            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">{label}</span>
+            <span className="text-sm font-semibold text-gray-800 text-right break-words max-w-[70%]">
+                {value}
+            </span>
         </div>
     );
 
@@ -665,6 +439,8 @@ const RegistroYSalidaUnificado = () => {
                 motive: Number(QuienConQuien.CUA_motivoID),
                 destination: Number(QuienConQuien.CUA_destino),
                 driver: Number(QuienConQuien.CUA_choferID),
+                Ayudantes: QuienConQuien.CUA_ayudantes,
+
                 // kilometers se carga en fetchUltimosMovimientos
             }));
             if (QuienConQuien.EstatusCodigo === "1") {
@@ -693,25 +469,14 @@ const RegistroYSalidaUnificado = () => {
     return (
         <div className={`flex flex-col gap-4 ${isModalOpen ? 'opacity-50 pointer-events-none' : ''}`}>
             <div className='flex flex-col gap-4'>
-                {/* <button onClick={() => setIsModalOpen(true)}>smn</button> */}
-                <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 pt-4">
-                    Registro Único de Movimientos
-                </h1>
-
+               
                 {/* Header con info responsiva */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-white p-4 rounded-xl shadow-md">
                     <div className="text-sm sm:text-lg font-bold text-gray-800">
-                        Unidad: <span className="text-blue-600">{informacion.NombreUnidad || '—'}</span>
+                        {/* Unidad: <span className="text-blue-600">{informacion.NombreUnidad || '—'}</span> */}
+                         Registro Único de Movimientos: <span className="text-blue-600"> Unidad- {informacion.NombreUnidad || 'S/N'}</span>
                     </div>
-                    <div className="text-sm sm:text-lg font-bold text-gray-800">
-                        Chofer: <span className="text-blue-600">{informacion.NombreOperador || '—'}</span>
-                    </div>
-                    <div className={`px-4 py-2 rounded-full font-semibold text-sm ${form.authorizationCode ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                        Autorización: <span className="font-bold">
-                            {form.authorizationCode ? '✅ Otorgada' : '❌ Pendiente'}
-                        </span>
-                    </div>
+                   
                 </div>
             </div>
 
@@ -835,8 +600,8 @@ const RegistroYSalidaUnificado = () => {
                                         setForm({ ...form, kilometers: e.target.value });
                                     }}
                                     className={`p-3 border rounded-lg focus:outline-none focus:ring-2 ${!isKmValid && form.movementType === 'ENTRADA' && form.kilometers !== 0
-                                            ? 'border-red-500 focus:ring-red-400'
-                                            : 'border-gray-300 focus:ring-blue-400'
+                                        ? 'border-red-500 focus:ring-red-400'
+                                        : 'border-gray-300 focus:ring-blue-400'
                                         }`}
                                 />
                                 {!isKmValid && form.movementType === 'ENTRADA' && form.kilometers !== 0 && (
@@ -900,8 +665,8 @@ const RegistroYSalidaUnificado = () => {
                         onClick={CrearAsignacion}
                         disabled={isSubmitting || !isFormValid}
                         className={`w-full py-3 text-white text-base sm:text-lg font-bold rounded-lg shadow-xl transition-colors ${isSubmitting || !isFormValid
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-600 hover:bg-blue-700'
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-700'
                             }`}
                     >
                         {buttonText}
@@ -919,7 +684,7 @@ const RegistroYSalidaUnificado = () => {
                         <h3 className="text-md font-semibold text-gray-700">Datos Clave</h3>
                         <ResumenItem label="Tipo de Movimiento" value={form.movementType} />
                         <ResumenItem label="Unidad" value={informacion.NombreUnidad || '—'} />
-                        <ResumenItem label="Chofer" value={informacion.NombreOperador || '—'} />
+                        <ResumenItem label="Ayudantes" value={form.Ayudantes || '—'} />
                         <hr className="my-1 border-gray-100" />
                         <ResumenItem
                             label="Motivo"

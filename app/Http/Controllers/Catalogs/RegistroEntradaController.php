@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Catalogs;
 
 use App\Http\Controllers\Controller;
 use App\Mail\CodigoVerificacion;
+
+use App\Mail\CodigoAutorizacionQuiencQuien;
+
+
 use App\Mail\ConfiguracionCorreo;
 use App\Mail\MailTest;
 use App\Models\Catalogos\Unidades;
@@ -12,10 +16,12 @@ use App\Models\Catalogos\ChoferUnidadAsignar;
 use App\Models\Catalogos\CodigoAutorizacion;
 use App\Models\Catalogos\ConfiguracionCorreo as CatalogosConfiguracionCorreo;
 use App\Models\Catalogos\CorreoNotificacion;
+use App\Models\Catalogos\Destinos;
 use App\Models\Catalogos\IncidenciasMovimiento;
 use App\Models\Catalogos\ListaVerificacion;
 use App\Models\Catalogos\Movimientos;
 use Carbon\Carbon;
+use Illuminate\Foundation\Auth\User as AuthUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -128,16 +134,29 @@ class RegistroEntradaController extends Controller
                 ];
 
                 $codigo_creado = CodigoAutorizacion::create($authorizationData);
-
-                // --- B. Enviar Correo de Notificación ---
                 $this->configEmail();
 
-                $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
+                $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)
+                    ->whereHas('asunto', function ($query) {
+                        $query->where('Asuntos_nombre', 'NOTIFICACION INCIDENCIAS');
+                    })->get();
+
+
+                // dd($Correos->get());
+
+
+                $Destino = Destinos::find($asignacion->CUA_destino);
+                $Operador = User::find($asignacion->CUA_choferID);
 
                 $Datos = (object) [
                     "Titulo" => "CORREO DE INCIDENCIAS: " . $request->movementType . ", CON LA UNIDAD: " . $unidad->Unidades_numeroEconomico,
                     "Incidencias" => $incidenciasGuardadas,
                     "Codigo" => $codigo_autorizacion,
+                    "QconQuienUnidad" => $request->unit,
+                    "Unidad" => $unidad->Unidades_numeroEconomico,
+                    "TipoMovimiento" => $request->movementType,
+                    "Operador" => $Operador->Personas_nombres . " " . $Operador->Personas_apPaterno . " " . $Operador->Personas_apMaterno,
+                    "Destino" => $Destino->Destinos_Nombre,
                 ];
 
                 if ($Correos->isNotEmpty()) {
@@ -489,72 +508,86 @@ class RegistroEntradaController extends Controller
         }
     }
 
-
     public function WhoDestint(Request $request)
     {
         $quienConQuien = $request->input('quienconquien');
-        $user = $request->input('user');
+        $userId = $request->input('user');
 
         $unidadID = $quienConQuien['CUA_unidadID'];
         $choferID = $quienConQuien['CUA_choferID'] ?? null;
-        $destino = $quienConQuien['CUA_destino'] ?? null;
+        $destinoID = $quienConQuien['CUA_destino'] ?? null;
         $motivoID = $quienConQuien['CUA_motivoID'] ?? null;
         $ayudanteID = $quienConQuien['CUA_ayudanteID'] ?? null;
 
-        // 1. Buscar asignación activa para la unidad
-        $asignacionExistente = ChoferUnidadAsignar::where('CUA_unidadID', $unidadID)
+        // 1. Validar que la unidad existe
+        $unidad = Unidades::find($unidadID);
+        if (!$unidad) {
+            return response()->json(['success' => false, 'message' => 'La unidad especificada no existe.'], 404);
+        }
+
+        // 2. Preparar datos base
+        $datosAsignacion = [
+            'CUA_choferID'   => $choferID,
+            'CUA_ayudanteID' => $ayudanteID,
+            'CUA_motivoID'   => $motivoID,
+            'CUA_destino'    => $destinoID,
+            'CUA_usuarioId'  => $userId,
+            'CUA_autAdmin'   => 0,
+            'CUA_fechaAsignacion' => date('Ymd H:i:s'), // Formato YYYYMMDD es el más seguro en SQL Server
+        ];
+
+        // 3. Buscar o Crear/Actualizar la asignación
+        $asignacion = ChoferUnidadAsignar::where('CUA_unidadID', $unidadID)
             ->where('CUA_estatus', 1)
             ->first();
 
-        // Datos del request para la comparación/actualización/creación
-        $nuevosDatos = [
-            'CUA_choferID' => $choferID,
-            'CUA_ayudanteID' => $ayudanteID,
-            'CUA_motivoID' => $motivoID,
-            'CUA_destino' => $destino,
-            'CUA_usuarioId' => $user,
-            'CUA_autAdmin' => 0,
-        ];
-
-        // 2. Si NO existe una asignación activa, la creamos directamente.
-        if (!$asignacionExistente) {
-            $datosAsignacion = array_merge($nuevosDatos, [
-                'CUA_unidadID' => $unidadID,
-                'CUA_fechaAsignacion' => DB::raw('GETDATE()'),
-                'CUA_estatus' => 1,
-            ]);
-            ChoferUnidadAsignar::create($datosAsignacion);
+        if (!$asignacion) {
+            // CREAR NUEVA: Asignamos el ID de unidad y estatus al array
+            $datosAsignacion['CUA_unidadID'] = $unidadID;
+            $datosAsignacion['CUA_estatus'] = 1;
+            $asignacion = ChoferUnidadAsignar::create($datosAsignacion);
         } else {
+            // ACTUALIZAR EXISTENTE
+            $asignacion->update($datosAsignacion);
+        }
 
-            $asignacionExistente->update(array_merge($nuevosDatos, [
-                'CUA_fechaAsignacion' => DB::raw('GETDATE()'),
-            ]));
+        try {
+            $correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)
+                ->whereHas('asunto', function ($query) {
+                    $query->where('Asuntos_nombre', 'NOTIFICACION QUIEN CON QUIEN');
+                })
+                ->pluck('correoNotificaciones_correo');
+
+            if ($correos->isNotEmpty()) {
+                $this->configEmail(); // Configurar solo si hay correos
+                $destino = Destinos::find($destinoID);
+
+                $Operador = User::find($choferID);
+
+                $datosEmail = (object) [
+                    "Titulo"          => "CORREO DE ACEPTACION DE QUIEN CON QUIEN",
+                    "QconQuienUnidad" => $asignacion->CUA_asignacionID, // Usamos $asignacion que siempre existe ahora
+                    "Unidad"          => "Modelo: " . $unidad->Unidades_modelo . "-" . "Numero Economico: " . $unidad->Unidades_numeroEconomico,
+                    "User"            => $userId,
+                    "Operador"        => $Operador->Personas_nombres . " " . $Operador->Personas_apPaterno . " " . $Operador->Personas_apMaterno,
+                    "Destino"         => $destino ? $destino->Destinos_Nombre : 'N/D',
+                ];
+
+                foreach ($correos as $destinatario) {
+                    Mail::to($destinatario)->send(new CodigoAutorizacionQuiencQuien($datosEmail));
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error("Error enviando correos en WhoDestint: " . $e->getMessage());
+            // No retornamos error aquí para que el usuario sepa que la DB sí se guardó
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Asignaciones procesadas.',
+            'message' => 'Asignación procesada correctamente.',
         ]);
     }
 
-
-    //  public function WhoAyudantes(Request $request)
-    // {
-    //     $quienConQuien = $request->input('quienconquien');
-    //     $user = $request->input('user');
-    //     $seleccionados = $request->input('seleccionados');
-    //     $asignacionExistente = ChoferUnidadAsignar::find($quienConQuien['CUA_asignacionID'] )
-    //         ->first();
-    //  $asignacionExistente->update( [
-    //             'CUA_ayudantes' => DB::raw('GETDATE()'),
-    //         ]));
-
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'ACTUALIZACION DE AYUDANTES.',
-    //     ]);
-    // }
 
     public function WhoAyudantes(request $request)
     {
@@ -649,16 +682,7 @@ class RegistroEntradaController extends Controller
         try {
             $this->configEmail();
             $destinatario = $request->input('destinatario');
-
-            // $Correos = CorreoNotificacion::where('correoNotificaciones_estatus', true)->get();
-
-            // if ($Correos->isNotEmpty()) {
-            //     foreach ($Correos as $correo) {
-            //         $destinatario = $correo->correoNotificaciones_correo;
             Mail::to($destinatario)->send(new MailTest());
-            //     }
-            // }
-
             return response()->json(['message' => 'Correo de prueba enviado exitosamente.'], 200);
         } catch (\Exception $e) {
             return response()->json([
