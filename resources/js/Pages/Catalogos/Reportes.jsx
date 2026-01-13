@@ -290,6 +290,7 @@ export default function Reportes() {
                     Movimientos
                 </h2>
                 <Datatable
+                    className="!max-h-[35dvh]"
                     data={reportes.viajes_completos_rendimiento}
                     virtual={true}
                     searcher={false}
@@ -313,6 +314,7 @@ export default function Reportes() {
                     Incidencias
                 </h2>
                 <Datatable
+                    className="!max-h-[35dvh]"
                     data={reportes.incidencias}
                     virtual={true}
                     searcher={false}

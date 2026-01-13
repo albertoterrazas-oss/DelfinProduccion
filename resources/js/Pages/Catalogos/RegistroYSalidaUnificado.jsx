@@ -468,7 +468,7 @@ const RegistroYSalidaUnificado = () => {
 
     return (
         <div className={`flex flex-col gap-4 ${isModalOpen ? 'opacity-50 pointer-events-none' : ''}`}>
-            <div className='flex flex-col gap-4'>
+            <div className='flex flex-col gap-4 pt-4'>
                
                 {/* Header con info responsiva */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-white p-4 rounded-xl shadow-md">

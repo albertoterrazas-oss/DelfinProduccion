@@ -422,6 +422,27 @@ class UnidadesController extends Controller
                 $kilometraje = (float) $movimiento->Movimientos_kilometraje;
                 $combustible = (float) $movimiento->Movimientos_combustible;
 
+                $incidencias[] = [
+                    'movimiento_id' => $movimiento->IncidenciasMovimiento_movimientoID,
+                    'usuario_id' => $movimiento->IncidenciasMovimiento_usuarioID,
+                    'observaciones' => $movimiento->IncidenciasMovimiento_observaciones,
+                    'unidad' => $movimiento->Unidades_numeroEconomico,
+                    'Movimientos_tipoMovimiento' => $movimiento->Movimientos_tipoMovimiento,
+
+                    // 'lista_verificacion' => [
+                    'lista_verf_lista_id' => $movimiento->ListaVerificacion_listaID,
+                    'lista_verf_nombre' => $movimiento->ListaVerificacion_nombre,
+                    'lista_verf_tipo' => $movimiento->ListaVerificacion_tipo,
+                    'lista_verf_observaciones' => $movimiento->ListaVerificacion_observaciones,
+                    'lista_verf_usuario_id' => $movimiento->ListaVerificacion_usuarioID,
+                    'lista_verf_imgVehiculo' => $movimiento->ListaVerificacion_imgVehiculo,
+                    // ],
+
+                    // opcional pero útil
+                    'Movimientos_fecha' => $movimiento->Movimientos_fecha,
+                    'asignacion_id' => $asignacionID,
+                ];
+
                 if ($movimiento->Movimientos_tipoMovimiento == 'SALIDA') {
                     // SI YA HABÍA UNA SALIDA PENDIENTE, LA ASIGNAMOS COMO PENDIENTE ANTES DE SOBREESCRIBIRLA
                     if ($salida) {
@@ -488,27 +509,6 @@ class UnidadesController extends Controller
                         'combustible_entrada' => $combustible,
                         'combustible_consumido' => round($combustibleConsumido, 4),
                         'rendimiento_kml' => round($rendimiento, 4),
-                    ];
-
-                    $incidencias[] = [
-                        'movimiento_id' => $movimiento->IncidenciasMovimiento_movimientoID,
-                        'usuario_id' => $movimiento->IncidenciasMovimiento_usuarioID,
-                        'observaciones' => $movimiento->IncidenciasMovimiento_observaciones,
-                        'unidad' => $movimiento->Unidades_numeroEconomico,
-                        'Movimientos_tipoMovimiento' => $movimiento->Movimientos_tipoMovimiento,
-
-                        // 'lista_verificacion' => [
-                            'lista_verf_lista_id' => $movimiento->ListaVerificacion_listaID,
-                            'lista_verf_nombre' => $movimiento->ListaVerificacion_nombre,
-                            'lista_verf_tipo' => $movimiento->ListaVerificacion_tipo,
-                            'lista_verf_observaciones' => $movimiento->ListaVerificacion_observaciones,
-                            'lista_verf_usuario_id' => $movimiento->ListaVerificacion_usuarioID,
-                            'lista_verf_imgVehiculo' => $movimiento->ListaVerificacion_imgVehiculo,
-                        // ],
-
-                        // opcional pero útil
-                        'Movimientos_fecha' => $movimiento->Movimientos_fecha,
-                        'asignacion_id' => $asignacionID,
                     ];
 
                     // REINICIAR LA SALIDA PARA EL SIGUIENTE PAR
@@ -866,8 +866,8 @@ class UnidadesController extends Controller
         $today = now()->toDateString();
         $filterType = $request->query('id');
 
-        $unidadesCompletasDeHoy = ChoferUnidadAsignar::whereDate('CUA_fechaAsignacion', $today)
-            ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_choferID')
+        $unidadesCompletasDeHoy = ChoferUnidadAsignar:: //whereDate('CUA_fechaAsignacion', $today)
+            whereNotNull('dbo.ChoferUnidadAsignada.CUA_choferID')
             ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_destino')
             ->whereNotNull('dbo.ChoferUnidadAsignada.CUA_motivoID')
             ->join('dbo.Unidades', 'dbo.ChoferUnidadAsignada.CUA_unidadID', '=', 'Unidades.Unidades_unidadID')
@@ -921,9 +921,22 @@ class UnidadesController extends Controller
                 }
 
                 // FILTRO SALIDA: Muestra las unidades que tienen ENTRADA o no tienen movimiento (están listas para salir).
+                // if ($filterType === 'SALIDA') {
+                //     return $unidad->type === 'ENTRADA' || ($unidad->type === 'SALIDA' && $unidad->ultimoMovimiento === null && $unidad->CUA_autAdmin
+                //         == 1);
+                // }
+
                 if ($filterType === 'SALIDA') {
-                    return $unidad->type === 'ENTRADA' || ($unidad->type === 'SALIDA' && $unidad->ultimoMovimiento === null && $unidad->CUA_autAdmin
-                        == 1);
+                    return (
+                        // Caso 1: Nunca ha salido
+                        $unidad->ultimoMovimiento === null
+
+                        // Caso 2: Ya tuvo ENTRADA (puede volver a salir)
+                        || $unidad->ultimoMovimiento->Movimientos_tipoMovimiento === 'ENTRADA'
+                    )
+                        //  PERO SOLO SI LA ASIGNACIÓN ES DE HOY
+                        && \Carbon\Carbon::parse($unidad->CUA_fechaAsignacion)->isToday()
+                        && $unidad->CUA_autAdmin == 1;
                 }
 
                 return false;
