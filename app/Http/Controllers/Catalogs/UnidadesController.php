@@ -447,6 +447,35 @@ class UnidadesController extends Controller
                     // SI YA HABÍA UNA SALIDA PENDIENTE, LA ASIGNAMOS COMO PENDIENTE ANTES DE SOBREESCRIBIRLA
                     if ($salida) {
                         $movimientosPendientes[] = $salida;
+                        $viajesCompletos[] = [
+                            'asignacion_id' => $asignacionID,
+                            'nombre_chofer' => $salida->nombre_chofer,
+
+                            // ayudantes
+                            'ayudante1' => $salida->ayudante1,
+                            'ayudante2' => $salida->ayudante2,
+                            'ayudante3' => $salida->ayudante3,
+                            'ayudante4' => $salida->ayudante4,
+                            'ayudante5' => $salida->ayudante5,
+
+                            'Unidades_numeroEconomico' => $salida->Unidades_numeroEconomico,
+                            'destino' => $salida->Destinos_Nombre,
+                            'motivo' => $salida->Motivos_nombre,
+
+                            // FECHAS
+                            'fecha_salida' => $salida->Movimientos_fecha,
+                            'fecha_entrada' => null,
+
+                            // MÉTRICAS
+                            'km_recorridos' => null,
+                            'combustible_salida' => (float) $salida->Movimientos_combustible,
+                            'combustible_entrada' => null,
+                            'combustible_consumido' => null,
+                            'rendimiento_kml' => null,
+
+                            // OPCIONAL PERO ÚTIL
+                            'viaje_incompleto' => true,
+                        ];
                     }
                     $salida = $movimiento; // ALMACENAR LA NUEVA SALIDA
                 } elseif ($movimiento->Movimientos_tipoMovimiento == 'ENTRADA' && $salida) {
@@ -519,6 +548,32 @@ class UnidadesController extends Controller
             // SI AL FINAL DEL GRUPO QUEDA UNA SALIDA SIN EMPAREJAR, ES UN MOVIMIENTO PENDIENTE
             if ($salida) {
                 $movimientosPendientes[] = $salida;
+
+                $viajesCompletos[] = [
+                    'asignacion_id' => $asignacionID,
+                    'nombre_chofer' => $salida->nombre_chofer,
+
+                    'ayudante1' => $salida->ayudante1,
+                    'ayudante2' => $salida->ayudante2,
+                    'ayudante3' => $salida->ayudante3,
+                    'ayudante4' => $salida->ayudante4,
+                    'ayudante5' => $salida->ayudante5,
+
+                    'Unidades_numeroEconomico' => $salida->Unidades_numeroEconomico,
+                    'destino' => $salida->Destinos_Nombre,
+                    'motivo' => $salida->Motivos_nombre,
+
+                    'fecha_salida' => $salida->Movimientos_fecha,
+                    'fecha_entrada' => null,
+
+                    'km_recorridos' => null,
+                    'combustible_salida' => (float) $salida->Movimientos_combustible,
+                    'combustible_entrada' => null,
+                    'combustible_consumido' => null,
+                    'rendimiento_kml' => null,
+
+                    'viaje_incompleto' => true,
+                ];
             }
         }
 
